@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="../main.css">
+    <title>Convex Hull</title>
+</head>
+
+<body>
+    <h1>Convex Hull</h1>
+    <form name="algos" id="right_bar">
+        <div>
+            <legend>Wähle einen Algorithmus</legend>                
+            <input type="radio" id="gs" name="choices" value="grahams_scan" checked>
+            <label for="gs">Graham’s Scan</label>
+            <br>
+            <input type="radio" id="jm" name="choices" value="jarvis_march">
+            <label for="jm">Jarvis’ March</label>
+        </div>
+    </form>
+    <canvas id="can"></canvas>
+    <script src="../utils/vector.js"></script>
+    <script src="algos.js"></script>
+    <script src="draw.js"></script>
+</body>
+
+</html>

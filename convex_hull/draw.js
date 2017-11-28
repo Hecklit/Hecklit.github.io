@@ -3,7 +3,7 @@ const ctx = can.getContext('2d');
 const width = can.width = window.innerWidth *0.8;
 const height = can.height = window.innerHeight *0.8;
 let canRect = can.getBoundingClientRect();
-const points = [new v2(100, 100), new v2(150, 150), new v2(200, 100), new v2(300, 10)];
+const points = [new v2(100, 100), new v2(150, 150), new v2(200, 100)];
 const psize = 4;
 let mouseDown = false;
 let algoRythm = 'grahams_scan';
@@ -63,6 +63,9 @@ function calcConvexHull(points) {
     clear();
     onUpdate();
     let convexHull = [];
+    if(points.length < 1) {
+        return convexHull;
+    }
     switch (algoRythm) {
         case 'grahams_scan':
             ctx.strokeStyle = "#F00";
