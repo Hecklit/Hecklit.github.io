@@ -76,6 +76,7 @@ can.onmouseup = (e) => {
         // Start with Algo
         events = generateEvents(lines);
         intersectionPoints = intersectIsoOritentedLineSeg(events);
+        console.log(intersectionPoints.length)
         interP = intersectionPoints;
         // draw Points
         for (let i = 0; i < intersectionPoints.length; i++) {
