@@ -3,14 +3,14 @@ class Node {
         this.left = null;
         this.right = null;
         this.key = key;
-        this.sibling_left = null;
-        this.sibling_right = null;
+        this.left_successor = null;
+        this.right_successor = null;
     }
 
     toString() {
-        const left = (this.sibling_left)? this.sibling_left.key : null;
-        const right = (this.sibling_right)? this.sibling_right.key : null;
-        return `(${right})\n  ${this.key}\n(${left})`
+        const right_successor = (this.right_successor)? this.right_successor.key : null;
+        const left_successor = (this.left_successor)? this.left_successor.key : null;
+        return `(${right_successor})\n  ${this.key}\n(${left_successor})`
     }
 }
 
@@ -22,40 +22,103 @@ class AVLTree {
         this.balance = 0;
     }
 
-    insert(key) {
+    insert(key, smaller=[], bigger=[]) {
         const n = new Node(key);
 
         if(this.node === null) {
             this.node = n;
             this.node.left = new AVLTree();
             this.node.right = new AVLTree();
+            const left_successor = this.findMax(smaller);
+            if(left_successor !== undefined) {
+                left_successor.right_successor = this.node;
+                this.node.left_successor = left_successor;
+            }
+            const right_successor = this.findMin(bigger)
+            if(right_successor !== undefined) {
+                right_successor.left_successor = this.node;
+                this.node.right_successor = right_successor;
+            }
         } else if(key < this.node.key) {
-            this.node.left.insert(key);
+            bigger.push(this.node);
+            this.node.left.insert(key, smaller, bigger);
         } else if(key > this.node.key) {
-            this.node.right.insert(key);
+            smaller.push(this.node);
+            this.node.right.insert(key, smaller, bigger);
         }
         this.rebalance();
-        this.resibling();
     }
 
-    resibling() {
-        const inOrderNodes = this.inorder_traverse(true);
-        for (let i = 0; i < inOrderNodes.length; i++) {
-            const node = inOrderNodes[i];
-            if(i === 0 && i === inOrderNodes.length-1) {
-                node.sibling_left = null;
-                node.sibling_right = null;
-            }else if(i === 0) {
-                node.sibling_left = null;
-                node.sibling_right = inOrderNodes[i+1]
-            }else if(i === inOrderNodes.length-1) {
-                node.sibling_left = inOrderNodes[i-1];
-                node.sibling_right = null;
-            }else {
-                node.sibling_left = inOrderNodes[i-1]
-                node.sibling_right = inOrderNodes[i+1]
+
+    delete(key, smaller=[], bigger=[]) {
+        if(this.node) {
+            if(this.node.key === key) {
+                // Change successors
+                if(this.node.left_successor && this.node.right_successor) {
+                    // has both successors
+                    this.node.left_successor.right_successor = this.node.right_successor;
+                    this.node.right_successor.left_successor = this.node.left_successor;
+                }else if(this.node.left_successor) {
+                    // has only left successor
+                    this.node.left_successor.right_successor = null;
+                }else if(this.node.right_successor) {
+                    // has only right successor
+                    this.node.right_successor.left_successor = null;
+                }
+                if(!this.node.left.node && !this.node.right.node) {
+                    // no child
+                    this.node = null;
+                }else if(!this.node.left.node) {
+                    // one child (right)
+                    this.node = this.node.right.node;
+                }else if(!this.node.right.node) {
+                    // one child (left)
+                    this.node = this.node.left.node;
+                }else{
+                    // two children
+                    let successor = this.node.right.node;
+                    while(successor && successor.left.node) {
+                        successor = successor.left.node;
+                    }
+
+                    if(successor) {
+                        this.node.key = successor.key;
+
+                        this.node.right.delete(successor.key)
+                    }
+                }
+            }else if(key < this.node.key) {
+                bigger.push(this.node);
+                this.node.left.delete(key, smaller, bigger);
+            }else if(key > this.node.key) {
+                smaller.push(this.node);
+                this.node.right.delete(key, smaller, bigger);
+            }
+
+            this.rebalance();
+        }
+    }
+
+    findMax(nodeList) {
+        let current = nodeList[0]
+        for (let i = 1; i < nodeList.length; i++) {
+            const element = nodeList[i];
+            if(element.key > current.key) {
+                current = element;
             }
         }
+        return current;
+    }
+
+    findMin(nodeList) {
+        let current = nodeList[0]
+        for (let i = 1; i < nodeList.length; i++) {
+            const element = nodeList[i];
+            if(element.key < current.key) {
+                current = element;
+            }
+        }
+        return current;
     }
 
     rebalance() {
@@ -140,38 +203,6 @@ class AVLTree {
         new_root.left.node = old_root
     }
 
-    delete(key) {
-        if(this.node) {
-            if(this.node.key === key) {
-                if(!this.node.left.node && !this.node.right.node) {
-                    this.node = null;
-                }else if(!this.node.left.node) {
-                    this.node = this.node.right.node;
-                }else if(!this.node.right.node) {
-                    this.node = this.node.left.node;
-                }else{
-                    let successor = this.node.right.node;
-                    while(successor && successor.left.node) {
-                        successor = successor.left.node;
-                    }
-
-                    if(successor) {
-                        this.node.key = successor.key;
-
-                        this.node.right.delete(successor.key)
-                    }
-                }
-            }else if(key < this.node.key) {
-                this.node.left.delete(key);
-            }else if(key > this.node.key) {
-                this.node.right.delete(key);
-            }
-
-            this.rebalance();
-            this.resibling();
-        }
-    }
-
     inorder_traverse(returnNodes = false) {
         const result = [];
 
@@ -189,35 +220,42 @@ class AVLTree {
         return result;
     }
 
-    rangeQuery(min, max){
-        let current = this.node;
-        let prev = null;
-        while(current){
-              //go to left tree
-              if(current.key  > min){
-                prev = current;
-                current = current.left.node;
-              }//else go to right tree
-              else if(current.key < min){
-                prev = current;          
-                current = current.right.node;
-              }else {
-                // its exactly at this point
-                prev = current;
-                current = null;
-              }
-
-        }
-        const results = [];
-        if(prev !== null) {
-            while(prev.key >= min && prev.key <= max) {
-                results.push(prev.key);
-                if(prev.sibling_right) {
-                    prev = prev.sibling_right;
-                }else{
-                    break;
-                }
+    findKeyGreaterOrEqual(x) {
+        if(this.node === null) return null;
+        let p = this.node;
+        let q = null;
+        while(p !== null && p.key !== x){
+            q = p;
+            if(x < p.key) {
+                p = p.left.node;
+            }else{
+                p = p.right.node;
             }
+        }
+        
+        if(p !== null) return p;
+        if(q === this.node){
+            if(q.key >= x){
+                return q;
+            }else{
+                return null;
+            }
+        }
+        if(x < q.key){
+            return q;
+        }else{
+            return q.right_successor;
+        }
+    }
+
+    rangeQuery(min, max){
+        const minInRange = this.findKeyGreaterOrEqual(min);
+        if( minInRange === null || minInRange.key > max) return [];
+        const results = [minInRange.key];
+        let current = minInRange;
+        while(current.right_successor !== null && current.right_successor.key <= max) {
+            results.push(current.right_successor.key);
+            current = current.right_successor;
         }
         return results;
      }
@@ -258,17 +296,23 @@ class AVLTree {
 // tree.display()
 
 // console.log('Deleting 1,3');
-// // tree.delete(1)
-// // tree.delete(4)
-// // tree.delete(3)
-// // tree.delete(5)
+// tree.delete(1)
+// tree.delete(4)
+// tree.delete(3)
+// tree.delete(5)
 // console.log(tree.inorder_traverse());
 // tree.display()
 
 // console.log('Inserting, 3,1');
-// // tree.insert(1)
-// // tree.insert(4)
+// tree.insert(1)
+// tree.insert(4)
+// tree.insert(15)
+// tree.insert(64)
 // console.log(tree.inorder_traverse());
 // tree.display()
 
-// console.log('my results:', tree.rangeQuery(10,12))
+
+// console.log('my results:', tree.rangeQuery(4,8))
+// console.log('my results:', tree.rangeQuery(-10,0))
+// console.log('my results:', tree.rangeQuery(7,16))
+// console.log('my results:', tree.rangeQuery(120,140))

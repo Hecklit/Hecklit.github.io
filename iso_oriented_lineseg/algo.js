@@ -34,20 +34,16 @@ function intersectIsoOritentedLineSeg(events) {
     // und all vertical segments have mutually distinct coordinates.
     const points = [];
     const L = new AVLTree(); // List of active lineseg sorted by y coordinates
-    console.log('***************************************************************')
     while(events.length > 0) {
         const p = events.shift();
         if(p.type === 'start') {
             L.insert(p.line.start.y);
-            console.log('Insert', p.line.start.y)
         }else if(p.type === 'end') {
-            console.log('Delete', p.line.start.y)
             L.delete(p.line.start.y)
         } else {
             upperYVertical = Math.min(p.line.start.y, p.line.end.y);
             lowerYVertical = Math.max(p.line.start.y, p.line.end.y);
-            L.display()
-            console.log('find all between ', upperYVertical, lowerYVertical);
+            // L.display()
 
             intersec = L.rangeQuery(upperYVertical, lowerYVertical) // upperYVertical -> min; lowerYVertical -> max
             for (let i = 0; i < intersec.length; i++) {
@@ -56,7 +52,6 @@ function intersectIsoOritentedLineSeg(events) {
                     p.line.start.x,
                     y
                 ));
-                console.log('found Point', p.line.start.x, y)
             }
         }
     }
