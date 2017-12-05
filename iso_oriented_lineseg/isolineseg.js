@@ -1,13 +1,14 @@
 const can = document.getElementById('can');
 let canRect = can.getBoundingClientRect();
 const ctx = can.getContext('2d');
-const width = can.width = window.innerWidth;
-const height = can.height = window.innerHeight;
+const width = can.width = window.innerWidth*0.9;
+const height = can.height = window.innerHeight*0.9;
 const center = new v2(width/2, height/2);
 const lines = [];
 let interP = [];
 let mouseDown = false;
 let startPoint = null;
+clearScreen();
 
 function draw() {
     clearScreen();
@@ -25,7 +26,7 @@ function draw() {
     }
 }
 
-const clearScreen = () => {
+function clearScreen () {
     ctx.fillStyle = "#fff";
     ctx.fillRect(0,0, width, height);
 }

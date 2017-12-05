@@ -10,4 +10,11 @@ canvas {
 html, body {
     margin: 0;
     padding: 0;
+    background: rgb(83, 92, 102)
+}
+
+li a{
+    font-size: larger;
+    color: lightblue;
+    text-decoration: none;
 }
