@@ -1,22 +1,14 @@
 const can = document.getElementById('can');
-const ctx = can.getContext('2d');
-const width = can.width = window.innerWidth * 1;
+const width = can.width = window.innerWidth * 0.95;
 const height = can.height = window.innerHeight * 0.9;
+console.log('height', height)
 let canRect = null, tdv = null, lcv = null, rcv = null;
 setUpCanvas();
 let mouseDown = false;
-clear();
-
-// construct world
-const cube1 = {
-    color: '#0ff',
-    pos: new v3()
-}
-
-
 
 function setUpCanvas() {
     canRect = can.getBoundingClientRect();
+    console.log(canRect)
     // Seperate the Canvas Rect Into 3 Parts
     /*
     top down view : full width height 2/3
@@ -24,35 +16,35 @@ function setUpCanvas() {
     */
     tdv = {
         left: 0,
-        right: canRect.width,
+        right: width,
         top: 0,
-        bottom: (2 / 3) * canRect.height,
-        width: canRect.width - 0,
-        height: ((2 / 3) * canRect.height),
+        bottom: (2 / 3) * height,
+        width: width - 0,
+        height: ((2 / 3) * height),
         x: 0,
         y: 0
     };
 
     lcv = {
         left: 0,
-        right: canRect.width / 2,
-        top: tdv.bottom + 1,
-        bottom: canRect.height,
-        width: (canRect.width / 2) - 0,
-        height: canRect.height - tdv.bottom + 1,
+        right: width / 2,
+        top: tdv.bottom,
+        bottom: height,
+        width: (width / 2) - 0,
+        height: height - tdv.bottom,
         x: 0,
-        y: tdv.bottom + 1
+        y: tdv.bottom
     };
 
     rcv = {
-        left: lcv.right + 1,
-        right: canRect.width,
-        top: tdv.bottom + 1,
-        bottom: canRect.height,
-        width: canRect.width - lcv.right + 1,
-        height: canRect.height - tdv.bottom + 1,
-        x: lcv.right + 1,
-        y: tdv.bottom + 1
+        left: lcv.right,
+        right: width,
+        top: tdv.bottom,
+        bottom: height,
+        width: width - lcv.right,
+        height: height - tdv.bottom,
+        x: lcv.right,
+        y: tdv.bottom
     };
 
     // Add centers
@@ -89,76 +81,95 @@ function randomInt(scalar) {
     return Math.floor(Math.random() * scalar);
 }
 
-function drawLine(x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-}
-
-function clear() {
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, width, height);
-    if (false) { // draw Debug Particion
-        ctx.globalAlpha = 0.5;
-        // Top Down
-        ctx.fillStyle = "#0ff";
-        ctx.fillRect(tdv.x, tdv.y, tdv.width, tdv.height);
-        drawCrossHair(tdv);
-        // Left Camera
-        ctx.fillStyle = "#f0f";
-        ctx.fillRect(lcv.x, lcv.y, lcv.width, lcv.height);
-        drawCrossHair(lcv);
-        // Right Camera
-        ctx.fillStyle = "#ff0";
-        ctx.fillRect(rcv.x, rcv.y, rcv.width, rcv.height);
-        drawCrossHair(rcv);
-    }
-}
-
-function drawCrossHair(box) {
-    drawLine(box.centerX, box.top, box.centerX, box.bottom);
-    drawLine(box.left, box.centerY, box.right, box.centerY);
+function addWindowLabel(text, x, y) {
+    var text2 = document.createElement('div');
+    text2.style.position = 'absolute';
+    //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+    text2.style.width = 100;
+    text2.style.height = 100;
+    text2.style.color = "white";
+    text2.innerHTML = text;
+    text2.style.top = y + 'px';
+    text2.style.left = x + 'px';
+    can.appendChild(text2);
 }
 
 function addWebGLViewports() {
+    // Top Down View
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); // Define the perspective camera's attributes.
+    scene.background = new THREE.Color().setHSL(0.6, .2, .2);
+    scene.fog = new THREE.Fog(scene.background, 1, 5000);
+    const yOffset = 50;
+    var cameraTDV = new THREE.OrthographicCamera(tdv.width / - 10, tdv.width / 10, tdv.height / 10 + yOffset, tdv.height / - 10 + yOffset, 1, 1000);
 
-    var renderer = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer(); // Fallback to canvas renderer, if necessary.
-    renderer.setSize(window.innerWidth, window.innerHeight); // Set the size of the WebGL viewport.
-    document.body.appendChild(renderer.domElement); // Append the WebGL viewport to the DOM.
+    var rendererTDV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+    rendererTDV.setSize(tdv.width, tdv.height);
+    let tdvHTML = can.appendChild(rendererTDV.domElement);
+    let boundBox = tdvHTML.getBoundingClientRect();
+    addWindowLabel('Top-Down View', boundBox.x + 8, boundBox.y + 8);
 
-    var geometry = new THREE.CubeGeometry(20, 20, 20); // Create a 20 by 20 by 20 cube.
-    var material = new THREE.MeshBasicMaterial({ color: 0x0000FF }); // Skin the cube with 100% blue.
-    var cube = new THREE.Mesh(geometry, material); // Create a mesh based on the specified geometry (cube) and material (blue skin).
-    scene.add(cube); // Add the cube at (0, 0, 0).
+    var geometry = new THREE.CubeGeometry(20, 20, 20);
+    var material = new THREE.MeshStandardMaterial({ color: 0x0000FF });
+    var cube = new THREE.Mesh(geometry, material);
+    cube.position.z = -40;
+    scene.add(cube);
 
-    camera.position.z = 50; // Move the camera away from the origin, down the positive z-axis.
+    var geometry = new THREE.CubeGeometry(20, 20, 20);
+    var material = new THREE.MeshStandardMaterial({ color: 0xFF0000 });
+    var cube = new THREE.Mesh(geometry, material);
+    cube.position.z = -30;
+    cube.position.x = -30;
+    scene.add(cube);
 
-    renderer.render(scene, camera);
+    var geometry = new THREE.CubeGeometry(20, 20, 20);
+    var material = new THREE.MeshStandardMaterial({ color: 0x00FF00 });
+    var cube = new THREE.Mesh(geometry, material);
+    cube.position.z = -80;
+    cube.position.x = 60;
+    scene.add(cube);
+
+    hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
+    hemiLight.color.setHSL(0.6, 1, 0.6);
+    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+    hemiLight.position.set(0, 50, 0);
+    scene.add(hemiLight);
+
+    var light = new THREE.PointLight(0xff00ff, 1.5, 1000, 0);
+    scene.add(light)
+
+    var light = new THREE.DirectionalLight(0xff00ff, 1.5, 1000, 0);
+    scene.add(light)
+
+    cameraTDV.position.y = 100;
+    cameraTDV.rotation.x = -90 * Math.PI / 180
+
+    // Left Camera View
+    var cameraLCV = new THREE.PerspectiveCamera(75, lcv.width / lcv.height, 0.1, 1000);
+
+    var rendererLCV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+    rendererLCV.setSize(lcv.width, lcv.height);
+    let lcvHTML = can.appendChild(rendererLCV.domElement);
+    boundBox = lcvHTML.getBoundingClientRect();
+    addWindowLabel('Left Camera View', boundBox.x + 8, boundBox.y + 8);
+
+    cameraLCV.position.x = -10;
+
+    // Right Camera View
+    var cameraRCV = new THREE.PerspectiveCamera(75, rcv.width / rcv.height, 0.1, 1000);
+
+    var rendererRCV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+    rendererRCV.setSize(rcv.width, rcv.height);
+    let rcvHTML = can.appendChild(rendererRCV.domElement);
+    boundBox = rcvHTML.getBoundingClientRect();
+    addWindowLabel('Right Camera View', boundBox.x + 8, boundBox.y + 8);
+
+    cameraRCV.position.x = 10;
+
+    scene.add(new THREE.CameraHelper(cameraLCV));
+    scene.add(new THREE.CameraHelper(cameraRCV));
+
+    rendererLCV.render(scene, cameraLCV);
+    rendererRCV.render(scene, cameraRCV);
+    rendererTDV.render(scene, cameraTDV);
 }
-
-function projectTo2D(a, camera) {
-    const { c, theta, width, height, distance } = camera;
-    const { x, y, z } = a.sub(c);
-    const sx = Math.sin(theta.x);
-    const cx = Math.cos(theta.x);
-    const sy = Math.sin(theta.y);
-    const cy = Math.cos(theta.y);
-    const sz = Math.sin(theta.z);
-    const cz = Math.cos(theta.z);
-
-    const dx = cy * (sz * y + cz * x) - sy * z;
-    const dy = sx * (cy * z + sy * (sz * y + cz * x)) + cx * (cz * y - sz * x);
-    const dz = cx * (cy * z + sy * (sz * y + cz * x)) - sx * (cz * y - sz * x);
-
-    const rx = width;
-    const ry = height;
-    const rz = distance;
-
-    return {
-        x: (dx*sx)
-    }
-}
+addWebGLViewports();
