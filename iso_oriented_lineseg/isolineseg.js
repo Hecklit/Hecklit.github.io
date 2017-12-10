@@ -91,6 +91,8 @@ can.onmouseup = (e) => {
     mouseDown = false;
 }
 
+
+
 function drawLine(sx, sy, ex, ey){
     ctx.beginPath();
     ctx.moveTo(sx, sy);

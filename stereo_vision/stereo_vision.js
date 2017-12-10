@@ -5,6 +5,14 @@ console.log('height', height)
 let canRect = null, tdv = null, lcv = null, rcv = null;
 setUpCanvas();
 let mouseDown = false;
+let cube = null;
+let rendererTDV = null;
+let rendererLCV = null;
+let rendererRCV = null;
+let scene = null;
+let cameraTDV = null;
+let cameraLCV = null;
+let cameraRCV = null;
 
 function setUpCanvas() {
     canRect = can.getBoundingClientRect();
@@ -96,13 +104,13 @@ function addWindowLabel(text, x, y) {
 
 function addWebGLViewports() {
     // Top Down View
-    var scene = new THREE.Scene();
+    scene = new THREE.Scene();
     scene.background = new THREE.Color().setHSL(0.6, .2, .2);
     scene.fog = new THREE.Fog(scene.background, 1, 5000);
     const yOffset = 50;
-    var cameraTDV = new THREE.OrthographicCamera(tdv.width / - 10, tdv.width / 10, tdv.height / 10 + yOffset, tdv.height / - 10 + yOffset, 1, 1000);
+    cameraTDV = new THREE.OrthographicCamera(tdv.width / - 10, tdv.width / 10, tdv.height / 10 + yOffset, tdv.height / - 10 + yOffset, 1, 1000);
 
-    var rendererTDV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+    rendererTDV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
     rendererTDV.setSize(tdv.width, tdv.height);
     let tdvHTML = can.appendChild(rendererTDV.domElement);
     let boundBox = tdvHTML.getBoundingClientRect();
@@ -110,20 +118,20 @@ function addWebGLViewports() {
 
     var geometry = new THREE.CubeGeometry(20, 20, 20);
     var material = new THREE.MeshStandardMaterial({ color: 0x0000FF });
-    var cube = new THREE.Mesh(geometry, material);
+    cube = new THREE.Mesh(geometry, material);
     cube.position.z = -40;
     scene.add(cube);
 
     var geometry = new THREE.CubeGeometry(20, 20, 20);
     var material = new THREE.MeshStandardMaterial({ color: 0xFF0000 });
-    var cube = new THREE.Mesh(geometry, material);
+    cube = new THREE.Mesh(geometry, material);
     cube.position.z = -30;
     cube.position.x = -30;
     scene.add(cube);
 
     var geometry = new THREE.CubeGeometry(20, 20, 20);
     var material = new THREE.MeshStandardMaterial({ color: 0x00FF00 });
-    var cube = new THREE.Mesh(geometry, material);
+    cube = new THREE.Mesh(geometry, material);
     cube.position.z = -80;
     cube.position.x = 60;
     scene.add(cube);
@@ -144,9 +152,9 @@ function addWebGLViewports() {
     cameraTDV.rotation.x = -90 * Math.PI / 180
 
     // Left Camera View
-    var cameraLCV = new THREE.PerspectiveCamera(75, lcv.width / lcv.height, 0.1, 1000);
+    cameraLCV = new THREE.PerspectiveCamera(75, lcv.width / lcv.height, 0.1, 1000);
 
-    var rendererLCV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+    rendererLCV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
     rendererLCV.setSize(lcv.width, lcv.height);
     let lcvHTML = can.appendChild(rendererLCV.domElement);
     boundBox = lcvHTML.getBoundingClientRect();
@@ -155,9 +163,9 @@ function addWebGLViewports() {
     cameraLCV.position.x = -10;
 
     // Right Camera View
-    var cameraRCV = new THREE.PerspectiveCamera(75, rcv.width / rcv.height, 0.1, 1000);
+    cameraRCV = new THREE.PerspectiveCamera(75, rcv.width / rcv.height, 0.1, 1000);
 
-    var rendererRCV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
+    rendererRCV = window.WebGLRenderingContext ? new THREE.WebGLRenderer() : new THREE.CanvasRenderer();
     rendererRCV.setSize(rcv.width, rcv.height);
     let rcvHTML = can.appendChild(rendererRCV.domElement);
     boundBox = rcvHTML.getBoundingClientRect();
@@ -173,3 +181,14 @@ function addWebGLViewports() {
     rendererTDV.render(scene, cameraTDV);
 }
 addWebGLViewports();
+
+window.onkeydown = (e) => {
+    // Leertaste
+    if(e.keyCode === 32) {
+        cube.position.x += 0.5;
+        rendererLCV.render(scene, cameraLCV);
+        rendererRCV.render(scene, cameraRCV);
+        rendererTDV.render(scene, cameraTDV);
+    }
+}
+
