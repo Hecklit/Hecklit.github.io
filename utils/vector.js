@@ -39,8 +39,8 @@ class v2 {
     }
 
     toString() {
-        const length = this.length();
-        return `(${this.x} | ${this.y}) = |${length}|`
+        // const length = this.length();
+        return `(${this.x} | ${this.y})`
     }
 }
 
