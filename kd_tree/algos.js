@@ -78,25 +78,25 @@ function PartitionField(P, l, r, m) {
 }
 
 class Node {
-    constructor(level=0){
+    constructor(level=0, parent){
         this.value = null;
         this.left = null;
         this.right = null;
         this.level = level;
+        this.parent = parent;
+        this.vertical = level % 2 === 0;
     }
 
     set_value(val) {
         this.value = val;
-        this.left = new Node(this.level+1)
-        this.right = new Node(this.level+1)
+        this.left = new Node(this.level+1, this);
+        this.right = new Node(this.level+1, this);
     }
 
     as_layer_array(res = []) {
-        // console.log(res.length, this.level)
         if(this.value === null) {
             return [];
         }
-        // console.log(res.length, this.level)
         if(this.level > res.length-1) {
             res.push([]);
         }
@@ -104,5 +104,42 @@ class Node {
         this.left.as_layer_array(res)
         this.right.as_layer_array(res)
         return res;
+    }
+
+    find_bounding_grandpa() {
+        let dir = 0;
+        if(!this.parent || !this.parent.parent) {
+            return {
+                grandpa: null,
+                dir: dir
+            };
+        }
+        let grandgrandpa = null;
+        let cur_pa = this.parent.parent;
+        let x_dir = this.value.x - this.parent.value.x;
+        let y_dir = this.value.y - this.parent.value.y;
+        while(cur_pa) {
+            if(this.parent.vertical !== cur_pa.vertical) {
+                cur_pa = cur_pa.parent;
+                continue;
+            }
+            let cur_pa_x_dir = this.value.x - cur_pa.value.x;
+            let cur_pa_y_dir = this.value.y - cur_pa.value.y;
+            if(!cur_pa.vertical && (x_dir) * (cur_pa_x_dir) < 0) {
+                grandgrandpa = cur_pa;
+                dir = x_dir;
+                break;
+            }
+            if(cur_pa.vertical && (y_dir) * (cur_pa_y_dir) < 0) {
+                grandgrandpa = cur_pa;
+                dir = y_dir;
+                break;
+            }
+            cur_pa = cur_pa.parent;
+        }
+        return {
+            grandpa: grandgrandpa,
+            dir: dir
+        };
     }
 }
