@@ -8,15 +8,16 @@ let canRect = can_tree.getBoundingClientRect();
 let canRect_points = can.getBoundingClientRect();
 const center = new v2(canRect.width / 2, canRect.height / 2);
 let mouseDown = false;
-const points = [];
 let seed = new Date().getMilliseconds()/100;
 const psize = 8;
-const n = 48;
+const n = 25;
+let points = [];
 let X = [];
 let Y = [];
 let tree;
 let query_result = [];
 let query_result_points = [];
+let new_point_mode = true;
 
 const searchRange = {
     x1: 0,
@@ -24,6 +25,14 @@ const searchRange = {
     y1: 0,
     y2: height / 2
 };
+
+function reset() {
+    X = [];
+    Y = [];
+    tree = null;
+    query_result = [];
+    query_result_points = [];
+}
 
 function init() {
     // Creation with random Seed
@@ -33,6 +42,10 @@ function init() {
             Math.floor(height * 0.05 + randomInt(height * 0.9))
         ))
     }
+    start();
+}
+
+function start() {
     // Sorting
     X = points.concat().sort((a, b) => {
         return a.x - b.x;
@@ -41,7 +54,7 @@ function init() {
         return a.y - b.y;
     });
     tree = new Node();
-    ConstructBalanced2DTree(0, n - 1, tree, true, X, Y);
+    ConstructBalanced2DTree(0, points.length - 1, tree, true, X, Y);
     draw();
     displayTree(tree)
 }
@@ -57,9 +70,15 @@ can.onmouseup = () => {
 }
 
 can.onmousedown = (e) => {
-    mouseDown = true;
-    searchRange.x1 = e.clientX - canRect_points.left;
-    searchRange.y1 = e.clientY - canRect_points.top;
+    if(new_point_mode) {
+        points.push(new v2(e.clientX - canRect_points.left, e.clientY - canRect_points.top));
+        reset();
+        start();
+    }else{
+        mouseDown = true;
+        searchRange.x1 = e.clientX - canRect_points.left;
+        searchRange.y1 = e.clientY - canRect_points.top;
+    }
 }
 
 can.onmousemove = (e) => {
@@ -84,9 +103,16 @@ can.onmousemove = (e) => {
     }
 }
 
+const h1 = document.getElementById('title');
 window.onkeydown = (e) => {
     // Leertaste
     if (e.keyCode === 32) {
+        new_point_mode = !new_point_mode;
+        if(new_point_mode) {
+            h1.innerHTML = 'KD-Tree (Point Mode)';
+        }else{
+            h1.innerHTML = 'KD-Tree (Selection Mode)';
+        }
     }
 }
 
