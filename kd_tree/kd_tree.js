@@ -10,14 +10,14 @@ const center = new v2(canRect.width / 2, canRect.height / 2);
 let mouseDown = false;
 let seed = new Date().getMilliseconds()/100;
 const psize = 8;
-const n = 25;
+const n = 40;
 let points = [];
 let X = [];
 let Y = [];
 let tree;
 let query_result = [];
 let query_result_points = [];
-let new_point_mode = true;
+let new_point_mode = false;
 
 const searchRange = {
     x1: 0,
@@ -279,6 +279,5 @@ function color_from_pos(x, y, maxX, maxY, sat_offset = 0) {
     const col = Math.floor(((x*2) / maxX) * 45) + 120;
     const light = 40; // Math.floor((y / maxY) * 30) + 50;
     const sat = 10 + sat_offset;
-    // console.log(`hsl(${col}, 80%, ${light})`);
     return `hsl(${col}, ${sat}%, ${light}%)`;
 }

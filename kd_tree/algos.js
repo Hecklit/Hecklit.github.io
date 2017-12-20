@@ -1,42 +1,36 @@
 function ConstructBalanced2DTree(l, r, k, vertical, X, Y) {
     if(l <= r) {
-        const m = Math.ceil((l+r)/2);
-        // console.log('X: ', X);
-        // console.log('Y: ', Y);
-        // console.log('l:'+l, 'm: '+m, 'r: '+r);
+        const m = Math.floor((l+r)/2);
         if(vertical) {
             k.set_value(Y[m]);
-            left_slice = Y.slice(0,m);
-            right_slice = Y.slice(m+1);
             const newX1 = [];
             const newX2 = [];
-            for (let i = 0; i < X.length; i++) {
+            for (let i = l; i < r+1; i++) {
                 const xi = X[i];
-                if(left_slice.includes(xi)) {
+                if(xi.y < Y[m].y) {
                     newX1.push(xi);
                 }
-                if(right_slice.includes(xi)) {
+                if(xi.y > Y[m].y) {
                     newX2.push(xi);
                 }
             }
-            X = newX1.concat([Y[m]], newX2);
-            //draw_line(0, Y[m].y, width, Y[m].y, ctx);
+            let newX = newX1.concat([Y[m]], newX2);
+            X.splice(l, newX.length, ...newX);
         } else {
             k.set_value(X[m]);
-            left_slice = X.slice(0,m);
-            right_slice = X.slice(m+1);
             const newY1 = [];
             const newY2 = [];
-            for (let i = 0; i < Y.length; i++) {
+            for (let i = l; i < r+1; i++) {
                 const yi = Y[i];
-                if(left_slice.includes(yi)) {
+                if(yi.x < X[m].x) {
                     newY1.push(yi);
                 }
-                if(right_slice.includes(yi)) {
+                if(yi.x > X[m].x) {
                     newY2.push(yi);
                 }
             }
-            Y = newY1.concat([X[m]], newY2);
+            let newY = newY1.concat([X[m]], newY2);
+            Y.splice(l, newY.length, ...newY);
             //draw_line(X[m].x, 0, X[m].x, height, ctx);
         }
         ConstructBalanced2DTree(l, m-1, k.left, !vertical, X, Y);
