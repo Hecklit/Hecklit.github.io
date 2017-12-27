@@ -69,6 +69,16 @@ can.onmouseup = (e) => {
             type = 'v'
             endPoint.x = startPoint.x;
         }
+        if(startPoint.x > endPoint.x) {
+            let tempX = endPoint.x;
+            endPoint.x = startPoint.x;
+            startPoint.x = tempX;
+        }
+        if(startPoint.y > endPoint.y) {
+            let tempX = endPoint.y;
+            endPoint.y = startPoint.y;
+            startPoint.y = tempX;
+        }
         lines.push({
           start: startPoint,
           end: endPoint,
