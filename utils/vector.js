@@ -90,3 +90,37 @@ class v3 {
         return new v2(this.x, this.y);
     }
 }
+
+class line2d {
+    constructor(fx, fy, sx, sy) {
+        if(!sx) {
+            this.start = fx;
+            this.end = fy;
+        }else{
+            this.start = new v2(fx, fy);
+            this.end = new v2(sx, sy);
+        }
+        this.dir = this.end.sub(this.start);
+    }
+
+    draw(ctx, color) {
+        if(color) {
+            ctx.fillStyle = color;
+        }
+        ctx.beginPath();
+        ctx.moveTo(this.start.x, this.start.y);
+        ctx.lineTo(this.end.x, this.end.y);
+        ctx.stroke();
+    }
+
+    length() {
+        return this.dir.length();
+    }
+
+    x_at_y(y) {
+        const norm_dir = this.dir.normalize();
+        const scale = (y - this.start.y)/ norm_dir.y;
+        const res = this.start.add(norm_dir.scale(scale));
+        return res.x;
+    }
+}
