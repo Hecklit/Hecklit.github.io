@@ -124,3 +124,25 @@ class line2d {
         return res.x;
     }
 }
+
+class box2d{
+    constructor(fx, fy, sx, sy) {
+        if(!sx) {
+            this.start = fx;
+            this.end = fy;
+        }else{
+            this.start = new v2(fx, fy);
+            this.end = new v2(sx, sy);
+        }
+        this.dim = this.end.sub(this.start)
+    }
+
+    inside(x, y) {
+        return x >= this.start.x && x <= this.end.x && y >= this.start.y && y <= this.end.y;
+    }
+
+    fill(ctx, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(this.start.x, this.start.y, this.dim.x, this.dim.y);
+    }
+}
