@@ -68,12 +68,12 @@ function calcConvexHull(points) {
     }
     switch (algoRythm) {
         case 'grahams_scan':
-            ctx.strokeStyle = "#F00";
+            ctx.strokeStyle = "#f0721d";
             convexHull = grahamsScan(points);
             drawHull(convexHull);
             break;
             case 'jarvis_march':
-            ctx.strokeStyle = "#0FF";
+            ctx.strokeStyle = "#009ddc";
             convexHull = jarvisMarch(points);
             drawHull(convexHull);
             break;
@@ -92,15 +92,15 @@ function addToSet(newPoint) {
 }
 
 function onUpdate () {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "rgb(247, 230, 208)";
     for(i in points) {
         const point = points[i];
-        ctx.fillRect(point.x, point.y, psize, psize);
+        ctx.fillRect(point.x-psize/2, point.y-psize/2, psize, psize);
     }
 }
 
 function clear() {
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#4a4f5c";
     ctx.fillRect(0,0, width, height);
 }
 
@@ -117,6 +117,7 @@ function drawHull(arr) {
         return;
     ctx.beginPath();
     ctx.moveTo(arr[0].x, arr[0].y);
+    ctx.lineWidth = 2;
     for (var i = 0; i < arr.length; i++) {
         var element = arr[i];
         var next = arr[i+1];

@@ -4,25 +4,66 @@
 
 canvas {
     float: left;
-    border: 1px solid white;
+    border: 1px solid rgb(17, 5, 5);
 }
 
 html, body {
     margin: 0;
     padding: 0;
-    background: rgb(83, 92, 102)
+    background: #2a2d34;
+    color: rgb(247, 230, 208);
 }
 
-li a{
-    font-size: larger;
-    color: lightblue;
+a {
     text-decoration: none;
 }
 
+h1, h2 {
+    color: rgb(247, 230, 208);
+    margin-left: 1rem;
+}
+
+li {
+    border-left: rgb(247, 230, 208) solid 10px;
+    background: #4a4f5c;
+    margin-bottom: 6px;
+    width: 20rem;
+    transition: all .08s ease-in-out;
+    list-style-type: none;
+}
+
+li a{
+    width: 20rem;
+    padding: 6px;
+    padding-left: 1rem;
+    margin: 0px; display: block; width: 94%; height: 100%;
+    font-size: larger;
+    color: #009ddc;
+    text-decoration: none;
+}
+
+li:hover {
+    border-left: #009ddc solid 10px;
+    background: #f0721d;
+    transform: scale(1.1) translate(14px, 0px);
+}
+
+li:hover a{
+    color: white;
+}
+
 .red {
-    background: red;
+    background: #f0721d;
 }
 
 .green {
-    background: green;
+    background:#009ddc;
+}
+
+#sv {
+    color: rgb(247, 230, 208);
+}
+
+.left {
+    float: left;
 }

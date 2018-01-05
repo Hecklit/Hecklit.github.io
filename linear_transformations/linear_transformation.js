@@ -48,9 +48,9 @@ function drawVectorFromVector(sv, ev) {
 }
 
 const clear = () => {
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#4a4f5c";
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = "#aaa";
+    ctx.strokeStyle = "#2a2d34";
     drawGrid(new v2(1, 0), new v2(0, 1));
 }
 
@@ -83,14 +83,13 @@ function animateToIHatJHat() {
     aniComplete += 0.01;
     curIHat = curIHat.scale(1 - aniComplete).add(ihat.scale(aniComplete));
     curJHat = curJHat.scale(1 - aniComplete).add(jhat.scale(aniComplete));
-    console.log('tick')
     clear();
-    ctx.strokeStyle = "#00d";
+    ctx.strokeStyle = "rgb(247, 230, 208)";
     drawGrid(curIHat, curJHat);
     ctx.lineWidth = 4;
-    ctx.strokeStyle = "#f00";
+    ctx.strokeStyle = "#f0721d";
     drawVectorFromVector(new v2(0, 0), new v2(curIHat.x, curIHat.y));
-    ctx.strokeStyle = "#0f0";
+    ctx.strokeStyle = "#009ddc";
     drawVectorFromVector(new v2(0, 0), new v2(curJHat.x, curJHat.y));
     ctx.lineWidth = 1;
     document.getElementById('det').innerHTML = 'Determinante: ' + (curIHat.x * curJHat.y - curIHat.y * curJHat.x);

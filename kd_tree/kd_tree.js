@@ -2,7 +2,7 @@ const can = document.getElementById('can');
 const can_tree = document.getElementById('can_tree');
 const ctx = can.getContext('2d');
 const ctx_tree = can_tree.getContext('2d');
-const width = can.width = can_tree.width = window.innerWidth * 0.49;
+const width = can.width = can_tree.width = window.innerWidth * 0.45;
 const height = can.height = can_tree.height = window.innerHeight * 0.9;
 let canRect = can_tree.getBoundingClientRect();
 let canRect_points = can.getBoundingClientRect();
@@ -71,20 +71,20 @@ can.onmouseup = () => {
 
 can.onmousedown = (e) => {
     if(new_point_mode) {
-        points.push(new v2(e.clientX - canRect_points.left, e.clientY - canRect_points.top));
+        points.push(new v2(e.pageX - can.offsetLeft, e.pageY - can.offsetTop));
         reset();
         start();
     }else{
         mouseDown = true;
-        searchRange.x1 = e.clientX - canRect_points.left;
-        searchRange.y1 = e.clientY - canRect_points.top;
+        searchRange.x1 = e.pageX - can.offsetLeft;
+        searchRange.y1 = e.pageY - can.offsetTop;
     }
 }
 
 can.onmousemove = (e) => {
     if (mouseDown) {
-        searchRange.x2 = e.clientX - canRect_points.left;
-        searchRange.y2 = e.clientY - canRect_points.top;
+        searchRange.x2 = e.pageX - can.offsetLeft;
+        searchRange.y2 = e.pageY - can.offsetTop;
 
         sr = searchRange;
         draw();

@@ -43,7 +43,7 @@ function drawVector(sp, angle, len) {
 }
 
 const clear = () => {
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#4a4f5c";
     ctx.fillRect(0,0, width, height);
 }
 

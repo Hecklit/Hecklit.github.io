@@ -16,18 +16,18 @@ function draw() {
         const line = lines[i];
         drawLine(line.start.x, line.start.y, line.end.x, line.end.y)      
     }
+    ctx.fillStyle = '#f0721d';
     for (let i = 0; i < interP.length; i++) {
         const point = interP[i];
         ctx.beginPath();
         ctx.arc(point.x,point.y,4,0,2*Math.PI);
-        ctx.fillStyle = '#f00';
         ctx.fill();
         ctx.stroke();
     }
 }
 
 function clearScreen () {
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#4a4f5c";
     ctx.fillRect(0,0, width, height);
 }
 
@@ -93,7 +93,7 @@ can.onmouseup = (e) => {
             const point = intersectionPoints[i];
             ctx.beginPath();
             ctx.arc(point.x,point.y,4,0,2*Math.PI);
-            ctx.fillStyle = '#f00';
+            ctx.fillStyle = '#f0721d';
             ctx.fill();
             ctx.stroke();
         }

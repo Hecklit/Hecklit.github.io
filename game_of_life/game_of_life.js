@@ -12,7 +12,7 @@ window.onresize = (e) => {
     canRect = can.getBoundingClientRect();
 };
 
-can.onmouseup = (e) => {
+can.onmousedown = (e) => {
     const cur_x = e.clientX - canRect.left;
     const cur_y = e.clientY - canRect.top;
     const cur_cell_x = Math.floor(cur_x / cell_size);
@@ -24,7 +24,7 @@ can.onmouseup = (e) => {
     }
 }
 
-can.onmousedown = (e) => {
+can.onmouseup = (e) => {
 }
 
 can.onmousemove = (e) => {
@@ -59,7 +59,7 @@ function randomInt(scalar) {
 }
 
 function clear() {
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#4a4f5c";
     ctx.fillRect(0, 0, width, height);
 }
 
@@ -73,13 +73,13 @@ function drawGrid(data_grid) {
             // const light = 40;
             // const sat = 10;
             // ctx.fillStyle = `hsl(${col}, ${sat}%, ${light}%)`;
-            ctx.fillStyle = (data_grid[x][y]) ? '#fff' : '#000';
+            ctx.fillStyle = (data_grid[x][y]) ? 'rgb(247, 230, 208)' : '#000';
             ctx.fillRect(x * cell_size, y * cell_size, cell_size, cell_size)
         }
     }
 }
 
-const row = 250;
+const row = 100;
 const col = row*2;
 let data_grid = [];
 let cell_size = 0;
@@ -151,14 +151,34 @@ function calc_alive_neighbours(x, y) {
 }
 
 function isAlive(x, y) {
-    if (x < 0 || x >= col || y < 0 || y >= row)
-        return false;
+    if (x < 0){
+        x += col;
+    }
+    if(x >= col){
+        x -= col;
+    }
+    if(y < 0) {
+        y += row;
+    }
+    if(y >= row) {
+        y -= row;
+    }
     return data_grid[x][y];
 }
 
 function set(x, y, val) {
-    if (x < 0 || x >= col || y < 0 || y >= row)
-        return false;
+    if (x < 0){
+        x += col;
+    }
+    if(x >= col){
+        x -= col;
+    }
+    if(y < 0) {
+        y += row;
+    }
+    if(y >= row) {
+        y -= row;
+    }
     data_grid[x][y] = val;
     return true;
 }
@@ -186,7 +206,7 @@ function draw_figure_icon(figure, size, x_offset, y_offset) {
     for (let x = -1; x < figure.length + 1; x++) {
         for (let y = -1; y < figure[0].length + 1; y++) {
             if (safe_get(x, y, figure)) {
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = 'rgb(247, 230, 208)';
             } else {
                 ctx.fillStyle = '#000';
             }
@@ -203,11 +223,14 @@ async function loop() {
     clear();
     drawGrid(data_grid);
     // draw ui
-    ctx.fillStyle = '#fff';
-    ctx.fillText(figure_keys[figure_index], 10, 10);
-    selectionBox.fill(ctx, '#A00000');
-    draw_figure_icon(figures[figure_keys[figure_index]], 40, selectionBox.start.x + 40, 40);
-    //await sleep(100);
+    ctx.fillStyle = 'rgb(247, 230, 208)';
+    ctx.font = "30px Arial";
+    ctx.fillText('Click to spawn a '+figure_keys[figure_index], 10, 40);
+    if(paused)
+    ctx.fillText('Paused', 10, 80);
+    // selectionBox.fill(ctx, '#A00000');
+    // draw_figure_icon(figures[figure_keys[figure_index]], 40, selectionBox.start.x + 40, 40);
+    await sleep(10);
     window.requestAnimationFrame(loop);
 }
 
