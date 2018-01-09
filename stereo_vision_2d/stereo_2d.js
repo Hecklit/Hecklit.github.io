@@ -5,6 +5,7 @@ const height = can.height = window.innerHeight *0.8;
 const center = new v2(width, height).scale(0.5);
 let canRect = can.getBoundingClientRect();
 let mouseDown = false;
+let f = 40.0;
 
 window.onresize = (e) => {
     canRect = can.getBoundingClientRect();
@@ -49,17 +50,13 @@ function drawPoint(color, x, y) {
     ctx.fillRect(x -size/2, y -size/2 , size, size);
 }
 
-let target_point, first_focal_point, second_focal_point, base_line, f, screen_width, left_screen, right_screen,
+let target_point, first_focal_point, second_focal_point, base_line, screen_width, left_screen, right_screen,
     left_camera_to_target, right_camera_to_target, y, left_intersect_x, right_intersect_x, left_intersect,
     right_intersect, left_disparity, right_disparity, disparity, distance;
 
 function calculate_distace(t_p) {
     target_point = t_p;
-    first_focal_point = new v2(center.x/2, center.y * 1.8)
-    second_focal_point = new v2(center.x *1.5, center.y * 1.8)
-    base_line = new line2d(first_focal_point, second_focal_point);
-    f = 40;
-    screen_width = 300;
+    screen_width = base_line.length()*0.9;
     left_screen = getScreen(base_line.start, screen_width, f);
     right_screen = getScreen(base_line.end, screen_width, f);
     left_camera_to_target = new line2d(first_focal_point, target_point);
@@ -100,5 +97,36 @@ function draw() {
     ctx.fillText(`${f.toFixed(2)} * ${base_line.length().toFixed(2)} / ${disparity.toFixed(2)} = ${distance.toFixed(2)}`, 10, 80);
 }
 
+var inputs = document.getElementsByTagName('input');
+for(var i = 0; i < inputs.length; i++) {
+    inputs[i].onchange = onChange;
+}
+var inputs = document.getElementsByTagName('range');
+for(var i = 0; i < inputs.length; i++) {
+    inputs[i].oninput = onChange;
+    inputs[i].onchange = onChange;
+}
 
+function onChange(e) {
+    if(e.target.id === 'a' || e.target.id === 'ra') {
+        f = +e.target.value;
+        document.getElementById('a').value = f;
+        document.getElementById('ra').value = f;
+        console.log(f);
+    }
+    if(e.target.id === 'b' || e.target.id === 'rb') {
+        op = e.target.value;
+        document.getElementById('b').value = op;
+        document.getElementById('rb').value = op;
+        first_focal_point = new v2(center.x - +op/2, center.y * 1.8)
+        second_focal_point = new v2(center.x  + +op/2, center.y * 1.8)
+        base_line = new line2d(first_focal_point, second_focal_point);
+    }
+    calculate_distace(new v2(center.x, center.y/2))
+}
+
+let op = 371;
+first_focal_point = new v2(center.x - +op/2, center.y * 1.8)
+second_focal_point = new v2(center.x  + +op/2, center.y * 1.8)
+base_line = new line2d(first_focal_point, second_focal_point);
 calculate_distace(new v2(center.x, center.y/2))
