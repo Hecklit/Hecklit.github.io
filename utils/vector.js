@@ -2,6 +2,7 @@ class v2 {
     constructor(x, y) {
         this.x = x;
         this.y = y;
+        this.dir = null;
     }
 
     sub(o) {
@@ -145,4 +146,23 @@ class box2d{
         ctx.fillStyle = color;
         ctx.fillRect(this.start.x, this.start.y, this.dim.x, this.dim.y);
     }
+
+    stroke(ctx, color) {
+        ctx.fillStyle = color;
+        ctx.strokeRect(this.start.x, this.start.y, this.dim.x, this.dim.y);
+    }
+
+    intersects(otherBox) {
+        const {x : sx, y: sy} = otherBox.start;
+        const {x : ex, y: ey} = otherBox.end;
+        return this.inside(sx, sy) || this.inside(sx, ey) || this.inside(ex, sy) || this.inside(ex, ey);
+    }
+}
+
+function createBox(x, y, width, height) {
+    return new box2d(x, y, x+width, y+height);
+}
+
+function boxesFromJson(json) {
+    return json.map(e => new box2d(e.start.x, e.start.y, e.end.x, e.end.y));
 }

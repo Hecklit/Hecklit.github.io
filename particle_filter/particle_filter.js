@@ -25,29 +25,22 @@ can.onmousemove = (e) => {
 }
 
 window.onkeydown = (e) => {
-    // console.log(e.keyCode);
-
-    // Leertaste
-    // if (e.keyCode === 87) { //W
-
-    // }
-    if (e.keyCode === 87) { //W
+    // console.log(e.keyCode)
+    if (e.keyCode === 32) { // leertaste
+        debug = !debug;
+    }
+    if (e.keyCode === 87 || e.keyCode === 38) { //W
         moveRobot(0, -1);
     }
-    if (e.keyCode === 65) { //A
+    if (e.keyCode === 65 || e.keyCode === 37) { //A
         moveRobot(-1, 0);
     }
-    if (e.keyCode === 83) { //S
+    if (e.keyCode === 83 || e.keyCode === 40) { //S
         moveRobot(0, 1);
     }
-    if (e.keyCode === 68) { //D
+    if (e.keyCode === 68 || e.keyCode === 39) { //D
         moveRobot(1, 0);
     }
-    filter();
-    scatter();
-    filter();
-    drawZoomedView(level);
-    draw(level);
 }
 
 function randomInt(scalar) {
@@ -59,20 +52,6 @@ function clear(ctx) {
     ctx.fillRect(0, 0, width, height);
 }
 
-let level = base_level;
-const numRows = 51 //Math.floor(height / size);
-const numCols = 74 //Math.floor(width / size);
-const size = Math.floor(height / numRows)//10;
-let particles = [];
-const numParticles = 1000;
-const path = [];
-for (let i = 0; i < numParticles; i++) {
-    const particle = new v2(
-        Math.floor(Math.random() * (width)) - size,
-        Math.floor(Math.random() * (height)) - size
-    );
-    particles.push(particle)
-}
 function draw(level) {
     clear(ctx);
     for (let i = 0; i < numRows; i++) {
@@ -96,14 +75,13 @@ function draw(level) {
             removals.push(i);
             continue;
         }
+        if(particle)
+        ctx.strokeStyle = 'red';
         if (newPos !== null) {
-            //particles[i] = newPos
-            ctx.strokeStyle = 'red';
             ctx.beginPath();
             ctx.arc(newPos.x, newPos.y, 2, 0, 2 * Math.PI);
             ctx.stroke();
         } else {
-            ctx.strokeStyle = 'red';
             ctx.beginPath();
             ctx.arc(particle.x, particle.y, 2, 0, 2 * Math.PI);
             ctx.stroke();
@@ -115,8 +93,11 @@ function draw(level) {
     }
 }
 
+function chooseOne(arr) {
+    return arr[Math.floor(Math.random()*arr.length)];
+}
+
 function isValidPos(screenX, screenY) {
-    // console.log(screenX, screenY)
     const sx = Math.floor(screenX / size);
     const sy = Math.floor(screenY / size);
     if (sy < 0 || sy >= level.length || sx < 0 || sy >= level[0].length)
@@ -132,16 +113,27 @@ function isValidInd(iX, iY) {
 function filter() {
     const offset = indexToScreenPos(pathOffsetX, pathOffsetY);
     particles = particles.filter(p => isValidPos(p.x + offset.x, p.y + offset.y));
+    const res = evaluate_particles();
+    return res;
+}
+
+function screenToIndex(screenX, screenY) {
+    return new v2(
+        Math.floor(screenX / size),
+        Math.floor(screenY / size)
+    );
 }
 
 function scatter() {
     const newParticles = [];
     for (let i = 0; i < particles.length && particles.length <= numParticles; i++) {
         const particle = particles[i];
-        newParticles.push(new v2(
+        const new_particle = new v2(
             particle.x + size/2 - 1 * size * Math.random(),
             particle.y + size/2 - 1 * size * Math.random()
-        ))
+        );
+        new_particle.dir = chooseOne([new v2(1, 1),new v2(-1, 1),new v2(1, -1),new v2(-1, -1)]);
+        newParticles.push(new_particle);
     }
     particles = particles.concat(newParticles);
 }
@@ -153,6 +145,27 @@ function moveRobot(dx, dy) {
         path.push(new v2(curPos.x, curPos.y));
         pathOffsetX += dx;
         pathOffsetY += dy;
+
+        scatter();
+        if(particles.length <= numParticles*0.8) {
+            for (let i = 0; i < numParticles; i++) {
+                const particle = new v2(
+                    Math.floor(Math.random() * (width)) - size,
+                    Math.floor(Math.random() * (height)) - size
+                );
+                particle.dir = chooseOne([new v2(1, 1),new v2(-1, 1),new v2(1, -1),new v2(-1, -1)]);
+                particles.push(particle)
+            }
+        }
+        const res = filter();
+        drawZoomedView(level);
+        draw(level);
+        for (let i = 0; i < res.length; i++) {
+            const val = res[i];
+            drawDebugPoint(
+                unzoomedToZoomedScreenPos(val.start),
+                unzoomedToZoomedScreenPos(val.cur_pos));
+        }
     }
 }
 
@@ -160,22 +173,23 @@ function drawPathForParticle(particle, path) {
     ctx.beginPath();
     let lastPos = null;
     let validPath = true;
-    for (let i = Math.max(0, path.length - 1 -20); i < path.length - 1; i++) {
+    for (let i = Math.max(0, path.length - 1 -10); i < path.length - 1; i++) {
         const s = path[i];
         const e = path[i + 1];
         const posS = indexToScreenPos(s.x, s.y);
         const posE = indexToScreenPos(e.x, e.y);
         ctx.moveTo(
-            posS.x + particle.x - size * 2,
-            posS.y + particle.y - size * 2
+            (posS.x*particle.dir.x) + particle.x - size * 2,
+            (posS.y*particle.dir.y) + particle.y - size * 2
         );
         lastPos = new v2(
-            posE.x + particle.x - size * 2,
-            posE.y + particle.y - size * 2
+            (posE.x*particle.dir.x) + particle.x - size * 2,
+            (posE.y*particle.dir.y) + particle.y - size * 2
         );
         ctx.lineTo(lastPos.x, lastPos.y);
         if(!isValidPos(lastPos.x, lastPos.y)){
             validPath = false;
+            break;
         }
     }
     ctx.strokeStyle = "rgba(0, 255, 0, 0.01)";;
@@ -184,6 +198,30 @@ function drawPathForParticle(particle, path) {
         lastPos,
         validPath
     };
+}
+
+function evaluate_particles() {
+    const groundTruth = getLaserSensorValues(indexToScreenPos(curPos.x, curPos.y), true);
+    const deleteIndices = [];
+    for (let i = 0; i < particles.length; i++) {
+        const particle = particles[i];
+        const res = getLaserSensorValues(indexToScreenPos(particle.x, particle.y));
+        let diff = 0;
+        for (let a = 0; a < groundTruth.length; a++) {
+            const truth = groundTruth[a].step;
+            diff += Math.abs(res[a].step - truth);
+        }
+        if(diff > 2900){
+            deleteIndices.push(i);
+        }else{
+            particles[i].evalutation = diff;
+        }
+    }
+    for (let i = 0; i < deleteIndices.length; i++) {
+        const del = deleteIndices[i];
+        particles.splice(del, 1);
+    }
+    return groundTruth;
 }
 
 function drawPath(path) {
@@ -213,6 +251,49 @@ function indexToZoomedScreenPos(ix, iy) {
     );
 }
 
+function unzoomedToZoomedScreenPos(pos) {
+    return new v2(
+        pos.x * zoomFactor - curPos.x * size * zoomFactor + width / 2 - (size / 2 * zoomFactor),
+        pos.y * zoomFactor - curPos.y * size * zoomFactor + height / 2 - (size / 2 * zoomFactor)
+    );
+}
+
+function getLaserSensorValues(pos, debug) {
+    const theta = 360/16;
+    const results = [];
+    for (let i = 0; i < 16; i++) {
+        results[i] = rayCast(pos, degree_to_unit_vector(theta*i), 0.5, debug);
+    }
+    return results;
+}
+
+function rayCast(start, dir, step_size, debug) {
+    let step = 0;
+    let cur_pos = start;
+    while(step < 9000)
+    {
+        step++;
+        cur_pos = start.add(dir.scale(step_size*step));
+        if(!isValidPos(cur_pos.x, cur_pos.y)){
+            return {step, start, cur_pos};
+        }
+    }
+    drawDebugPoint(start, cur_pos);
+    return {step: -1, start, cur_pos};
+}
+
+function drawDebugPoint(start, pos) {
+    start.x += size*zoomFactor/2;
+    start.y += size*zoomFactor/2;
+    ctx_zoom.fillStyle = 'green';
+    ctx_zoom.strokeStyle = 'green';
+    ctx_zoom.beginPath()
+    ctx_zoom.moveTo(start.x, start.y);
+    ctx_zoom.lineTo(pos.x, pos.y);
+    ctx_zoom.stroke();
+    ctx_zoom.fillRect(pos.x, pos.y, size, size);
+}
+
 function indexToScreenPos(ix, iy) {
     return new v2(
         ix * size,
@@ -220,9 +301,6 @@ function indexToScreenPos(ix, iy) {
     );
 }
 
-let curPos = new v2(2, 2);
-path.push(new v2(curPos.x, curPos.y));
-const zoomFactor = 4;
 function drawZoomedView(level) {
     clear(ctx_zoom);
     for (let i = 0; i < numRows; i++) {
@@ -248,7 +326,40 @@ function drawZoomedView(level) {
     drawPath(path);
 }
 
+function degree_to_unit_vector(theta) {
+    const x = Math.cos(theta*Math.PI / 180);
+    const y = Math.sin(theta*Math.PI / 180);
+    return new v2(x, y);
+}
+
+function printDebug(str) {
+    if(debug)
+        console.log(str);
+}
+
+let level = base_level;
+let debug = false;
+const numRows = 51 //Math.floor(height / size);
+const numCols = 74 //Math.floor(width / size);
+const size = Math.floor(height / numRows)//10;
+let particles = [];
+const numParticles = 1000;
+const path = [];
+for (let i = 0; i < numParticles; i++) {
+    const particle = new v2(
+        Math.floor(Math.random() * (width)) - size,
+        Math.floor(Math.random() * (height)) - size
+    );
+    particle.dir = chooseOne([new v2(1, 1),new v2(-1, 1),new v2(1, -1),new v2(-1, -1)]);
+    particles.push(particle)
+}
+
+let curPos = new v2(2, 2);
+path.push(new v2(curPos.x, curPos.y));
+const zoomFactor = 4;
+
 draw(level);
 drawZoomedView(level);
 filter();
 draw(level);
+
