@@ -64,6 +64,7 @@ function draw(level) {
         }
     }
 
+    const groundTruth = getLaserSensorValues(indexToScreenPos(curPos.x, curPos.y), true);
     const removals = [];
     for (let i = 0; i < particles.length; i++) {
         const particle = particles[i];
@@ -72,25 +73,59 @@ function draw(level) {
         const validPath = res.validPath;
         if(!validPath)
         {
-            removals.push(i);
+            removals.push(particle);
             continue;
         }
-        if(particle)
-        ctx.strokeStyle = 'red';
+        // laser scan evalutation
+        let laser_scanner_result;
+        if (newPos !== null) {
+            laser_scanner_result = getLaserSensorValues(newPos);
+        }else{
+            laser_scanner_result = getLaserSensorValues(particle);
+        }
+        let diff = 0;
+        for (let a = 0; a < groundTruth.length; a++) {
+            const truth = groundTruth[a].step;
+            diff += Math.abs(laser_scanner_result[a].step - truth);
+        }
+        let radius = 4;
+        if(diff > 3500){
+            removals.push(particle);
+            continue;
+        }else{
+            const red_val = 255-Math.floor(255*diff/3500);
+            radius *= 1 - (diff/3500);
+            ctx.fillStyle = `rgb(${red_val}, 0, 0)`;
+        }
         if (newPos !== null) {
             ctx.beginPath();
-            ctx.arc(newPos.x, newPos.y, 2, 0, 2 * Math.PI);
-            ctx.stroke();
+            ctx.arc(newPos.x, newPos.y, radius, 0, 2 * Math.PI);
+            ctx.fill();
         } else {
             ctx.beginPath();
-            ctx.arc(particle.x, particle.y, 2, 0, 2 * Math.PI);
-            ctx.stroke();
+            ctx.arc(particle.x, particle.y, radius, 0, 2 * Math.PI);
+            ctx.fill();
         }
     }
-    for (let i = 0; i < removals.length; i++) {
-        const index = removals[i];
-        particles.splice(index, 1);
+    particles = getArrayDiff(particles, removals);
+}
+
+function getArrayDiff(a, b) {
+    var ret = [];
+    if (!(Array.isArray(a) && Array.isArray(b))) {
+        return ret;
     }
+    var i;
+    var key;
+
+    for (i = a.length - 1; i >= 0; i--) {
+      key = a[i];
+      if (-1 === b.indexOf(key)) {
+        ret.push(key);
+      }
+    }
+
+    return ret;
 }
 
 function chooseOne(arr) {
@@ -113,8 +148,6 @@ function isValidInd(iX, iY) {
 function filter() {
     const offset = indexToScreenPos(pathOffsetX, pathOffsetY);
     particles = particles.filter(p => isValidPos(p.x + offset.x, p.y + offset.y));
-    const res = evaluate_particles();
-    return res;
 }
 
 function screenToIndex(screenX, screenY) {
@@ -150,14 +183,14 @@ function moveRobot(dx, dy) {
         if(particles.length <= numParticles*0.8) {
             for (let i = 0; i < numParticles; i++) {
                 const particle = new v2(
-                    Math.floor(Math.random() * (width)) - size,
-                    Math.floor(Math.random() * (height)) - size
+                    Math.floor(Math.random() * (size*numCols)) - size,
+                    Math.floor(Math.random() * (size*numRows)) - size
                 );
                 particle.dir = chooseOne([new v2(1, 1),new v2(-1, 1),new v2(1, -1),new v2(-1, -1)]);
                 particles.push(particle)
             }
         }
-        const res = filter();
+        const res = getLaserSensorValues(indexToScreenPos(curPos.x, curPos.y), true);
         drawZoomedView(level);
         draw(level);
         for (let i = 0; i < res.length; i++) {
@@ -198,30 +231,6 @@ function drawPathForParticle(particle, path) {
         lastPos,
         validPath
     };
-}
-
-function evaluate_particles() {
-    const groundTruth = getLaserSensorValues(indexToScreenPos(curPos.x, curPos.y), true);
-    const deleteIndices = [];
-    for (let i = 0; i < particles.length; i++) {
-        const particle = particles[i];
-        const res = getLaserSensorValues(indexToScreenPos(particle.x, particle.y));
-        let diff = 0;
-        for (let a = 0; a < groundTruth.length; a++) {
-            const truth = groundTruth[a].step;
-            diff += Math.abs(res[a].step - truth);
-        }
-        if(diff > 2900){
-            deleteIndices.push(i);
-        }else{
-            particles[i].evalutation = diff;
-        }
-    }
-    for (let i = 0; i < deleteIndices.length; i++) {
-        const del = deleteIndices[i];
-        particles.splice(del, 1);
-    }
-    return groundTruth;
 }
 
 function drawPath(path) {
@@ -347,17 +356,20 @@ const numParticles = 1000;
 const path = [];
 for (let i = 0; i < numParticles; i++) {
     const particle = new v2(
-        Math.floor(Math.random() * (width)) - size,
-        Math.floor(Math.random() * (height)) - size
+        Math.floor(Math.random() * (size*numCols)) - size,
+        Math.floor(Math.random() * (size*numRows)) - size
     );
     particle.dir = chooseOne([new v2(1, 1),new v2(-1, 1),new v2(1, -1),new v2(-1, -1)]);
     particles.push(particle)
 }
 
-let curPos = new v2(2, 2);
+let curPos = new v2(20, 25);
+const perfect_particle = new v2(20.5*size, 5.5*size);
+perfect_particle.dir = new v2(1,1);
+perfect_particle.isPerfectParticle = true;
+particles.push(perfect_particle);
 path.push(new v2(curPos.x, curPos.y));
 const zoomFactor = 4;
-
 draw(level);
 drawZoomedView(level);
 filter();
