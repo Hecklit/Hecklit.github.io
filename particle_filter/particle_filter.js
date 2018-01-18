@@ -180,8 +180,11 @@ function moveRobot(dx, dy) {
         pathOffsetY += dy;
 
         scatter();
-        if(particles.length <= numParticles*0.8) {
+        if(particles.length <= numParticles*0.5) {
             for (let i = 0; i < numParticles; i++) {
+                if(particles.length > numParticles*0.8){
+                    break;
+                }
                 const particle = new v2(
                     Math.floor(Math.random() * (size*numCols)) - size,
                     Math.floor(Math.random() * (size*numRows)) - size
@@ -363,8 +366,8 @@ for (let i = 0; i < numParticles; i++) {
     particles.push(particle)
 }
 
-let curPos = new v2(20, 25);
-const perfect_particle = new v2(20.5*size, 5.5*size);
+let curPos = new v2(2, 6);
+const perfect_particle = new v2(2.5*size, 6.5*size);
 perfect_particle.dir = new v2(1,1);
 perfect_particle.isPerfectParticle = true;
 particles.push(perfect_particle);
