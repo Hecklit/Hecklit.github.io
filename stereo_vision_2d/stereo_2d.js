@@ -50,17 +50,19 @@ function drawPoint(color, x, y) {
     ctx.fillRect(x -size/2, y -size/2 , size, size);
 }
 
-let target_point, first_focal_point, second_focal_point, base_line, screen_width, left_screen, right_screen,
+let target_point, left_focal_point, right_focal_point, base_line, screen_width, left_screen, right_screen,
     left_camera_to_target, right_camera_to_target, y, left_intersect_x, right_intersect_x, left_intersect,
-    right_intersect, left_disparity, right_disparity, disparity, distance;
+    right_intersect, left_disparity, right_disparity, disparity, distance, view_frustum_left, view_frustum_right;
+
+screen_width = 80;
+
 
 function calculate_distace(t_p) {
     target_point = t_p;
-    screen_width = base_line.length()*0.9;
     left_screen = getScreen(base_line.start, screen_width, f);
     right_screen = getScreen(base_line.end, screen_width, f);
-    left_camera_to_target = new line2d(first_focal_point, target_point);
-    right_camera_to_target = new line2d(second_focal_point, target_point);
+    left_camera_to_target = new line2d(left_focal_point, target_point);
+    right_camera_to_target = new line2d(right_focal_point, target_point);
     y = left_screen.start.y;
     left_intersect_x = left_camera_to_target.x_at_y(y);
     right_intersect_x = right_camera_to_target.x_at_y(y);
@@ -70,6 +72,19 @@ function calculate_distace(t_p) {
     right_disparity = right_intersect_x - right_screen.start.x;
     disparity = left_disparity - right_disparity;
     distance = base_line.length() * f / disparity;
+    // Frustums
+    const left_left_end = left_screen.start.add(left_screen.start.sub(left_focal_point).scale(width));
+    const left_right_end = left_screen.end.add(left_screen.end.sub(left_focal_point).scale(width));
+    view_frustum_left = {
+        left: new line2d(left_screen.start, left_left_end),
+        right: new line2d(left_screen.end, left_right_end)
+    };
+    const right_left_end = right_screen.start.add(right_screen.start.sub(right_focal_point).scale(width));
+    const right_right_end = right_screen.end.add(right_screen.end.sub(right_focal_point).scale(width));
+    view_frustum_right = {
+        left: new line2d(right_screen.start, right_left_end),
+        right: new line2d(right_screen.end, right_right_end)
+    };
     draw();
 }
 
@@ -82,11 +97,13 @@ function getScreen(point, width, focal_length) {
 function draw() {
     clear();
     drawPoint('#f00', target_point);
-    drawPoint('#0f0', first_focal_point);
-    drawPoint('#00f', second_focal_point);
+    drawPoint('#0f0', left_focal_point);
+    drawPoint('#00f', right_focal_point);
     base_line.draw(ctx, '#ff0');
     left_screen.draw(ctx, '#0ff');
     right_screen.draw(ctx, '#0ff');
+    fill_frustum(view_frustum_right, "rgba(255, 255, 0, 0.2");
+    fill_frustum(view_frustum_left, "rgba(255, 255, 0, 0.2");
     left_camera_to_target.draw(ctx, '#f0f');
     right_camera_to_target.draw(ctx, '#f0f');
     drawPoint('#f0f', left_intersect);
@@ -118,15 +135,40 @@ function onChange(e) {
         op = e.target.value;
         document.getElementById('b').value = op;
         document.getElementById('rb').value = op;
-        first_focal_point = new v2(center.x - +op/2, center.y * 1.8)
-        second_focal_point = new v2(center.x  + +op/2, center.y * 1.8)
-        base_line = new line2d(first_focal_point, second_focal_point);
+        left_focal_point = new v2(center.x - +op/2, center.y * 1.8)
+        right_focal_point = new v2(center.x  + +op/2, center.y * 1.8)
+        base_line = new line2d(left_focal_point, right_focal_point);
+    }
+    if(e.target.id === 'c' || e.target.id === 'rc') {
+        op = e.target.value;
+        document.getElementById('c').value = op;
+        document.getElementById('rc').value = op;
+        screen_width = op;
     }
     calculate_distace(new v2(center.x, center.y/2))
 }
 
+function moveTo(vec) {
+    ctx.moveTo(vec.x, vec.y);
+}
+
+function lineTo(vec) {
+    ctx.lineTo(vec.x, vec.y);
+}
+
+function fill_frustum(f, color) {
+    ctx.beginPath();
+    moveTo(f.left.start);
+    lineTo(f.left.end);
+    lineTo(f.right.end);
+    lineTo(f.right.start);
+    lineTo(f.left.start);
+    ctx.fillStyle = color;
+    ctx.fill();
+}
+
 let op = 371;
-first_focal_point = new v2(center.x - +op/2, center.y * 1.8)
-second_focal_point = new v2(center.x  + +op/2, center.y * 1.8)
-base_line = new line2d(first_focal_point, second_focal_point);
+left_focal_point = new v2(center.x - +op/2, center.y * 1.8)
+right_focal_point = new v2(center.x  + +op/2, center.y * 1.8)
+base_line = new line2d(left_focal_point, right_focal_point);
 calculate_distace(new v2(center.x, center.y/2))
