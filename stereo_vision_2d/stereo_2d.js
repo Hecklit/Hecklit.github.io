@@ -110,7 +110,7 @@ function draw() {
     drawPoint('#f0f', right_intersect);
     ctx.fillStyle = '#000';
     ctx.font="26px Arial";
-    ctx.fillText('f * len(baseline) / disparity = Distance', 10, 40);
+    ctx.fillText('f * len(baseline) / disparity = distance', 10, 40);
     ctx.fillText(`${f.toFixed(2)} * ${base_line.length().toFixed(2)} / ${disparity.toFixed(2)} = ${distance.toFixed(2)}`, 10, 80);
 }
 
