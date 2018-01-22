@@ -6,6 +6,7 @@ const center = new v2(width, height).scale(0.5);
 let canRect = can.getBoundingClientRect();
 let mouseDown = false;
 let f = 40.0;
+let debug = false;
 
 window.onresize = (e) => {
     canRect = can.getBoundingClientRect();
@@ -28,6 +29,8 @@ can.onmousemove = (e) => {
 window.onkeydown = (e) => {
     // Leertaste
     if(e.keyCode === 32) {
+        debug = !debug;
+        draw();
     }
 }
 
@@ -96,22 +99,55 @@ function getScreen(point, width, focal_length) {
 
 function draw() {
     clear();
+    base_line.draw(ctx, '#000');
+    left_screen.draw(ctx, '#000');
+    right_screen.draw(ctx, '#000');
+    fill_frustum(view_frustum_right, "rgba(255, 255, 0, 0.2");
+    fill_frustum(view_frustum_left, "rgba(255, 255, 0, 0.2");
+    left_camera_to_target.draw(ctx, '#000');
+    right_camera_to_target.draw(ctx, '#000');
+    drawPoint('#f0f', left_intersect);
+    drawPoint('#f0f', right_intersect);
     drawPoint('#f00', target_point);
     drawPoint('#0f0', left_focal_point);
     drawPoint('#00f', right_focal_point);
-    base_line.draw(ctx, '#ff0');
-    left_screen.draw(ctx, '#0ff');
-    right_screen.draw(ctx, '#0ff');
-    fill_frustum(view_frustum_right, "rgba(255, 255, 0, 0.2");
-    fill_frustum(view_frustum_left, "rgba(255, 255, 0, 0.2");
-    left_camera_to_target.draw(ctx, '#f0f');
-    right_camera_to_target.draw(ctx, '#f0f');
-    drawPoint('#f0f', left_intersect);
-    drawPoint('#f0f', right_intersect);
-    ctx.fillStyle = '#000';
-    ctx.font="26px Arial";
-    ctx.fillText('f * len(baseline) / disparity = distance', 10, 40);
-    ctx.fillText(`${f.toFixed(2)} * ${base_line.length().toFixed(2)} / ${disparity.toFixed(2)} = ${distance.toFixed(2)}`, 10, 80);
+
+    if(debug) {
+        ctx.fillStyle = '#000';
+        ctx.font="26px Arial";
+        ctx.fillText('f * len(baseline) / disparity = distance', 10, 40);
+        ctx.fillText(`${f.toFixed(2)} * ${base_line.length().toFixed(2)} / ${disparity.toFixed(2)} = ${distance.toFixed(2)}`, 10, 80);
+        ctx.strokeStyyle = '#f00';
+        // f
+        ctx.font="18px Arial";
+        const left_brennweite = (new line2d(left_focal_point, new v2(left_focal_point.x, left_screen.start.y)));
+        left_brennweite.draw(ctx, '#f00');
+        ctx.fillStyle = '#f00';
+        ctx.fillText(left_brennweite.length(), left_focal_point.x + 10, left_focal_point.y - left_brennweite.length()/2);
+        const right_brennweite = (new line2d(right_focal_point, new v2(right_focal_point.x, right_screen.start.y)));
+        right_brennweite.draw(ctx, '#f00');
+        ctx.fillText(right_brennweite.length(), right_focal_point.x + 10, right_focal_point.y - right_brennweite.length()/2);
+        // baseline to target
+        const baseline_to_target = (new line2d(target_point, new v2(target_point.x, base_line.start.y)))
+        baseline_to_target.draw(ctx, '#0f0');
+        ctx.fillStyle = '#0f0';
+        ctx.fillText(baseline_to_target.length().toFixed(2), target_point.x + 10, target_point.y + baseline_to_target.length()/2);
+        // disparity
+        const disparity_left = (new line2d(left_intersect, new v2(left_focal_point.x, left_screen.start.y)))
+        disparity_left.draw(ctx, '#fff');
+        ctx.fillStyle = '#fff';
+        ctx.fillText(disparity_left.length().toFixed(2), left_intersect.x + disparity_left.length()/2, left_intersect.y - 10);
+        const disparity_right = (new line2d(right_intersect, new v2(right_focal_point.x, right_screen.start.y)));
+        disparity_right.draw(ctx, '#fff');
+        ctx.fillText(disparity_right.length().toFixed(2), right_intersect.x + disparity_right.length()/2, right_intersect.y - 10);
+
+
+    }else{
+        ctx.fillStyle = '#000';
+        ctx.font="26px Arial";
+        ctx.fillText('f * len(baseline) / disparity = distance', 10, 40);
+        ctx.fillText(`${f.toFixed(2)} * ${base_line.length().toFixed(2)} / ${disparity.toFixed(2)} = ${distance.toFixed(2)}`, 10, 80);
+    }
 }
 
 var inputs = document.getElementsByTagName('input');
@@ -129,7 +165,6 @@ function onChange(e) {
         f = +e.target.value;
         document.getElementById('a').value = f;
         document.getElementById('ra').value = f;
-        console.log(f);
     }
     if(e.target.id === 'b' || e.target.id === 'rb') {
         op = e.target.value;
@@ -138,12 +173,6 @@ function onChange(e) {
         left_focal_point = new v2(center.x - +op/2, center.y * 1.8)
         right_focal_point = new v2(center.x  + +op/2, center.y * 1.8)
         base_line = new line2d(left_focal_point, right_focal_point);
-    }
-    if(e.target.id === 'c' || e.target.id === 'rc') {
-        op = e.target.value;
-        document.getElementById('c').value = op;
-        document.getElementById('rc').value = op;
-        screen_width = op;
     }
     calculate_distace(new v2(center.x, center.y/2))
 }

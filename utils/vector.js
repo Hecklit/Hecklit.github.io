@@ -106,7 +106,7 @@ class line2d {
 
     draw(ctx, color) {
         if(color) {
-            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
         }
         ctx.beginPath();
         ctx.moveTo(this.start.x, this.start.y);
