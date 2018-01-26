@@ -163,11 +163,13 @@ for(var i = 0; i < inputs.length; i++) {
 function onChange(e) {
     if(e.target.id === 'a' || e.target.id === 'ra') {
         f = +e.target.value;
+        f = Math.max(f,1);
         document.getElementById('a').value = f;
         document.getElementById('ra').value = f;
     }
     if(e.target.id === 'b' || e.target.id === 'rb') {
         op = e.target.value;
+        op = Math.max(op,1);
         document.getElementById('b').value = op;
         document.getElementById('rb').value = op;
         left_focal_point = new v2(center.x - +op/2, center.y * 1.8)
