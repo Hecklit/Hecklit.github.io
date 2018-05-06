@@ -3,6 +3,7 @@ const ctx = can.getContext('2d');
 const new_curve = document.getElementById('new_curve');
 const boxes = document.getElementById('boxes');
 const demo_btn = document.getElementById('demo');
+const random = document.getElementById('random');
 const clear_btn = document.getElementById('clear');
 const width = can.width = window.innerWidth;
 const height = can.height = window.innerHeight *0.8;
@@ -10,7 +11,7 @@ let canRect = can.getBoundingClientRect();
 let mouseDown = false;
 const num_samples = 1000;
 let curves = [];
-let bounding_boxes = true;
+let bounding_boxes = false;
 let demo_mode = false;
 let demo_progess = 0;
 let demo_mode_dir = 1;
@@ -24,6 +25,14 @@ new_curve.onclick = (e) => {
 };
 boxes.onclick = (e) => {
     bounding_boxes = !bounding_boxes;
+    redraw();
+};
+random.onclick = (e) => {
+    let points = [];
+    for (let i = 0; i < 10; i++) {
+        points.push(new v2(Math.random()*width, Math.random()*height));
+    }
+    curves.push(new Bezier(points));
     redraw();
 };
 demo_btn.onclick = (e) => {
@@ -106,34 +115,36 @@ function demo() {
 
 clear();
 
-scale = 500.0
-let points = [
-    new v2(lerp(0, width, 100.0/scale), lerp(0, width, 100.0/scale)),
-    new v2(lerp(0, width, 90.0/scale), lerp(0, width, 400.0/scale)),
-    new v2(lerp(0, width, 300.0/scale), lerp(0, width, 80.0/scale)),
-    new v2(lerp(0, width, 400.0/scale), lerp(0, width, 120.0/scale)),
-    new v2(lerp(0, width, 430.0/scale), lerp(0, width, 350.0/scale)),
-];
+// scale = 500.0
+// let points = [
+//     new v2(lerp(0, width, 100.0/scale), lerp(0, width, 100.0/scale)),
+//     new v2(lerp(0, width, 90.0/scale), lerp(0, width, 400.0/scale)),
+//     new v2(lerp(0, width, 300.0/scale), lerp(0, width, 80.0/scale)),
+//     new v2(lerp(0, width, 400.0/scale), lerp(0, width, 120.0/scale)),
+//     new v2(lerp(0, width, 430.0/scale), lerp(0, width, 350.0/scale)),
+// ];
 
-console.log(points)
+// console.log(points)
 
-ctx.lineWidth = 2;
-points.sort((a, b) => {
-    if(a.x > b.x){
-        return true;
-    }else if (b.x > a.x) {
-        return false;
-    }else{
-        if(a.y > b.y){
-            return true;
-        }else if (b.y > a.y) {
-            return false;
-        }else{
-            // they are the same point
-            return true;
-        }
-    }
-});
-let curve1 = new Bezier(points);
-curves.push(curve1);
-redraw();
+// ctx.lineWidth = 2;
+// points.sort((a, b) => {
+//     if(a.x > b.x){
+//         return true;
+//     }else if (b.x > a.x) {
+//         return false;
+//     }else{
+//         if(a.y > b.y){
+//             return true;
+//         }else if (b.y > a.y) {
+//             return false;
+//         }else{
+//             // they are the same point
+//             return true;
+//         }
+//     }
+// });
+// let curve1 = new Bezier(points);
+// curves.push(curve1);
+// redraw();
+
+random.onclick({});
