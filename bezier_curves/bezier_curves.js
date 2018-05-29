@@ -57,7 +57,8 @@ function redraw(max_t = 1) {
     clear();
     for (let i = 0; i < curves.length; i++) {
         const curve = curves[i];
-        curve.naive_plot(ctx, num_samples, bounding_boxes, max_t);
+        // curve.naive_plot(ctx, num_samples, bounding_boxes, max_t);
+        curve.plot(ctx, 10);
     }
 }
 
@@ -90,8 +91,8 @@ function clear() {
     ctx.fillRect(0,0, width, height);
 }
 
-function draw_point(p, size) {
-    ctx.fillStyle = 'red'
+function draw_point(p, size, color) {
+    ctx.fillStyle = color
     ctx.fillRect(p.x - size/2, p.y - size/2, size/2, size/2);
 }
 
