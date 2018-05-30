@@ -59,6 +59,15 @@ function redraw(max_t = 1) {
         const curve = curves[i];
         // curve.naive_plot(ctx, num_samples, bounding_boxes, max_t);
         curve.plot(ctx, 10);
+
+        // intersections
+
+        for (let j = i+1; j < curves.length; j++) {
+            let inter = curve.find_intersections_with_other(curves[j]);
+            for(p in inter) {
+                draw_point(inter[p], 6, 'white');
+            }
+        }
     }
 }
 
@@ -93,7 +102,7 @@ function clear() {
 
 function draw_point(p, size, color) {
     ctx.fillStyle = color
-    ctx.fillRect(p.x - size/2, p.y - size/2, size/2, size/2);
+    ctx.fillRect(p.x - size/2, p.y - size/2, size, size);
 }
 
 function demo() {
