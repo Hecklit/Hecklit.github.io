@@ -29,7 +29,7 @@ boxes.onclick = (e) => {
 };
 random.onclick = (e) => {
     let points = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 4; i++) {
         points.push(new v2(Math.random()*width, Math.random()*height));
     }
     curves.push(new Bezier(points));
@@ -52,13 +52,24 @@ clear_btn.onclick = (e) => {
 can.onmouseup = () => {
     mouseDown = false;
 }
+var colorArray = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6', 
+		  '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
+		  '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A', 
+		  '#FF99E6', '#CCFF1A', '#FF1A66', '#E6331A', '#33FFCC',
+		  '#66994D', '#B366CC', '#4D8000', '#B33300', '#CC80CC', 
+		  '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399',
+		  '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680', 
+		  '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933',
+		  '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3', 
+'#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'];
 
 function redraw(max_t = 1) {
     clear();
     for (let i = 0; i < curves.length; i++) {
         const curve = curves[i];
+        curve.color = colorArray[i];
         // curve.naive_plot(ctx, num_samples, bounding_boxes, max_t);
-        curve.plot(ctx, 10);
+        curve.plot(ctx, 5);
 
         // intersections
 
@@ -68,10 +79,24 @@ function redraw(max_t = 1) {
                 draw_point(inter[p], 6, 'white');
             }
         }
+
+        // self intersections
+        let self_inters = curve.find_self_intersections();
+        for(p in self_inters) {
+            draw_point(self_inters[p], 6, 'black');
+        }
     }
 }
 
 can.onmousedown = (e) => {
+    if(e.button === 2) {
+        console.log('Cn-1 Übergang');
+        const newPoint = new v2(e.clientX-canRect.left, e.clientY-canRect.top);
+        const newBezier = curves[curves.length-1].cn_minus_one_transition(newPoint);
+        curves.push(newBezier);
+        redraw();
+        return;
+    }
     mouseDown = true;
     const newPoint = new v2(e.clientX-canRect.left, e.clientY-canRect.top);
     curves[curves.length-1].add_point(newPoint);
