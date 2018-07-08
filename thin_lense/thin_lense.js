@@ -165,6 +165,11 @@ function draw() {
     draw_line(new v2(projection_center.x, lens_end.y), lens_end);
     ctx.fillText(`z' = ${z_prime.toFixed(2)}`, (projection_center.x + lens_end.x)/2, lens_end.y + 20);
     
+    ctx.strokeStyle = 'pink';
+    ctx.fillStyle = 'pink'
+    draw_line(new v2(real_world_center.x, lens_end.y), lens_end);
+    ctx.fillText(`z = ${z.toFixed(2)}`, (real_world_center.x + lens_end.x)/2, lens_end.y + 20);
+
     ctx.strokeStyle = 'white';
     ctx.fillStyle = 'white'
     draw_line(lens_center, focal_point);
@@ -179,6 +184,7 @@ function draw() {
     ctx.fillStyle = 'orange'
     draw_line(real_world_center, p);
     ctx.fillText(`y = ${y.toFixed(2)}`, real_world_center.x -60, (real_world_center.y + p.y)/2);
+    
 
     // points
     drawPoint('red', p.x, p.y);
