@@ -17,7 +17,7 @@ let points = [];
 let rendering_points = [];
 let rendering_knots = [];
 const knots = [];
-let degree = 2;
+let degree = 4;
 let show_debug = true;
 var colorArray = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6', 
 		  '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
@@ -241,11 +241,11 @@ function rendering() {
     console.log('after ', rendering_points.length)
     rendering_points = rendering_points.map(x => new v2(x[0], x[1]))
     // rendering_points = rendering_points.slice(degree*2, rendering_points.length-degree*2)
-    for (let i = 1; i < rendering_points.length-degree; i+=degree) {
+    for (let i = degree-1; i < rendering_points.length-degree; i+=degree) {
         const bezier_points = rendering_points.slice(i, i+degree+1);
         for (let j = 0; j < bezier_points.length; j++) {
             const pnt = bezier_points[j];
-            draw_point(pnt, 10, 'blue');
+            draw_point(pnt, 10, colorArray[i]);
             
         }
         let bez = new Bezier(bezier_points, colorArray[i]);
