@@ -73,7 +73,7 @@ class Bezier {
                 max_sum_angle = sum_angle;
             }
         }
-        if (max_sum_angle > Math.PI) {
+        if (max_sum_angle >= Math.PI) {
             // self intersection detected
             const { left, right } = this.shave_triangle(triangle);
             this._recursive_self_intersection(left);

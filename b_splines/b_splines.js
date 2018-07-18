@@ -83,7 +83,7 @@ function redraw(max_t = 1) {
                 if(show_debug) {
                     if(i !== 0) {
                         let o = bspline.points[i-1]
-                        ctx.strokeStyle = colorArray[i-1];
+                        ctx.strokeStyle = 'gray';//colorArray[i-1];
                         draw_line(p[0], p[1], o[0], o[1]);
                     }
                 }
@@ -232,6 +232,7 @@ function rendering() {
         }
     }
     rendering_points = rendering_points.map(x => new v2(x[0], x[1]))
+    let beziers = [];
     for (let i = degree-1; i < rendering_points.length-degree; i+=degree) {
         const bezier_points = rendering_points.slice(i, i+degree+1);
         if(show_debug) {
@@ -242,7 +243,24 @@ function rendering() {
             }
         }
         let bez = new Bezier(bezier_points, colorArray[i]);
+        beziers.push(bez);
         bez.plot(ctx, 10);
+    }
+    let intersections = []
+    for (let i = 0; i < beziers.length; i++) {
+        const one = beziers[i];
+        const self_inter = one.find_self_intersections();
+        intersections = intersections.concat(self_inter);
+        for (let j = i+1; j < beziers.length; j++) {
+            const other = beziers[j];
+            const inters = one.find_intersections_with_other(other);
+            intersections = intersections.concat(inters);
+        }
+    }
+
+    for (let i = 0; i < intersections.length; i++) {
+        const inters = intersections[i];
+        draw_point(inters, 5, 'red')
     }
 }
 
