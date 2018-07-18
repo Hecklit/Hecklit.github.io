@@ -151,7 +151,7 @@ class Bezier {
     }
 
     plot(ctx, max_recursive_level) {
-        this.plot_points(ctx, this._points, 'white');
+        // this.plot_points(ctx, this._points, 'white');
         this._plot_bezier(ctx, this._points, max_recursive_level, 1);
         // console.log('bezier_points', this._points)
     }
@@ -161,7 +161,7 @@ class Bezier {
             return;
         }
         ctx.strokeStyle = this.color
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {

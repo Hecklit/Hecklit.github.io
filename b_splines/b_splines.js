@@ -1,10 +1,7 @@
 const can = document.getElementById('can');
 const ctx = can.getContext('2d');
-const new_curve = document.getElementById('new_curve');
-const boxes = document.getElementById('boxes');
-const demo_btn = document.getElementById('demo');
-const random = document.getElementById('random');
-const clear_btn = document.getElementById('clear');
+const degree_slider = document.getElementById("myRange");
+const degree_out = document.getElementById("degree_out");
 const width = can.width = window.innerWidth;
 const height = can.height = window.innerHeight *0.8;
 let canRect = can.getBoundingClientRect();
@@ -13,12 +10,12 @@ let current_knot_indx = null;
 let current_point_indx = null;
 const num_samples = 1000;
 let curve;
-let points = [];
 let rendering_points = [];
 let rendering_knots = [];
-const knots = [];
-let degree = 4;
+let degree = 2;
 let show_debug = true;
+let bspline = null;
+
 var colorArray = ['#FF6633', '#FFB399', '#FF33FF', '#FFFF99', '#00B3E6', 
 		  '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
 		  '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A', 
@@ -38,7 +35,20 @@ can.onmouseup = () => {
     mouseDown = false;
 }
 
+degree_out.innerHTML = `Grad: ${degree_slider.value}`;
+degree = +degree_slider.value;
+console.log(degree)
+degree_slider.oninput = () => {
+    degree_out.innerHTML = `Grad: ${degree_slider.value}`;
+    degree = +degree_slider.value;
+    console.log(degree)
+    init();
+    redraw(1.0);
+}
+
 function init() {
+    let points = [];
+    let knots = [];
     points.push( [0.24353*width,0.44556*height]);
     points.push( [0.41487*width,0.16330*height]);
     points.push( [0.45581*width,0.71572*height]);
@@ -47,15 +57,16 @@ function init() {
     for (let i = 0; i < points.length+degree+1; i++) {
         knots.push(i/(points.length+degree));
     }
+    bspline = new BSpline(points, degree, knots)
 }
 
 function insert(pos) {
-    let res = insert_knot(pos, degree, points, knots)
-    points = res;
-    for (let i = 0; i < knots.length; i++) {
-        const knot = knots[i];
+    let res = insert_knot(pos, degree, bspline.points, bspline.knots)
+    bspline.points = res;
+    for (let i = 0; i < bspline.knots.length; i++) {
+        const knot = bspline.knots[i];
         if(knot >= pos){
-            knots.splice(i, 0, pos)
+            bspline.knots.splice(i, 0, pos)
             break;
         }
     }
@@ -64,25 +75,18 @@ function insert(pos) {
 function redraw(max_t = 1) {
     clear();
     draw_coord_system();
-    if(points.length > 1) {
-        if(show_debug) {
-            // draw connection between controll points
-            ctx.lineWidth = 2;
-            for (let i = 0; i < points.length; i++) {
-                let p = points[i];
-                if(i !== 0) {
-                    let o = points[i-1]
-                    ctx.strokeStyle = colorArray[i-1];
-                    draw_line(p[0], p[1], o[0], o[1]);
-                    let start_idx = i;
-                    let end_idx = start_idx+degree;
-                    let start_point = knot_scale_to_point(knots[start_idx]);
-                    let end_point = knot_scale_to_point(knots[end_idx]);
-                    start_point.y += height * 0.1/points.length * i;
-                    end_point.y += height * 0.1/points.length * i;
-                    draw_line(start_point.x, start_point.y, end_point.x, end_point.y);
+    if(bspline.points.length > 1) {
+        // draw connection between controll points
+        ctx.lineWidth = 2;
+        for (let i = 0; i < bspline.points.length; i++) {
+            let p = bspline.points[i];
+                if(show_debug) {
+                    if(i !== 0) {
+                        let o = bspline.points[i-1]
+                        ctx.strokeStyle = colorArray[i-1];
+                        draw_line(p[0], p[1], o[0], o[1]);
+                    }
                 }
-    
                 if(i == current_point_indx) {
                     draw_point(new v2(p[0], p[1]), 8, 'white')
                 }else{
@@ -90,29 +94,28 @@ function redraw(max_t = 1) {
                 }
             }
             ctx.lineWidth = 1;
-        }
         rendering();
-        for(var t=0; t<max_t; t+=0.01) {
-            var point = interpolate(t, degree, points, knots);
-            draw_point(new v2(point[0], point[1]), 2, 'yellow')
-        }
+        // for(var t=0; t<max_t; t+=0.01) {
+        //     var point = interpolate(t, degree, bspline.points, bspline.knots);
+        //     draw_point(new v2(point[0], point[1]), 2, 'yellow')
+        // }
     }
 }
 
 can.onmousedown = (e) => {
     mouseDown = true;
-    const newPoint = new v2(e.clientX-canRect.left, e.clientY-canRect.top);
+    const newPoint = new v2(e.clientX-canRect.left, e.clientY-canRect.top-20);
     if(e.ctrlKey) {
         let val = point_to_knot_scale(newPoint)
         insert(val) 
     }
     // check for collision with any knot
-    const knotPoints = knots.map(x => knot_scale_to_point(x))
+    const knotPoints = bspline.knots.map(x => knot_scale_to_point(x))
     let found = false;
     for (let i = 0; i < knotPoints.length; i++) {
         const knotPoint = knotPoints[i];
         const distance = newPoint.sub(knotPoint).length();
-        if(distance <= 10) {
+        if(distance <= 20) {
             current_knot_indx = i;
             found = true
             break
@@ -123,10 +126,10 @@ can.onmousedown = (e) => {
     }
     // check for collision with any point
     found = false;
-    for (let i = 0; i < points.length; i++) {
-        const point = points[i];
+    for (let i = 0; i < bspline.points.length; i++) {
+        const point = bspline.points[i];
         const distance = newPoint.sub(new v2(point[0], point[1])).length();
-        if(distance <= 10) {
+        if(distance <= 20) {
             current_point_indx = i;
             found = true
             break
@@ -140,18 +143,18 @@ can.onmousedown = (e) => {
 
 can.onmousemove = (e) => {
     if(mouseDown && current_knot_indx !== null) {
-        if(current_knot_indx > 0 && current_knot_indx < knots.length-1) {
+        if(current_knot_indx > 0 && current_knot_indx < bspline.knots.length-1) {
             const newPoint = new v2(e.clientX-canRect.left, e.clientY-canRect.top);
             let tmp_val = point_to_knot_scale(newPoint);
-            if(tmp_val >= knots[current_knot_indx-1] && tmp_val <= knots[current_knot_indx+1]){
-                knots[current_knot_indx] = tmp_val;
+            if(tmp_val >= bspline.knots[current_knot_indx-1] && tmp_val <= bspline.knots[current_knot_indx+1]){
+                bspline.knots[current_knot_indx] = tmp_val;
                 redraw(1);
             }
         }
     }
     if(mouseDown && current_point_indx !== null) {
         const newPoint = new v2(e.clientX-canRect.left, e.clientY-canRect.top);
-        points[current_point_indx] = [newPoint.x, newPoint.y];
+        bspline.points[current_point_indx] = [newPoint.x, newPoint.y];
         redraw(1);
     }
 }
@@ -201,8 +204,8 @@ function draw_coord_system() {
     ctx.strokeStyle = 'lightgray';
     draw_line(width*0.1, height*.9, width*0.9, height*.9);
 
-    for (let i = 0; i < knots.length; i++) {
-        const knot = knots[i];
+    for (let i = 0; i < bspline.knots.length; i++) {
+        const knot = bspline.knots[i];
         if(i == current_knot_indx) {
             draw_point(knot_scale_to_point(knot), 10, 'white');
         }else{
@@ -212,10 +215,10 @@ function draw_coord_system() {
 }
 
 function rendering() {
-    rendering_points = points.slice();
-    rendering_knots = knots.slice();
-    for (let i = degree; i < knots.length-degree; i++) {
-        const knot = knots[i];
+    rendering_points = bspline.points.slice();
+    rendering_knots = bspline.knots.slice();
+    for (let i = degree; i < bspline.knots.length-degree; i++) {
+        const knot = bspline.knots[i];
         for (let j = 0; j < degree-1; j++) {
             // new points
             rendering_points = insert_knot(knot, degree, rendering_points, rendering_knots)
@@ -231,10 +234,12 @@ function rendering() {
     rendering_points = rendering_points.map(x => new v2(x[0], x[1]))
     for (let i = degree-1; i < rendering_points.length-degree; i+=degree) {
         const bezier_points = rendering_points.slice(i, i+degree+1);
-        for (let j = 0; j < bezier_points.length; j++) {
-            const pnt = bezier_points[j];
-            draw_point(pnt, 10, colorArray[i]);
-            
+        if(show_debug) {
+            for (let j = 0; j < bezier_points.length; j++) {
+                const pnt = bezier_points[j];
+                draw_point(pnt, 4, colorArray[i]);
+                
+            }
         }
         let bez = new Bezier(bezier_points, colorArray[i]);
         bez.plot(ctx, 10);

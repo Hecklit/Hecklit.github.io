@@ -1,3 +1,11 @@
+class BSpline {
+  constructor(points, degree, knots) {
+    this.points = points;
+    this.degree = degree;
+    this.knots = knots;
+  }
+}
+
 function insert_knot(t, n, points, knots, weights, result) {
     var i,j,r,l;              // function-scoped iteration variables
     var N = points.length;    // points count
@@ -15,7 +23,6 @@ function insert_knot(t, n, points, knots, weights, result) {
     }
   
     if(!knots) {
-      // build knot vector of length [n + n + 1]
       var knots = [];
       for(i=0; i<n+N+1; i++) {
         knots[i] = i;
