@@ -51,12 +51,7 @@ function init() {
 
 function insert(pos) {
     let res = insert_knot(pos, degree, points, knots)
-    // for (let i = 0; i < res.length; i++) {
-    //     const e = res[i];
-    //     draw_point(new v2(e[0], e[1]), 14, 'cyan')
-    // }
     points = res;
-    // console.log(points)
     for (let i = 0; i < knots.length; i++) {
         const knot = knots[i];
         if(knot >= pos){
@@ -64,7 +59,6 @@ function insert(pos) {
             break;
         }
     }
-    // degree += 1;
 }
 
 function redraw(max_t = 1) {
@@ -200,6 +194,7 @@ function draw_line(sx, sy, ex, ey) {
 }
 
 function draw_coord_system() {
+    ctx.lineWidth = 1;
     ctx.strokeStyle = 'white';
     draw_line(width/2, 0, width/2, height);
     draw_line(0, height/2.0, width, height/2.0);
@@ -217,30 +212,23 @@ function draw_coord_system() {
 }
 
 function rendering() {
-    console.log('before ', points.length)
     rendering_points = points.slice();
     rendering_knots = knots.slice();
     for (let i = degree; i < knots.length-degree; i++) {
         const knot = knots[i];
-        console.log('rendering :', knot)
-        console.log('rendering :', rendering_knots)
         for (let j = 0; j < degree-1; j++) {
             // new points
             rendering_points = insert_knot(knot, degree, rendering_points, rendering_knots)
             // new knot vector
-            console.log('before knots', rendering_knots, knot)
             for (let i = 0; i < rendering_knots.length; i++) {
                 if(rendering_knots[i] >= knot){
                     rendering_knots.splice(i, 0, knot)
                     break;
                 }
             }
-            console.log('after knots', rendering_knots)
         }
     }
-    console.log('after ', rendering_points.length)
     rendering_points = rendering_points.map(x => new v2(x[0], x[1]))
-    // rendering_points = rendering_points.slice(degree*2, rendering_points.length-degree*2)
     for (let i = degree-1; i < rendering_points.length-degree; i+=degree) {
         const bezier_points = rendering_points.slice(i, i+degree+1);
         for (let j = 0; j < bezier_points.length; j++) {
@@ -251,8 +239,6 @@ function rendering() {
         let bez = new Bezier(bezier_points, colorArray[i]);
         bez.plot(ctx, 10);
     }
-    // let bez = new Bezier(rendering_points, 'yellow');
-    // bez.plot(ctx, 1000);
 }
 
 max_t = 1
@@ -267,9 +253,3 @@ function loop() {
 }
 init()
 redraw(1.0)
-
-// let res = insert_knot(0.1, 2, [
-//     [0,0],
-//     [8, 8],
-//     [8, 0]
-// ], [0.0, 0.05, 0.1, 0.3, 0.4, 0.5]);
