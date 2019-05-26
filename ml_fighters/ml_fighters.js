@@ -30,17 +30,17 @@ function draw() {
         drawPoint(fighter.pos.add(fighter.dir.scale(fighter.r)));
 
         // draw sensors
-        for (let j = 0; j < fighter.sensors.length; j++) {
-            const sensor = fighter.sensors[j];
-            let color = 'red';
-            if(sensor.state !== 0) {
-                color = 'cyan';
-            }
-            if(sensor.state === 2) {
-                color = 'yellow';
-            }
-            drawPoint(sensor.pos, color);
-        }
+        // for (let j = 0; j < fighter.sensors.length; j++) {
+        //     const sensor = fighter.sensors[j];
+        //     let color = 'red';
+        //     if(sensor.state !== 0) {
+        //         color = 'cyan';
+        //     }
+        //     if(sensor.state === 2) {
+        //         color = 'yellow';
+        //     }
+        //     drawPoint(sensor.pos, color);
+        // }
 
         // draw healthbar
         fill_rect(fighter.pos.add(new v2(-1.5 * fighter.r, fighter.r*-2)), fighter.r*3, fighter.r/2, 'red');
