@@ -8,6 +8,9 @@ class Game {
         this.can_rect = can.getBoundingClientRect();
         this.center = new v2(this.width / 2, this.height / 2);
         this.can.onmousemove = this.on_mouse_move.bind(this)
+        this.fps = 0
+        this.ts = 0
+        this.ctx.font = "20px Georgia";
 
         // create the world
         this.village = new Village(BBox.from_centered_on(this.center, 274 * 0.125, 320 * 0.125))
@@ -30,6 +33,21 @@ class Game {
                 this.trees.push(tree)    
             }
         }
+
+        this.ore_deposits = []
+        for (let i = 0; i < 10; i++) {
+            const spread = 0
+            const margin = 10
+            const pos = new v2(
+                random_in_interval(spread + margin, this.width - spread - margin),
+                random_in_interval(spread + margin, this.width - spread - margin))
+            const ore_deposit = new OreDeposit(
+                BBox.from_centered_on(pos,
+                    200 *(0.1),
+                    107 *(0.1), 2+random_int(5)))
+            this.ore_deposits.push(ore_deposit)    
+        }
+
         this.agents = []
         for (let i = 0; i < 10; i++) {
             const pos = new v2(Math.random()*this.width, Math.random()*this.height)
@@ -37,13 +55,18 @@ class Game {
             this.agents.push(agent)
         }
 
-        this.tasks = []
         for (const agent of this.agents) {
-            const tree = random_choice(this.trees)
             const task = new ChopWoodTask(agent, this, () => {
                 print('done')
             })
-            this.tasks.push(task)
+            agent.add_task(task)
+        }
+        for (const agent of this.agents) {
+            const tree = random_choice(this.trees)
+            const task = new MineOreTask(agent, this, () => {
+                print('done')
+            })
+            agent.add_task(task)
         }
     }
 
@@ -79,7 +102,7 @@ class Game {
         const bot = agent.bbox.bottom_center()
         this.ctx.drawImage(this.sprites[agent.spid], 0, 0, w, h,
             bot.x - agent.bbox.w/2, bot.y - agent.bbox.h, agent.bbox.w, agent.bbox.h);
-        this.t0 = Date.now()
+        this.t0 = window.performance.now()
 
         // for debug
         if(false){
@@ -93,7 +116,6 @@ class Game {
         this.ctx.fillStyle = color
         this.ctx.fillRect(bbox.x, bbox.y, bbox.w, bbox.h)
         this.ctx.fillStyle = 'white'
-        this.ctx.font = "20px Georgia";
         const xof = 10
         const yof = 26
         let i = 0
@@ -135,6 +157,7 @@ class Game {
                 [w*4, 128*0, w, 128],
                 [289, 129, w, 60],
             ]),
+            this.load_sprite_sheet(OreDeposit.image_name, [[0, 0, 232, 170]]),
 
         ]).then((sprites) => {
             this.sprites = []
@@ -149,23 +172,35 @@ class Game {
     }
 
     on_load() {
-        this.t0 = Date.now()
+        print('loaded all assets')
+        this.t0 = window.performance.now()
         this.draw()
     }
 
     draw() {
         // update
-        for (const task of this.tasks) {
-            task.update(Date.now() - this.t0)
+        const td = window.performance.now() - this.t0
+        this.t0 = window.performance.now()
+
+        if(this.ts % 1000 == 0){
+            // get new jobs
+            print('choose a new job')
+            for (const agent of this.agents) {
+                agent.choose_task()
+            } 
         }
-        this.t0 = Date.now()
+
+        for (const agent of this.agents) {
+            agent.update(td)
+        }
+        this.fps += 0.1 * (1000/(td + 0.01) - this.fps) 
 
         // draw
 
         this.clear()
         // z ordering
-        let ent = [this.village].concat(this.trees, this.agents)
-        ent = ent.sort((a, b) => a.bbox.y - b.bbox.y)
+        let ent = [this.village].concat(this.trees, this.agents, this.ore_deposits)
+        ent = ent.sort((a, b) => a.bbox.y-a.bbox.h - b.bbox.y-b.bbox.h)
         for (const e of ent) {
             this.draw_Image(e)
         }
@@ -174,6 +209,9 @@ class Game {
         if(this.village.info.visible){
             this.draw_bbox(this.village.info.bbox, 'rgba(0, 0, 0, 0.5)', this.village.resources_list())
         }
+
+        this.ctx.fillStyle = 'white'
+        this.ctx.fillText(`${(this.fps).toFixed(0)} FPS`, 10, 30)
 
         if(true){
             var tmp = this.ctx.lineWidth
@@ -184,160 +222,10 @@ class Game {
             this.ctx.lineWidth = tmp
         }
 
+        this.ts += 1
         window.requestAnimationFrame(this.draw.bind(this))
     }
 }
-
-class ChopWoodTask{
-    constructor(agent, game){
-        this.finished = false
-        this.game = game
-        this.cur_phase = 0
-        this.wood = 0
-
-        this.tree = random_choice(this.game.trees)
-        this.tasks = [
-            new WalkToTask(agent, this.tree.bbox.bottom_center(), this.next_phase.bind(this)),
-            new WaitTask(agent, 100, this.next_phase.bind(this)),
-            new WalkToTask(agent, this.game.village.bbox.bottom_center(), this.next_phase.bind(this)),
-            new WaitTask(agent, 10, this.next_phase.bind(this)),
-        ]
-    }
-
-    next_phase(){
-        if(this.cur_phase == this.tasks.length-1){
-            this.cur_phase = 0
-            this.tree = random_choice(this.game.trees)
-            this.tasks[0].target = this.tree.bbox.bottom_center()
-            this.game.village.resources['Wood'] += this.wood
-            this.wood = 0
-        }else if(this.cur_phase == 1){
-            this.wood = this.tree.take_wood(5)
-            this.cur_phase += 1
-        }else{
-            this.cur_phase += 1
-        }
-        this.tasks[this.cur_phase].reset()
-    }
-
-    update(dt){
-        if(this.finished) return
-
-        this.tasks[this.cur_phase].update(dt)
-    }
-}
-
-class WaitTask{
-    constructor(agent, cycles, on_finish){
-        this.agent = agent
-        this.cycles = cycles
-        this.cur_cycle = 0
-        this.finished = false
-        this.on_finish = on_finish
-    }
-
-    update(dt){
-        if(this.finished) return
-
-        if(this.cycles > this.cur_cycle){
-            this.cur_cycle += dt
-        }else{
-            this.finished = true
-            this.on_finish()
-        }
-    }
-
-    reset(){
-        this.finished = false
-        this.cur_cycle = 0
-    }
-}
-
-class WalkToTask{
-    constructor(agent, target, on_finish){
-        this.target = target
-        this.on_finish = on_finish
-        this.agent = agent
-        this.finished = false
-    }
-
-    update(dt){
-        if(this.finished) return
-
-        let dir = this.target.sub(this.agent.bbox.bottom_center())
-        let length = dir.length()
-        if(length < this.agent.speed * dt){
-            this.finished = true
-            this.agent.bbox.set_bottom_center(this.target.x, this.target.y)
-            this.on_finish()
-        }else{
-            dir = dir.normalize().scale(this.agent.speed * dt)
-            this.agent.bbox.move(dir.x, dir.y)
-        }
-    }
-
-    reset(){
-        this.finished = false
-    }
-}
-
-class Agent {
-    constructor(bbox){
-        this.spid = 1
-        this.bbox = bbox
-        this.speed = 0.1
-    }
-
-}
-Agent.image_name = 'res/char.png';
-
-class Tree {
-    
-    constructor(bbox, spid){
-        this.spid = spid
-        this.bbox = bbox
-        this.wood = 4 // random(0, 100)
-    }
-
-    take_wood(num){
-        if(num >= this.wood){
-            var wood = this.wood
-            this.wood = 0
-            this.spid = 7
-            return wood
-        }else{
-            this.wood -= num
-            return num
-        }
-    }
-}
-Tree.image_name = 'res/tree_ss.png';
-
-class Village {
-    
-    constructor(bbox) {
-        this.spid = 0
-        this.bbox = bbox
-        const info_bbox = BBox.from_centered_on(bbox.center(), 300, 200)
-        this.info = new UIBox(info_bbox)
-        this.resources = {
-            'Food': 0,
-            'Money': 0,
-            'Wood': 0,
-            'Ore': 0,
-            'Clothes': 0,
-        }
-    }
-    
-    resources_list(){
-        const arr = []
-        for (var key in this.resources) {
-            arr.push(`${key}: ${this.resources[key]}`);
-        }
-        return arr
-    }
-}
-Village.image_name = 'res/main_house.png';
 
 class UIBox {
     constructor(bbox, text) {
@@ -352,4 +240,7 @@ function main() {
     game.start()
 }
 
-main()
+window.onload = (e) => {
+    print('start')
+    main()
+}
