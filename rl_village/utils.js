@@ -41,10 +41,32 @@ class BBox{
         let ey = this.y + this.h;
         return pos.x > this.x && pos.x < ex && pos.y > this.y && pos.y < ey;
     }
+
+    bottom_center(){
+        return new v2(this.x + this.w/2, this.y + this.h)
+    }
+
+    set_bottom_center(x, y){
+        this.x = x - this.w/2
+        this.y = y - this.h
+    }
 }
 
 
 
 function print(txt) {
     console.log(txt)
+}
+
+function random_int(max) {
+    return Math.floor(Math.random()*(max));
+}
+
+function random_choice(arr){
+    return arr[random_int(arr.length)]
+}
+
+function random_in_interval(low, high){
+    var interval = high - low
+    return low + Math.random()*interval
 }
