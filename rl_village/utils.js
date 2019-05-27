@@ -70,3 +70,52 @@ function random_in_interval(low, high){
     var interval = high - low
     return low + Math.random()*interval
 }
+
+function has_items(want, store){
+    let has_all = true
+    for (var key in want) {
+        if(want[key] > store[key]){
+            has_all = false
+            break
+        }
+    }
+    return has_all
+}
+
+function missing_items(want, store){
+    var missing = []
+    for (var key in want) {
+        if(store[key] < want[key]){
+            missing.push(key)
+        }
+    }
+    return missing
+}
+
+function take_items(want, store){
+    if(has_items(want, store)){
+        for (var key in want) {
+            store[key] -= want[key]
+        }
+        return [want, store, true]
+    }else{
+        return [want, store, false]
+    }
+}
+
+function give_items(want, store){
+    for (var key in want) {
+        store[key] += want[key]
+    }
+}
+
+function make_dict(keys, values){
+    var dict = {}
+    for (let i = 0; i < keys.length; i++) {
+        if(!keys[i]){
+            throw new Exception()
+        }
+        dict[keys[i]] = values[i]
+    }
+    return dict
+}

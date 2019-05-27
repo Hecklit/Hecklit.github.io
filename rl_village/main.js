@@ -14,8 +14,6 @@ class Game {
 
         // create the world
         this.village = new Village(BBox.from_centered_on(this.center, 274 * 0.125, 320 * 0.125))
-        this.village.resources['Ore'] += 100
-        this.village.resources['Wood'] += 42
 
         this.trees = []
         for (let i = 0; i < 10; i++) {
@@ -48,6 +46,18 @@ class Game {
             this.ore_deposits.push(ore_deposit)    
         }
 
+        this.forges = []
+        for (let i = 0; i < 1; i++) {
+            const spread = 0
+            const margin = 10
+            const pos = new v2(this.center.x - 200, this.center.y -200)
+            const forge = new Forge(
+                BBox.from_centered_on(pos,
+                    143 *(0.18),
+                    257 *(0.18), 2+random_int(5)))
+            this.forges.push(forge)    
+        }
+
         this.agents = []
         for (let i = 0; i < 10; i++) {
             const pos = new v2(Math.random()*this.width, Math.random()*this.height)
@@ -68,6 +78,13 @@ class Game {
             })
             agent.add_task(task)
         }
+        for (const agent of this.agents) {
+            const tree = random_choice(this.trees)
+            const task = new ForgeWeaponTask(agent, this, () => {
+                print('done')
+            })
+            agent.add_task(task)
+        }
     }
 
     on_mouse_move(e) {
@@ -80,6 +97,17 @@ class Game {
         } else {
             if (this.village.info.visible) {
                 this.village.info.visible = false
+            }
+        }
+        for(const forge of this.forges){
+            if (forge.bbox.is_inside(mouse_pos)) {
+                if (!forge.info.visible) {
+                    forge.info.visible = true
+                }
+            } else {
+                if (forge.info.visible) {
+                    forge.info.visible = false
+                }
             }
         }
     }
@@ -102,12 +130,27 @@ class Game {
         const bot = agent.bbox.bottom_center()
         this.ctx.drawImage(this.sprites[agent.spid], 0, 0, w, h,
             bot.x - agent.bbox.w/2, bot.y - agent.bbox.h, agent.bbox.w, agent.bbox.h);
-        this.t0 = window.performance.now()
 
         // for debug
         if(false){
             this.ctx.beginPath();
             this.ctx.rect(agent.bbox.x,agent.bbox.y, agent.bbox.w, agent.bbox.h)
+            this.ctx.stroke()
+        }
+    }
+
+    draw_Item(agent, rx, ry, item) {
+        const w = this.sprites[item].width
+        const h = this.sprites[item].height
+        const bot = agent.bbox.bottom_center()
+        const scale = 0.1
+        this.ctx.drawImage(this.sprites[item], 0, 0, w, h,
+            bot.x - w*scale/2 +rx, bot.y - h*scale + ry, w*scale, h*scale);
+
+        // for debug
+        if(true){
+            this.ctx.beginPath();
+            this.ctx.rect(bot.x - w*scale/2 +rx, bot.y - h*scale + ry, w*scale, h*scale)
             this.ctx.stroke()
         }
     }
@@ -158,6 +201,13 @@ class Game {
                 [289, 129, w, 60],
             ]),
             this.load_sprite_sheet(OreDeposit.image_name, [[0, 0, 232, 170]]),
+            this.load_sprite_sheet(Forge.image_name, [[0, 0, 143, 257]]),
+            this.load_sprite_sheet('res/carry_ss.png', [
+                [0, 0, 72, 59],
+                [72, 0, 72, 59],
+                [2*72, 0, 72, 59],
+                [3*72, 0, 72, 59],
+            ]),
 
         ]).then((sprites) => {
             this.sprites = []
@@ -199,15 +249,32 @@ class Game {
 
         this.clear()
         // z ordering
-        let ent = [this.village].concat(this.trees, this.agents, this.ore_deposits)
+        let ent = [this.village].concat(this.trees, this.agents, this.ore_deposits, this.forges)
         ent = ent.sort((a, b) => a.bbox.y-a.bbox.h - b.bbox.y-b.bbox.h)
         for (const e of ent) {
-            this.draw_Image(e)
+            if(e instanceof Agent){
+                this.draw_Image(e)
+                var res = e.resources.get_max_key()
+                const keys = Object.keys(e.resources.res);
+                var i = keys.indexOf(res)
+                if(i == -1){
+
+                }else{
+                    this.draw_Item(e, 0, 0, 10 + i)
+                }
+            }else{
+                this.draw_Image(e)
+            }
         }
 
         // ui always last
         if(this.village.info.visible){
             this.draw_bbox(this.village.info.bbox, 'rgba(0, 0, 0, 0.5)', this.village.resources_list())
+        }
+        for(const forge of this.forges){
+            if(forge.info.visible){
+                this.draw_bbox(forge.info.bbox, 'rgba(0, 0, 0, 0.5)', forge.resources_list())
+            }
         }
 
         this.ctx.fillStyle = 'white'
