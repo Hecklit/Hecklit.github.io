@@ -1,7 +1,8 @@
 
 class ForgeWeaponTask{
-    constructor(agent, game){
+    constructor(agent, game, on_fail){
         this.finished = false
+        this.on_fail = on_fail
         this.game = game
         this.cur_phase = 0
         this.agent = agent
@@ -10,35 +11,48 @@ class ForgeWeaponTask{
         this.tasks = [
             new WalkToTask(agent, this.forge.bbox.bottom_center(), this.next_phase.bind(this)),
             new GetItemTaks(this.agent, this.game, this.forge,
-                null, null, this.next_phase.bind(this)),
+                null, null, this.next_phase.bind(this), this.on_get_item_failure.bind(this)),
             new WaitTask(agent, 100, this.next_phase.bind(this)),
             new WalkToTask(agent, this.game.village.bbox.bottom_center(), this.next_phase.bind(this)),
             new WaitTask(agent, 10, this.next_phase.bind(this)),
         ]
     }
 
+    reset(){
+        this.finished = false
+        this.cur_phase = 0
+        this.tasks[this.cur_phase].reset()
+    }
+
+    on_get_item_failure(failure_phase){
+        if(failure_phase == 1){
+            // village does not have enough resources
+            this.on_fail()
+        }else{
+            // lost resources on the way somehow
+            this.tasks[1].reset()
+        }
+    }
+
     next_phase(){
         if(this.cur_phase == this.tasks.length-1){
-            this.game.village.give_item(make_dict(['Swords'], [this.agent.number_of_item('Swords')]))
-            this.agent.resources.res['Swords'] = 0
+            const num = this.agent.inv.take_all('Swords')
+            this.game.village.inv.add('Swords', num)
+            this.reset()
 
-            this.cur_phase = 0
-            const valid_forges = this.game.forges.filter((t) => t.wood > 0)
-            if(valid_forges.length == 0) {
-                this.finished = true
-                return
-            }
-            this.forge = random_choice(valid_forges)
+            this.forge = random_choice(this.game.forges)
             this.tasks[0].target = this.forge.bbox.bottom_center()
         }else if(this.cur_phase == 0 || this.cur_phase == 1){
             const mi = this.forge.missing_items_for('Sword')
-            if(mi.length > 0){
+            const keys = Object.keys(mi)
+            if(keys.length > 0){
+                print(`missing ${keys[0]}`)
                 this.cur_phase = 1
-                this.tasks[this.cur_phase].item = mi[0]
-                this.tasks[this.cur_phase].amount = this.forge.recipes['Sword'][mi[0]]
+                this.tasks[this.cur_phase].item = keys[0]
+                this.tasks[this.cur_phase].amount = mi[keys[0]]
             }else{
                 this.forge.make_item('Sword')
-                this.agent.resources.res['Swords'] += 1
+                this.agent.inv.add('Swords', 1)
                 this.cur_phase = 2
             }
         }else{
@@ -48,20 +62,24 @@ class ForgeWeaponTask{
     }
 
     update(dt){
-        if(this.finished) return
+        if(this.finished){
+            print('update early return forge weapon')
+            return
+        }
 
         this.tasks[this.cur_phase].update(dt)
     }
 }
 
 class GetItemTaks{
-    constructor(agent, game, target, item, amount, on_finish){
+    constructor(agent, game, target, item, amount, on_finish, on_fail){
         this.game = game
         this.cur_phase = 0
         this.target = target
         this.item = item
         this.amount = amount
         this.on_finish = on_finish
+        this.on_fail = on_fail
         this.agent = agent
         this.tasks = [
             new WalkToTask(this.agent, this.game.village.bbox.bottom_center(), this.next_phase.bind(this)),
@@ -73,11 +91,24 @@ class GetItemTaks{
 
     next_phase(){
         if(this.cur_phase == this.tasks.length-1){
-            this.target.give_item(make_dict([this.item], [this.agent.resources.res[this.item]]))
-            this.on_finish()
+            // deliver the goods
+            if(this.agent.inv.take(this.item, this.amount)){
+                // has the goods
+                this.target.inv.add(this.item, this.amount)
+                this.on_finish()
+            }else{
+                // does not have -> failed
+                this.on_fail(this.cur_phase)
+            }
         }else if(this.cur_phase == 1){
-            this.game.village.take_item(make_dict([this.item], [this.amount]))
-            this.cur_phase += 1
+            if(this.game.village.inv.take(this.item, this.amount)){
+                // village center has enough resources
+                this.cur_phase += 1
+                this.agent.inv.add(this.item, this.amount)
+            }else{
+                // not enough resources -> failed
+                this.on_fail(this.cur_phase)
+            }
         }else{
             this.cur_phase += 1
         }
@@ -85,51 +116,80 @@ class GetItemTaks{
     }
 
     update(dt){
-        if(this.finished) return
+        if(this.finished){
+            print('update early return get item')
+            return
+        }
 
         this.tasks[this.cur_phase].update(dt)
     }
 
     reset(){
         this.cur_phase = 0
+        this.tasks[this.cur_phase].reset()
     }
 }
 
-class ChopWoodTask{
-    constructor(agent, game){
+class GatherTask {
+    constructor(agent, game, type, resources, amount, on_fail){
+        this.on_fail = on_fail
+        this.type = type
+        this.amount = amount
         this.finished = false
         this.game = game
         this.cur_phase = 0
         this.agent = agent
+        this.resources = resources
 
-        const valid_trees = this.game.trees.filter((t) => t.wood > 0)
-        if(valid_trees.length == 0) {
-            this.finished = true
+        if(!this.is_valid_task()){
+            this.on_fail()
+            print(`${type} Task could not be initalized`)
             return
         }
-        this.tree = random_choice(valid_trees)
+
+        this.resource = random_choice(this.resources)
         this.tasks = [
-            new WalkToTask(agent, this.tree.bbox.bottom_center(), this.next_phase.bind(this)),
+            new WalkToTask(agent, this.resource.bbox.bottom_center(), this.next_phase.bind(this)),
             new WaitTask(agent, 100, this.next_phase.bind(this)),
             new WalkToTask(agent, this.game.village.bbox.bottom_center(), this.next_phase.bind(this)),
             new WaitTask(agent, 10, this.next_phase.bind(this)),
         ]
     }
 
+    reset(){
+        this.cur_phase = 0
+        this.finished = false
+        this.tasks[this.cur_phase].reset()
+    }
+
+    is_valid_task(){
+        const valid_resources = this.resources.filter((t) => t.inv.num(this.type) > 0)
+        return !(valid_resources.length == 0)
+    }
+
     next_phase(){
         if(this.cur_phase == this.tasks.length-1){
             this.cur_phase = 0
-            const valid_trees = this.game.trees.filter((t) => t.wood > 0)
-            if(valid_trees.length == 0) {
-                this.finished = true
+
+            if(!this.is_valid_task()){
+                this.on_fail()
                 return
             }
-            this.tree = random_choice(valid_trees)
-            this.tasks[0].target = this.tree.bbox.bottom_center()
-            this.game.village.give_item(make_dict(['Wood'], [this.agent.number_of_item('Wood')]))
-            this.agent.resources.res['Wood'] = 0
+
+            // choose a new resource
+            this.resource = random_choice(this.resources)
+            this.tasks[0].target = this.resource.bbox.bottom_center()
+
+            // give all resources to the village
+            let num = this.agent.inv.take_all('Wood')
+            this.game.village.inv.add('Wood', num)
+            num = this.agent.inv.take_all('Ore')
+            this.game.village.inv.add('Ore', num)
+            num = this.agent.inv.take_all(this.type)
+            this.game.village.inv.add(this.type, num)
+
         }else if(this.cur_phase == 1){
-            this.agent.resources.res['Wood'] += this.tree.take_wood(5)
+            this.agent.inv.add(this.type, this.resource.gather(this.amount))
             this.cur_phase += 1
         }else{
             this.cur_phase += 1
@@ -138,58 +198,24 @@ class ChopWoodTask{
     }
 
     update(dt){
-        if(this.finished) return
+        if(this.finished){
+            print('update early return gather')
+            return
+        }
 
         this.tasks[this.cur_phase].update(dt)
     }
 }
 
-class MineOreTask{
-    constructor(agent, game){
-        this.finished = false
-        this.game = game
-        this.cur_phase = 0
-        this.agent = agent
-
-        const valid_ore_deposits = this.game.ore_deposits.filter((t) => t.ore > 0)
-        if(valid_ore_deposits.length == 0) {
-            this.finished = true
-            return
-        }
-        this.ore_deposit = random_choice(valid_ore_deposits)
-        this.tasks = [
-            new WalkToTask(agent, this.ore_deposit.bbox.bottom_center(), this.next_phase.bind(this)),
-            new WaitTask(agent, 100, this.next_phase.bind(this)),
-            new WalkToTask(agent, this.game.village.bbox.bottom_center(), this.next_phase.bind(this)),
-            new WaitTask(agent, 10, this.next_phase.bind(this)),
-        ]
+class ChopWoodTask extends GatherTask{
+    constructor(agent, game, on_fail){
+        super(agent, game, 'Wood', game.trees, 5, on_fail)
     }
+}
 
-    next_phase(){
-        if(this.cur_phase == this.tasks.length-1){
-            this.cur_phase = 0
-            const valid_ore_deposits = this.game.ore_deposits.filter((t) => t.ore > 0)
-            if(valid_ore_deposits.length == 0) {
-                this.finished = true
-                return
-            }
-            this.ore_deposit = random_choice(valid_ore_deposits)
-            this.tasks[0].target = this.ore_deposit.bbox.bottom_center()
-            this.game.village.give_item(make_dict(['Ore'], [this.agent.number_of_item('Ore')]))
-            this.agent.resources.res['Ore'] = 0
-        }else if(this.cur_phase == 1){
-            this.agent.resources.res['Ore'] += this.ore_deposit.take_ore(5)
-            this.cur_phase += 1
-        }else{
-            this.cur_phase += 1
-        }
-        this.tasks[this.cur_phase].reset()
-    }
-
-    update(dt){
-        if(this.finished) return
-
-        this.tasks[this.cur_phase].update(dt)
+class MineOreTask extends GatherTask{
+    constructor(agent, game, on_fail){
+        super(agent, game, 'Ore', game.ore_deposits, 5, on_fail)
     }
 }
 
@@ -203,7 +229,10 @@ class WaitTask{
     }
 
     update(dt){
-        if(this.finished) return
+        if(this.finished){
+            print('update early return wait')
+            return
+        }
 
         if(this.cycles > this.cur_cycle){
             this.cur_cycle += dt
@@ -228,7 +257,11 @@ class WalkToTask{
     }
 
     update(dt){
-        if(this.finished) return
+        if(this.finished){
+            print('update early return walk to')
+            return
+        }
+
 
         let dir = this.target.sub(this.agent.bbox.bottom_center())
         let length = dir.length()

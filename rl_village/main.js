@@ -7,13 +7,15 @@ class Game {
         this.height = can.height = window.innerHeight * 0.9;
         this.can_rect = can.getBoundingClientRect();
         this.center = new v2(this.width / 2, this.height / 2);
-        this.can.onmousemove = this.on_mouse_move.bind(this)
+        this.can.onclick = this.on_mouse_move.bind(this)
         this.fps = 0
         this.ts = 0
         this.ctx.font = "20px Georgia";
 
         // create the world
         this.village = new Village(BBox.from_centered_on(this.center, 274 * 0.125, 320 * 0.125))
+        this.village.inv.add('Ore', 50)
+        this.village.inv.add('Wood', 20)
 
         this.trees = []
         for (let i = 0; i < 10; i++) {
@@ -41,8 +43,8 @@ class Game {
                 random_in_interval(spread + margin, this.width - spread - margin))
             const ore_deposit = new OreDeposit(
                 BBox.from_centered_on(pos,
-                    200 *(0.1),
-                    107 *(0.1), 2+random_int(5)))
+                    200 *(0.17)*1.4,
+                    107 *(0.23)*1.4, 2+random_int(5)))
             this.ore_deposits.push(ore_deposit)    
         }
 
@@ -59,54 +61,41 @@ class Game {
         }
 
         this.agents = []
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i <10; i++) {
             const pos = new v2(Math.random()*this.width, Math.random()*this.height)
             const agent = new Agent((BBox.from_centered_on(pos, 142*0.05, 312*0.05)));
             this.agents.push(agent)
         }
 
         for (const agent of this.agents) {
-            const task = new ChopWoodTask(agent, this, () => {
-                print('done')
-            })
+            const task = new ChopWoodTask(agent, this, agent.choose_task.bind(agent))
             agent.add_task(task)
         }
         for (const agent of this.agents) {
             const tree = random_choice(this.trees)
-            const task = new MineOreTask(agent, this, () => {
-                print('done')
-            })
+            const task = new MineOreTask(agent, this, agent.choose_task.bind(agent))
             agent.add_task(task)
         }
         for (const agent of this.agents) {
             const tree = random_choice(this.trees)
-            const task = new ForgeWeaponTask(agent, this, () => {
-                print('done')
-            })
+            const task = new ForgeWeaponTask(agent, this, agent.choose_task.bind(agent))
             agent.add_task(task)
         }
+        this.agents[0].inv.info.visible = true
     }
 
     on_mouse_move(e) {
         //pos on canvas
         const mouse_pos = new v2(e.clientX - this.can_rect.left, e.clientY - this.can_rect.top);
-        if (this.village.bbox.is_inside(mouse_pos)) {
-            if (!this.village.info.visible) {
-                this.village.info.visible = true
-            }
-        } else {
-            if (this.village.info.visible) {
-                this.village.info.visible = false
-            }
-        }
-        for(const forge of this.forges){
-            if (forge.bbox.is_inside(mouse_pos)) {
-                if (!forge.info.visible) {
-                    forge.info.visible = true
+        let ent = [this.village].concat(this.trees, this.agents, this.ore_deposits, this.forges)        
+        for(const e of ent){
+            if (e.bbox.is_inside(mouse_pos)) {
+                if (!e.inv.info.visible) {
+                    e.inv.info.visible = true
                 }
             } else {
-                if (forge.info.visible) {
-                    forge.info.visible = false
+                if (e.inv.info.visible) {
+                    e.inv.info.visible = false
                 }
             }
         }
@@ -143,12 +132,12 @@ class Game {
         const w = this.sprites[item].width
         const h = this.sprites[item].height
         const bot = agent.bbox.bottom_center()
-        const scale = 0.1
+        const scale = 0.2
         this.ctx.drawImage(this.sprites[item], 0, 0, w, h,
             bot.x - w*scale/2 +rx, bot.y - h*scale + ry, w*scale, h*scale);
 
         // for debug
-        if(true){
+        if(false){
             this.ctx.beginPath();
             this.ctx.rect(bot.x - w*scale/2 +rx, bot.y - h*scale + ry, w*scale, h*scale)
             this.ctx.stroke()
@@ -157,14 +146,15 @@ class Game {
 
     draw_bbox(bbox, color, text) {
         this.ctx.fillStyle = color
-        this.ctx.fillRect(bbox.x, bbox.y, bbox.w, bbox.h)
+        const box_height = (text.length != 0) ? 34 * text.length : 34
+        this.ctx.fillRect(bbox.x, bbox.y + box_height/2, bbox.w, box_height)
         this.ctx.fillStyle = 'white'
         const xof = 10
         const yof = 26
         let i = 0
-        const line_height = bbox.h / text.length
+        const line_height = box_height / text.length
         for (const t of text) {
-            this.ctx.fillText(t, bbox.x + xof, bbox.y + yof + i * line_height, bbox.w - xof);
+            this.ctx.fillText(t, bbox.x + xof, bbox.y + box_height/2 + yof + i * line_height, bbox.w - xof);
             i += 1
         }
     }
@@ -187,7 +177,7 @@ class Game {
 
     start() {
         const that = this
-        // load all resources
+        // load all inv
         const w = 90
         Promise.all([
             this.load_sprite_sheet(Village.image_name, [[0, 0, 274, 320]]),
@@ -207,6 +197,7 @@ class Game {
                 [72, 0, 72, 59],
                 [2*72, 0, 72, 59],
                 [3*72, 0, 72, 59],
+                [4*72, 0, 72, 59],
             ]),
 
         ]).then((sprites) => {
@@ -250,17 +241,17 @@ class Game {
         this.clear()
         // z ordering
         let ent = [this.village].concat(this.trees, this.agents, this.ore_deposits, this.forges)
-        ent = ent.sort((a, b) => a.bbox.y-a.bbox.h - b.bbox.y-b.bbox.h)
+        // ent = ent.sort((a, b) => a.bbox.y-a.bbox.h - b.bbox.y-b.bbox.h)
         for (const e of ent) {
             if(e instanceof Agent){
                 this.draw_Image(e)
-                var res = e.resources.get_max_key()
-                const keys = Object.keys(e.resources.res);
+                var res = e.inv.get_max_key()
+                const keys = Object.keys(e.inv.res);
                 var i = keys.indexOf(res)
                 if(i == -1){
 
                 }else{
-                    this.draw_Item(e, 0, 0, 10 + i)
+                    this.draw_Item(e, 0, 0, 9 + i)
                 }
             }else{
                 this.draw_Image(e)
@@ -268,12 +259,16 @@ class Game {
         }
 
         // ui always last
-        if(this.village.info.visible){
-            this.draw_bbox(this.village.info.bbox, 'rgba(0, 0, 0, 0.5)', this.village.resources_list())
-        }
-        for(const forge of this.forges){
-            if(forge.info.visible){
-                this.draw_bbox(forge.info.bbox, 'rgba(0, 0, 0, 0.5)', forge.resources_list())
+        for (const e of ent) {
+            if(e.inv.info.visible){
+                if(e instanceof Agent){
+                    const info_list = e.inv.inv_list()
+                    info_list.unshift(`${(e.cur_task.constructor.name)}: ${e.cur_task.cur_phase}`)
+                    e.inv.info.bbox.set(e.bbox.x, e.bbox.y)
+                    this.draw_bbox(e.inv.info.bbox, 'rgba(0, 0, 0, 0.5)', info_list)
+                }else{
+                    this.draw_bbox(e.inv.info.bbox, 'rgba(0, 0, 0, 0.5)', e.inv.inv_list())
+                }
             }
         }
 
@@ -290,6 +285,7 @@ class Game {
         }
 
         this.ts += 1
+        // print(this.village.inv.inv_list(true))
         window.requestAnimationFrame(this.draw.bind(this))
     }
 }

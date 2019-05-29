@@ -1,7 +1,8 @@
 
 class Inventory{
 
-    constructor(){
+    constructor(info){
+        this.info = info
         this.res = {
             'Food': 0,
             'Money': 0,
@@ -9,6 +10,36 @@ class Inventory{
             'Ore': 0,
             'Clothes': 0,
             'Swords': 0,
+        }
+    }
+
+    add(type, num){
+        if(Array.isArray(type) && Array.isArray(num)){
+            const item_dict = make_dict(type, num)
+            give_items(item_dict, this.res)
+        }else{
+            this.res[type] += num
+        }
+    }
+
+    take(type, num){
+        if(Array.isArray(type) && Array.isArray(num)){
+            const item_dict = make_dict(type, num)
+            if (has_items(item_dict, this.res)) {
+                for (let i = 0; i < type.length; i++) {
+                    this.take(type[i], num[i])
+                }
+                return true
+            }else{
+                return false
+            }
+        }else{
+            if(this.res[type] >= num){
+                this.res[type] -= num
+                return true
+            }else{
+                return false
+            }
         }
     }
 
@@ -23,6 +54,41 @@ class Inventory{
         }
         return ma_key
     }
+
+    get_max_val(){
+        var ma = 0
+        for(var key in this.res){
+            if(this.res[key] > ma){
+                ma = this.res[key]
+            }
+        }
+        return ma
+    }
+
+    inv_list(all=false){
+        const arr = []
+        for (var key in this.res) {
+            if(!all && this.res[key] == 0){
+                continue
+            }
+            arr.push(`${key}: ${this.res[key]}`);
+        }
+        return arr
+    }
+
+    missing_items(wants){
+        return missing_items(wants, this.res)
+    }
+
+    num(item){
+        return this.res[item]
+    }
+
+    take_all(item){
+        const num = this.res[item]
+        this.res[item] = 0
+        return num
+    }
 }
 
 class Agent {
@@ -32,11 +98,8 @@ class Agent {
         this.speed = 0.1
         this.tasks = []
         this.cur_task = null
-        this.resources = new Inventory()
-    }
-
-    number_of_item(item){
-        return this.resources.res[item]
+        const info_bbox = BBox.from_centered_on(bbox.center(), 300, 200)
+        this.inv = new Inventory(new UIBox(info_bbox))
     }
 
     add_task(task){
@@ -46,6 +109,7 @@ class Agent {
     choose_task(){
         // choose task
         this.cur_task = random_choice(this.tasks)
+        // this.cur_task.reset()
     }
 
     update(dt){
@@ -57,46 +121,46 @@ class Agent {
 }
 Agent.image_name = 'res/char.png';
 
-class Tree {
-    
-    constructor(bbox, spid){
-        this.spid = spid
-        this.bbox = bbox
-        this.wood = 50 + random_int(350)
+class Resource {
+    constructor(type){
+        this.type = type
+        this.inv = new Inventory()
     }
 
-    take_wood(num){
-        if(num >= this.wood){
-            var wood = this.wood
-            this.wood = 0
-            this.spid = 7
-            return wood
-        }else{
-            this.wood -= num
+    gather(num){
+        if(this.inv.take(this.type, num)){
             return num
+        }else{
+            this.spid = 7
+            const left = this.inv.num(this.type)
+            this.inv.take(this.type, left)
+            return left
         }
+    }
+}
+
+class Tree extends Resource{
+
+    constructor(bbox, spid){
+        super('Wood')
+        this.spid = spid
+        this.bbox = bbox
+        const info_bbox = BBox.from_centered_on(bbox.center(), 300, 200)
+        this.inv.info = new UIBox(info_bbox)
+        this.inv.add('Wood', 50 + random_int(350))
     }
 }
 Tree.image_name = 'res/tree_ss.png';
 
-class OreDeposit {
+class OreDeposit extends Resource{
     
-    constructor(bbox, spid){
+    constructor(bbox){
+        super('Ore')
         this.spid = 8
         this.bbox = bbox
-        this.ore = 2000 + random_int(500)
-    }
-
-    take_ore(num){
-        if(num >= this.ore){
-            var ore = this.ore
-            this.ore = 0
-            this.spid = 7
-            return ore
-        }else{
-            this.ore -= num
-            return num
-        }
+        const info_bbox = BBox.from_centered_on(bbox.center(), 300, 200)
+        this.inv.info = new UIBox(info_bbox)
+        this.inv.add('Ore', 2000 + random_int(500))
     }
 }
 OreDeposit.image_name = 'res/ore.png';
@@ -107,24 +171,7 @@ class Village {
         this.spid = 0
         this.bbox = bbox
         const info_bbox = BBox.from_centered_on(bbox.center(), 300, 200)
-        this.info = new UIBox(info_bbox)
-        this.resources = new Inventory()
-    }
-    
-    resources_list(){
-        const arr = []
-        for (var key in this.resources.res) {
-            arr.push(`${key}: ${this.resources.res[key]}`);
-        }
-        return arr
-    }
-
-    take_item(item_dict){
-        return take_items(item_dict, this.resources.res)
-    }
-
-    give_item(item_dict){
-        give_items(item_dict, this.resources.res)
+        this.inv = new Inventory(new UIBox(info_bbox))
     }
 }
 Village.image_name = 'res/main_house.png';
@@ -135,8 +182,7 @@ class Forge {
         this.spid = 9
         this.bbox = bbox
         const info_bbox = BBox.from_centered_on(bbox.center(), 300, 200)
-        this.info = new UIBox(info_bbox)
-        this.resources = new Inventory()
+        this.inv = new Inventory(new UIBox(info_bbox))
         this.recipes = {
             'Sword': {
                 'Ore': 50,
@@ -144,37 +190,14 @@ class Forge {
             }
         }
     }
-
-    resources_list(){
-        const arr = []
-        for (var key in this.resources.res) {
-            arr.push(`${key}: ${this.resources.res[key]}`);
-        }
-        return arr
-    }
-
-    give_item(item_dict){
-        give_items(item_dict, this.resources.res)
-    }
-
-    has_items_for(item){
-        return has_items(this.recipes[item], this.resources.res)
-    }
     
     make_item(item){
-        return take_items(this.recipes[item], this.resources.res)
+        const dict = this.recipes[item]
+        return this.inv.take(Object.keys(dict), Object.values(dict))
     }
     
     missing_items_for(item){
-        return missing_items(this.recipes[item], this.resources.res)
-    }
-    
-    resources_list(){
-        const arr = []
-        for (var key in this.resources.res) {
-            arr.push(`${key}: ${this.resources.res[key]}`);
-        }
-        return arr
+        return this.inv.missing_items(this.recipes[item])
     }
 }
 Forge.image_name = 'res/forge.png';

@@ -7,6 +7,11 @@ class BBox{
         this.h = h
     }
 
+    set(x, y){
+        this.x = x
+        this.y = y
+    }
+
     move(x, y){
         this.x += x
         this.y += y
@@ -83,24 +88,13 @@ function has_items(want, store){
 }
 
 function missing_items(want, store){
-    var missing = []
+    var missing = {}
     for (var key in want) {
         if(store[key] < want[key]){
-            missing.push(key)
+            missing[key] = want[key] - store[key]
         }
     }
     return missing
-}
-
-function take_items(want, store){
-    if(has_items(want, store)){
-        for (var key in want) {
-            store[key] -= want[key]
-        }
-        return [want, store, true]
-    }else{
-        return [want, store, false]
-    }
 }
 
 function give_items(want, store){
