@@ -12,7 +12,7 @@ class ForgeWeaponTask{
             new WalkToTask(agent, this.forge.bbox.bottom_center(), this.next_phase.bind(this)),
             new GetItemTaks(this.agent, this.game, this.forge,
                 null, null, this.next_phase.bind(this), this.on_get_item_failure.bind(this)),
-            new WaitTask(agent, 100, this.next_phase.bind(this)),
+            new WaitTask(agent, 3000, this.next_phase.bind(this)),
             new WalkToTask(agent, this.game.village.bbox.bottom_center(), this.next_phase.bind(this)),
             new WaitTask(agent, 10, this.next_phase.bind(this)),
         ]
@@ -150,9 +150,9 @@ class GatherTask {
         this.resource = random_choice(this.resources)
         this.tasks = [
             new WalkToTask(agent, this.resource.bbox.bottom_center(), this.next_phase.bind(this)),
-            new WaitTask(agent, 100, this.next_phase.bind(this)),
+            new WaitTask(agent, 1000, this.next_phase.bind(this)),
             new WalkToTask(agent, this.game.village.bbox.bottom_center(), this.next_phase.bind(this)),
-            new WaitTask(agent, 10, this.next_phase.bind(this)),
+            new WaitTask(agent, 100, this.next_phase.bind(this)),
         ]
     }
 
