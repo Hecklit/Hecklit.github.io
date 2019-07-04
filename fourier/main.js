@@ -14,6 +14,16 @@ const print = console.log
 
 const arrows = []
 
+let min_len = 0
+let max_len = 0
+if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+    min_len = 1
+    max_len = 6
+}else{
+    min_len = 5
+    max_len = 20
+}
+
 function random_int(min, max) {
     return Math.floor(Math.random() * Math.floor(max - min))  +  min;
 }
@@ -25,7 +35,7 @@ function random_float(min, max) {
 function main() {
     let parent = null
     for (let i = 0; i < 300; i++) {
-        let a = new Arrow(width/2, height/2, random_int(15, 25), random_int(0, 360), random_int(-5, 5), parent)
+        let a = new Arrow(width/2, height/2, random_int(min_len, max_len), random_int(0, 360), random_int(-5, 5), parent)
         arrows.push(a)
         parent = a
     }
