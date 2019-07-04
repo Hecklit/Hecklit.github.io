@@ -17,8 +17,8 @@ const arrows = []
 let min_len = 0
 let max_len = 0
 if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-    min_len = 1
-    max_len = 6
+    min_len = 3
+    max_len = 10
 }else{
     min_len = 5
     max_len = 20
