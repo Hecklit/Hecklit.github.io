@@ -12,18 +12,6 @@ can.height = height
 
 const print = console.log
 
-const arrows = []
-
-let min_len = 0
-let max_len = 0
-if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-    min_len = 3
-    max_len = 10
-}else{
-    min_len = 5
-    max_len = 20
-}
-
 function random_int(min, max) {
     return Math.floor(Math.random() * Math.floor(max - min))  +  min;
 }
@@ -32,25 +20,15 @@ function random_float(min, max) {
     return Math.random() * (max - min)  +  min;
 }
 
-function main() {
-    let parent = null
-    for (let i = 0; i < 300; i++) {
-        let a = new Arrow(width/2, height/2, random_int(min_len, max_len), random_int(0, 360), random_int(-5, 5), parent)
-        arrows.push(a)
-        parent = a
-    }
-    draw()
-}
-
 function arrow(sx, sy, len, deg) {
     angle = deg * Math.PI / 180
     ex = len * Math.cos(angle) + sx
     ey = len * Math.sin(angle) + sy
-    return arrow_se(ctx, sx, sy, ex, ey)
+    return arrow_se(ctx, sx, sy, ex, ey, len)
 }
 
-function arrow_se(context, fromx, fromy, tox, toy){
-    var headlen = 10;   // length of head in pixels
+function arrow_se(context, fromx, fromy, tox, toy, len){
+    var headlen = len*0.25;   // length of head in pixels
     var angle = Math.atan2(toy-fromy,tox-fromx);
     context.moveTo(fromx, fromy);
     context.lineTo(tox, toy);
@@ -60,7 +38,63 @@ function arrow_se(context, fromx, fromy, tox, toy){
     return [tox, toy]
 }
 
-let deg = 0
+class LineDrawing{
+    constructor(steps_per_circle, on_draw){
+        this.on_draw = on_draw
+        this.reset(steps_per_circle)
+    }
+
+    reset(steps_per_circle){
+        this.arrows = []
+        this.steps_per_circle = steps_per_circle
+        this.path = []
+    }
+
+    init(configs){
+        let parent = null
+        for (let i = 0; i < configs.length; i++) {
+            let config = configs[i]
+            const rotation_rate = 360 * config['rotations_per_cycle'] / this.steps_per_circle
+            let a = new Arrow(width/2, height/2, config['length'], config['initial_rotation'], rotation_rate, parent)
+            this.arrows.push(a)
+            parent = a
+        }
+    }
+
+    draw(){
+        ctx.beginPath()
+        ctx.rect(1, 1, width-2, height-2)
+        ctx.fillStyle = 'white'
+        ctx.fill()
+        ctx.stroke()
+    
+        for (let i = 0; i < this.arrows.length; i++) {
+            const a = this.arrows[i];
+            a.draw()
+        }
+    
+        if(this.path.length > 10000){
+            this.path.shift()
+        }
+        this.path.push([this.arrows[this.arrows.length-1].head_x, this.arrows[this.arrows.length-1].head_y])
+        
+        if(this.path.length > 1){
+            // print(this.path)
+            ctx.beginPath()
+            ctx.moveTo(this.path[0][0], this.path[0][1])
+            for (let u = 1; u < this.path.length; u++) {
+                const node = this.path[u];
+                ctx.lineTo(node[0], node[1])
+            }
+            ctx.stroke()
+        }
+    
+        this.on_draw()
+
+        window.requestAnimationFrame(this.draw.bind(this))
+    }
+}
+
 class Arrow{
     constructor(x, y, length, deg, rotation_rate, parent){
         this.x = x
@@ -87,41 +121,64 @@ class Arrow{
     }
 }
 
-const path = []
 
-function draw() {
-    ctx.beginPath()
-    ctx.rect(1, 1, width-2, height-2)
-    ctx.fillStyle = 'white'
-    ctx.fill()
-    ctx.stroke()
-
-    for (let i = 0; i < arrows.length; i++) {
-        const a = arrows[i];
-        a.draw()
+class DrawApp{
+    constructor(){
+        this.ld = new LineDrawing(600, this.draw_config.bind(this))
+        this.config = [
+            {rotations_per_cycle: 1, length: 100, initial_rotation: 0},
+            {rotations_per_cycle: 2, length: 50, initial_rotation: 0},
+            {rotations_per_cycle: -3, length: 50, initial_rotation: 90},
+        ]
     }
 
-    if(path.length > 10000){
-        path.shift()
+    start(){
+        this.ld.init(this.config)
+        this.ld.draw()
     }
-    path.push([arrows[arrows.length-1].head_x, arrows[arrows.length-1].head_y])
-    
-    if(path.length > 1){
-        // print(path)
-        ctx.beginPath()
-        ctx.moveTo(path[0][0], path[0][1])
-        for (let u = 1; u < path.length; u++) {
-            const node = path[u];
-            ctx.lineTo(node[0], node[1])
+
+    draw_config() {
+        ctx.font = "20px Georgia";
+        ctx.fillStyle = 'black'
+        let offset = 25
+        let lines = [
+            'Config (rotations per cycle, length, inital rotation)',
+            '',
+        ]
+
+        for (let i = 0; i < this.config.length; i++) {
+            const arrow_conf = this.config[i];
+            lines.push(`Arrow ${i+1}\t ${arrow_conf['rotations_per_cycle']}\t ${arrow_conf['length']}\t ${arrow_conf['initial_rotation']}`)
         }
-        ctx.stroke()
+
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            ctx.fillText(line, 30, offset + (i+1) * 25);
+        }
     }
-    // ctx.beginPath()
-    // arrow(width/2, height/2, 100, deg)
-    // ctx.stroke()
-    // deg += 1
-    // print(deg)
-    window.requestAnimationFrame(draw)
+
+    onkey(e){
+        print(e)
+        this.ld.reset()
+        this.ld.init(this.config)
+        this.ld.draw()
+    }
+}
+
+function main() {
+    let min_len = 0
+    let max_len = 0
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        min_len = 1
+        max_len = 10
+    }else{
+        min_len = 1
+        max_len = 120
+    }
+    const app = new DrawApp()
+    w.addEventListener("keypress", app.onkey.bind(app));
+    app.start()
 }
 
 main()
