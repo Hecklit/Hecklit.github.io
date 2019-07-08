@@ -1,17 +1,9 @@
-function turn_vec(deg) {
-    const angleInRad = (deg*2*Math.PI)/360;
-    return new v2(Math.cos(angleInRad), Math.sin(angleInRad));
-}
-
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 const max_health = 500;
 let fighter_count = 1;
+
 class Fighter{
     constructor(pos, angle, r) {
-        this.name = 'Fighter Nr. ' +  fighter_count++;
+        this.name = rand_element(names)
         this.pos = pos;
         this.angle = angle;
         this.r = r;
@@ -34,7 +26,7 @@ class Fighter{
         this.w = [];
         for (let i = 0; i < 5; i++) {
             this.w.push([]);
-            for (let j = 0; j < 9; j++) {
+            for (let j = 0; j < 10; j++) {
                 this.w[i].push(Math.random());
             }
         }
@@ -74,6 +66,7 @@ class Fighter{
 
     deal_dmg(dmg) {
         this.health -= dmg;
+        this.health = Math.min(this.health, max_health)
         if(this.health <= 0) {
             this.alive = false;
         }
@@ -98,3 +91,56 @@ class Sensor{
         this.r = 1;
     }
 }
+
+const names = [
+    'Bonnie',
+    'Carmen',
+    'Alexander',
+    'Kiesha',
+    'Tajuana',
+    'Valorie',
+    'Blanca',
+    'Magaret',
+    'Jorge',
+    'Rosalee',
+    'Twanda',
+    'Kenna',
+    'Marylynn',
+    'Erlene',
+    'Jean',
+    'Alisia',
+    'Tena',
+    'Ethan',
+    'Reginald',
+    'Kina',
+    'Juan',
+    'Edmond',
+    'Kip',
+    'Monserrate',
+    'Rosella',
+    'Kareen',
+    'Alethea',
+    'Hester',
+    'Torri',
+    'Lindsay',
+    'Cris',
+    'Celestine',
+    'Madie',
+    'Juliet',
+    'Marlys',
+    'Joey',
+    'Emory',
+    'Christia',
+    'Wynona',
+    'Maragaret',
+    'Tresa',
+    'Teisha',
+    'Theodore',
+    'Ozie',
+    'Ginger',
+    'Dallas',
+    'Synthia',
+    'Marry',
+    'Mallie',
+    'Marta',
+]
