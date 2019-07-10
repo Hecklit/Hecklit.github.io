@@ -89,7 +89,15 @@ class LineDrawing{
             ctx.stroke()
         }
     
-        this.on_draw()
+        // this.on_draw()
+
+        ctx.beginPath()
+        ctx.moveTo(svg_points[0][0], svg_points[0][1])
+        for (let u = 1; u < svg_points.length; u++) {
+            const node = svg_points[u];
+            ctx.lineTo(node[0], node[1])
+        }
+        ctx.stroke()
 
         window.requestAnimationFrame(this.draw.bind(this))
     }
@@ -121,15 +129,19 @@ class Arrow{
     }
 }
 
-
+const scale = 1
 class DrawApp{
     constructor(){
-        this.ld = new LineDrawing(600, this.draw_config.bind(this))
-        this.config = [
-            {rotations_per_cycle: 1, length: 100, initial_rotation: 0},
-            {rotations_per_cycle: 2, length: 50, initial_rotation: 0},
-            {rotations_per_cycle: -3, length: 50, initial_rotation: 90},
-        ]
+        this.ld = new LineDrawing(1000, this.draw_config.bind(this))
+        // this.config = [
+        //     {rotations_per_cycle: 1, length: 100, initial_rotation: 0},
+        //     {rotations_per_cycle: 2, length: 50, initial_rotation: 0},
+        //     {rotations_per_cycle: -3, length: 50, initial_rotation: 90},
+        // ]
+
+        this.config = coefs.map((x, i) => {
+            return {'rotations_per_cycle': i-coefs.length/2, 'length': x[0]*scale, 'initial_rotation': x[1]}
+        })
     }
 
     start(){
