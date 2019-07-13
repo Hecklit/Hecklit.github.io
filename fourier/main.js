@@ -1,4 +1,4 @@
-var w = window,
+const w = window,
     d = document,
     e = d.documentElement,
     g = d.getElementsByTagName('body')[0],
@@ -132,7 +132,7 @@ class Arrow{
 const scale = 1
 class DrawApp{
     constructor(){
-        this.ld = new LineDrawing(1000, this.draw_config.bind(this))
+        this.ld = new LineDrawing(500, this.draw_config.bind(this))
         // this.config = [
         //     {rotations_per_cycle: 1, length: 100, initial_rotation: 0},
         //     {rotations_per_cycle: 2, length: 50, initial_rotation: 0},
@@ -140,8 +140,9 @@ class DrawApp{
         // ]
 
         this.config = coefs.map((x, i) => {
-            return {'rotations_per_cycle': i-coefs.length/2, 'length': x[0]*scale, 'initial_rotation': x[1]}
+            return {'rotations_per_cycle': i-parseInt(coefs.length/2), 'length': x[0]*scale, 'initial_rotation': x[1]}
         })
+        print(this.config)
     }
 
     start(){
