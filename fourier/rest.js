@@ -63,7 +63,7 @@ class Drawing{
                 this.scale = Math.max(1, this.scale/1.1)
             }
             if(e.key === 'd') {
-                this.num_interpolations = Math.max(1, this.num_interpolations-1)
+                this.num_interpolations = Math.max(2, this.num_interpolations-1)
                 this.setup()
                 this.time = 0
                 this.path = []
@@ -201,7 +201,7 @@ class Drawing{
             'w/s: zoom',
             'a/d: speed',
             `Zoomlevel: ${this.scale.toFixed(1)}`,
-            `Speedlevel: ${this.num_interpolations}`,
+            `Speedlevel: ${this.num_interpolations-1}`,
         ]
         for (let i = 0; i < text.length; i++) {
             const t = text[i];
