@@ -86,7 +86,7 @@ class Drawing{
             const start = this.drawing[i-1]
             const end = this.drawing[i]
             for (let j = 0; j < this.num_interpolations; j++) {
-                const factor = j / this.num_interpolations
+                const factor = j / (this.num_interpolations-1)
                 const x = factor * end.x + (1-factor) * start.x
                 const y = factor * end.y + (1-factor) * start.y
                 linear_interpolated.push({x, y})
