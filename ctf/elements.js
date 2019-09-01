@@ -17,6 +17,10 @@ class Match{
         return randomElement(this.teams[team-1].players)
     }
 
+    get_base(team){
+        return this.teams[team-1].base
+    }
+
     update(dt){
         this.map.update(dt)
         for (const team of this.teams) {
