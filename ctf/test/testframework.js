@@ -1,12 +1,12 @@
-const print = console.log
+const print = console.debug
 
 function test_case(name, func){
+    print(name)
     add_entry(name, func())
 }
 
 function init(){
     const body = document.getElementsByTagName('body')[0]
-    print(body)
     const div = document.createElement('div')
     div.id = 'res'
     body.appendChild(div)
@@ -20,6 +20,7 @@ function add_entry(name, state){
 }
 
 function assert_type(obj, str) {
+    print('assert type')
     if(obj instanceof str){
         return true
     }else{
@@ -28,6 +29,7 @@ function assert_type(obj, str) {
 }
 
 function assert_equal(one, two) {
+    print('assert_equal')
     if(one === two){
         return true
     }else{

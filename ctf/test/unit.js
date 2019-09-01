@@ -12,12 +12,50 @@ function setup(){
     
     test_case('circle collide works on players', () => {
         let p1 = new Player(createVector(0, 0))
-        let p2 = new Player(createVector(0, 0))
+        let p2 = new Player(createVector(10, 0))
         let p3 = new Player(createVector(11, 0))
 
         assert_equal(p1.r, 5)
         assert_equal(circleCollide(p1, p2), true)
         assert_equal(circleCollide(p1, p3), false)
+
+        return true;
+    })
+    
+    test_case('circle collide works on player and base', () => {
+        let p1 = new Player(createVector(0, 0))
+        let p2 = new Base(createVector(10, 0))
+
+        assert_equal(p1.r, 5)
+        assert_equal(p2.r, 20)
+        assert_equal(circleCollide(p1, p2), true)
+
+        return true;
+    })
+    
+    test_case('base can give flag to player', () => {
+        let p1 = new Player(createVector(0, 0))
+        let p2 = new Player(createVector(0, 0))
+        let base = new Base(createVector(10, 0))
+
+        base.give_flag(p1)
+        base.give_flag(p2)
+
+        assert_type(p1.flag, Flag)
+        assert_equal(p2.flag, null)
+
+        return true;
+    })
+    
+    test_case('team can score point', () => {
+        let match = new Match()
+        match.start()
+        let t = match.teams[0]
+        assert_equal(t.points, 0)
+        assert_equal(match.get_points(team=1), 0)
+        t.on_score_point()
+        assert_equal(match.get_points(team=1), 1)
+        assert_equal(t.points, 1)
 
         return true;
     })

@@ -35,6 +35,7 @@ class Match{
     }
 
     check_for_collision(){
+        // creating list with all entities
         const entities = [];
         for (const team of this.teams) {
             entities.push(team.base)
@@ -43,13 +44,17 @@ class Match{
             }
         }
 
+        // checking collision from everyone to everyone
         for (let i = 0; i < entities.length; i++) {
             for (let j = i+1; j < entities.length; j++) {
                 if(i==j) continue;
 
                 const e1 = entities[i];
                 const e2 = entities[j];
-                
+                if(circleCollide(e1, e2)){
+                    e1.on_collide(e2)
+                    e2.on_collide(e1)
+                }
             }
         }
     }
@@ -112,7 +117,7 @@ class Team{
         this.players = []
         for (let i = 0; i < size; i++) {
             this.players.push(
-                new Player()
+                new Player(null, this)
             )
         }
     }
@@ -121,6 +126,10 @@ class Team{
         for (const pl of this.players) {
             pl.set_pos(this.base.pos)
         }
+    }
+
+    on_score_point(){
+        this.points += 1
     }
 
     set_base(base){
@@ -144,9 +153,11 @@ class Team{
 }
 
 class Player{
-    constructor(pos){
+    constructor(pos, team){
         this.pos = pos
         this.r = 5
+        this.flag = null
+        this.team = team
     }
 
     update(dt){
@@ -160,12 +171,21 @@ class Player{
     set_pos(pos){
         this.pos = pos
     }
+
+    give_flag(flag){
+        this.flag = flag
+    }
+
+    on_collide(e){
+
+    }
 }
 
 class Base{
     constructor(pos, team){
         this.team = team
         this.pos = pos
+        this.r = 20
         this.flag = new Flag(pos, team)
     }
 
@@ -179,11 +199,33 @@ class Base{
         }else{
             fill('gray')
         }
-        ellipse(this.pos.x, this.pos.y, 20, 20)
+        ellipse(this.pos.x, this.pos.y, this.r, this.r)
     }
 
     set_team(team){
         this.team = team
+    }
+
+    give_flag(pl){
+        pl.give_flag(this.flag)
+        this.flag = null
+    }
+
+    on_collide(e){
+        if(e instanceof Player && this.flag !== null){
+            if(e.team.id !== this.team.id){
+                // enemy player got took flag
+                this.give_flag(e)
+            }else{
+                // own player on base
+                if(e.flag instanceof Flag){
+                    // reset flag to base
+                    e.team.on_score_point()
+                    e.flag.team.base.flag = e.flag
+                    e.flag = null
+                }
+            }
+        }
     }
 }
 

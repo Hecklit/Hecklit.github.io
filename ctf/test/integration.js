@@ -10,6 +10,12 @@ function setup(){
         // move one player to flag of enemy base
         let pl = match.get_random_player(team=1)
         pl.set_pos(match.get_base(team=2).pos)
+
+        // check for collisions
+        match.check_for_collision()
+
+        // player got the flag
+        assert_type(pl.flag, Flag)
         
         // once the player is there move the player back
         pl.set_pos(match.get_base(team=1).pos)
