@@ -7,10 +7,10 @@ function setup() {
   background(100)
 
   const teams = [
-    new Team('red', 10),
-    new Team('blue', 10),
-    new Team('yellow', 10),
-    new Team('green', 10),
+    new Team(1, 'red', 10),
+    new Team(2, 'blue', 10),
+    new Team(3, 'yellow', 10),
+    new Team(4, 'green', 10),
   ]
 
   const map = new Map(w, h, teams.length)

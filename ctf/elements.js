@@ -2,8 +2,8 @@ class Match{
     constructor(teams, map){
         if(teams === undefined){
             teams = [
-                new Team('red', 10),
-                new Team('blue', 10),
+                new Team(1, 'red', 10),
+                new Team(2, 'blue', 10),
             ]
         }
         if(map === undefined){
@@ -109,7 +109,8 @@ class Map{
 }
 
 class Team{
-    constructor(color, size){
+    constructor(id, color, size){
+        this.id = id
         this.color = color
         this.base = null
         this.size = size
