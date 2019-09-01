@@ -15,3 +15,7 @@ function drawArrow(base, vec, myColor) {
 function randomElement(items) {
   return items[Math.floor(Math.random()*items.length)];
 }
+
+function circleCollide(e1, e2) {
+  return e1.pos.sub(e2.pos).magSq() <= ((e1.r + e2.r) * (e1.r + e2.r))
+}

@@ -26,3 +26,11 @@ function assert_type(obj, str) {
         throw new Error(`${obj} is not type ${str}`)
     }
 }
+
+function assert_equal(one, two) {
+    if(one === two){
+        return true
+    }else{
+        throw new Error(`${one} is not ${two}`)
+    }
+}

@@ -21,10 +21,36 @@ class Match{
         return this.teams[team-1].base
     }
 
+    get_points(team){
+        return this.teams[team-1].points
+    }
+
     update(dt){
         this.map.update(dt)
         for (const team of this.teams) {
             team.update(dt)
+        }
+
+        check_for_collision()
+    }
+
+    check_for_collision(){
+        const entities = [];
+        for (const team of this.teams) {
+            entities.push(team.base)
+            for (const pl of team.players) {
+                entities.push(pl)
+            }
+        }
+
+        for (let i = 0; i < entities.length; i++) {
+            for (let j = i+1; j < entities.length; j++) {
+                if(i==j) continue;
+
+                const e1 = entities[i];
+                const e2 = entities[j];
+                
+            }
         }
     }
 
@@ -82,6 +108,7 @@ class Team{
         this.color = color
         this.base = null
         this.size = size
+        this.points = 0
         this.players = []
         for (let i = 0; i < size; i++) {
             this.players.push(
@@ -119,6 +146,7 @@ class Team{
 class Player{
     constructor(pos){
         this.pos = pos
+        this.r = 5
     }
 
     update(dt){
@@ -126,7 +154,7 @@ class Player{
     }
 
     draw(){
-        ellipse(this.pos.x, this.pos.y, 3, 3)
+        ellipse(this.pos.x, this.pos.y, this.r, this.r)
     }
 
     set_pos(pos){
