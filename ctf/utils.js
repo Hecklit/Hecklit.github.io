@@ -11,3 +11,7 @@ function drawArrow(base, vec, myColor) {
     triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
     pop();
   }
+
+function randomElement(items) {
+  return items[Math.floor(Math.random()*items.length)];
+}

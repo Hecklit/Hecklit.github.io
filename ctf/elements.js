@@ -1,7 +1,20 @@
 class Match{
     constructor(teams, map){
+        if(teams === undefined){
+            teams = [
+                new Team('red', 10),
+                new Team('blue', 10),
+            ]
+        }
+        if(map === undefined){
+            map = new Map(100, 100, teams.length)
+        }
         this.teams = teams
         this.map = map
+    }
+
+    get_random_player(team){
+        return randomElement(this.teams[team-1].players)
     }
 
     update(dt){

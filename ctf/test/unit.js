@@ -1,13 +1,12 @@
-var chai = require('chai');
-var should = chai.should();
-var expect = chai.expect;
-var assert = chai.assert;
-var Add = require('../maths');
+function setup(){
+    
+    init();
+    
+    test_case('can get random player from team', () => {
+        let match = new Match()
+        let pl = match.get_random_player(team=1)
 
-describe('Match integration', () => {
-    it('should allow to capture flag', ()=>{
-
-        
-        assert.equal(true, false, 'finish the test')
-    });
-});
+        assert_type(pl, Player)
+        return true;
+    })
+}
