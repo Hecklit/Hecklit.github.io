@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width" />
+    <title>SHK4</title>
+    <link rel="stylesheet" href="shk.css" />
+</head>
+<body>
+<div id="test"></div>
+
+<canvas id="can"></canvas>
+
+<form>
+
+    <p>Buy unit:</p>
+    <label for="numUnit">#</label>
+    <input type="number" id="numUnit" min="1" name="numUnit" value="1"><br>
+    <input type="radio" id="age1" name="age" value="F" checked>
+    <label for="age1">F (2 gold)</label><br>
+    <input type="radio" id="age2" name="age" value="B">
+    <label for="age2">B (3 gold)</label><br>
+    <input type="radio" id="age3" name="age" value="K">
+    <label for="age3">K (5 gold)</label><br><br>
+    <button id="buy">Buy</button>
+</form>
+<button id="next">Next</button>
+
+<script src="utils.js"></script>
+<script src="enums.js"></script>
+<script src="game.js"></script>
+<script src="map.js"></script>
+<script src="player.js"></script>
+<script src="tile.js"></script>
+<script src="unit.js"></script>
+<script src="integration-tests.js"></script>
+<script src="shk.js"></script>
+</body>
+</html>

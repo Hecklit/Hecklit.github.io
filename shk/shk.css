@@ -1,0 +1,19 @@
+#test {
+    color: gray;
+}
+
+body {
+    font-size: 30px;
+
+}
+
+button{
+    min-width: 300px;
+    font-size: 40px;
+}
+
+input[type="number"] {
+    font-size: 26px;
+    width: 115px;
+    text-align: right;
+}
