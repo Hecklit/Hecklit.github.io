@@ -115,18 +115,18 @@ class Map {
         });
     }
 
-    drawOverlay(curUnit){
+    drawOverlay(curUnit, attackOnly){
         const ts = this.flatTiles();
 
-        const inReach = ts.filter(t => Map.dist(t, curUnit.tile) <= curUnit.mov && t !== curUnit.tile && !t.hasPlayerOnIt(curUnit.player) && !t.hasEnemyOnIt(curUnit.player));
+        if(!attackOnly) {
+            const inReach = ts.filter(t => Map.dist(t, curUnit.tile) <= curUnit.mov && t !== curUnit.tile && !t.hasPlayerOnIt(curUnit.player) && !t.hasEnemyOnIt(curUnit.player));
 
-        inReach.forEach(ir => ir.drawOverlay("rgba(0, 255, 0, 0.3)"));
-        console.log("inReach", inReach);
+            inReach.forEach(ir => ir.drawOverlay("rgba(0, 255, 0, 0.3)"));
+        }
 
         const attackDistance = curUnit.reach > curUnit.mov ? curUnit.reach: curUnit.mov;
-        const attack = ts.filter(t => Map.dist(t, curUnit.tile) <= attackDistance && t !== curUnit.tile && t.hasEnemyOnIt(curUnit.player));
+        const attack = ts.filter(t => Map.dist(t, curUnit.tile) <= attackDistance && t.hasEnemyOnIt(curUnit.player));
         attack.forEach(ir => ir.drawOverlay("rgba(255, 0, 0, 0.3)"));
-        console.log("attack", attack);
 
     }
 }

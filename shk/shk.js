@@ -1,7 +1,7 @@
 function onTestsDone() {
     let canvas = document.getElementById("can");
     canvas.width = 1200;
-    canvas.height = 350;
+    canvas.height = 360;
     ctx = canvas.getContext("2d");
 
     const game = new Game(
@@ -41,24 +41,22 @@ function onTestsDone() {
             console.log("startRound");
             game.startRound();
             game.draw();
+            nextButton.innerHTML = "Buy";
         }
-        if (game.phase === 5) {
+        else if (game.phase === 5) {
             game.phase = 8;
             game.draw();
         }
-    }, false);
+        else if (game.phase === 2) {
+            const getSelectedValue = document.querySelector(
+                'input[name="age"]:checked');
+            const numUnit = document.querySelector(
+                'input[name="numUnit"]');
 
-    const buyButton = document.getElementById("buy");
-    buyButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        var getSelectedValue = document.querySelector(
-            'input[name="age"]:checked');
-        var numUnit = document.querySelector(
-            'input[name="numUnit"]');
-        console.log(getSelectedValue.value);
-
-        game.buyUnit(getSelectedValue.value, numUnit.value);
-        game.draw();
+            game.buyUnit(getSelectedValue.value, numUnit.value);
+            game.draw();
+            nextButton.innerHTML = "Next";
+        }
     }, false);
 
     game.init();

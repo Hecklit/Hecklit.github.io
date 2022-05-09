@@ -56,6 +56,7 @@ class Unit {
     }
 
     attack(enemyUnit, revenge = false) {
+        console.log("Start attack! revenge:", revenge)
         // check if its in range
         const distance = Map.dist(this.tile, enemyUnit.tile);
         if (this.reach < distance) {
@@ -115,7 +116,6 @@ class Unit {
             tileSize /= 2;
             xOffset = this.player.id === "Jonas" ? 0 : tileSize;
         }
-        console.log(this.player.id, xOffset);
 
         const size = tileSize * 0.9 / sq;
         let painted = 0;

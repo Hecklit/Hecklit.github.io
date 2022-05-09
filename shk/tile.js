@@ -38,7 +38,7 @@ class Tile {
     }
 
     hasEnemyOnIt(pl) {
-        return this.units.length > 0 && !this.hasPlayerOnIt(pl);
+        return this.units.length === 1 && !this.hasPlayerOnIt(pl) || this.units.length > 1;
     }
 
     drawOverlay(color){

@@ -23,6 +23,12 @@ class Game {
         this.movedThisRound = {};
         this.debugMarker = [100, 100];
         this.debugMode = true;
+        this.phaseToCaption = {
+            2: "Rekrutierung",
+            5: "Bewegung",
+            8: "Angriff",
+
+        }
     }
 
     init() {
@@ -117,12 +123,24 @@ class Game {
         this.map.draw();
         this.players.forEach(p => p.draw());
 
-        this.players.forEach((p, i) => text(`${p.id} ${i === this.curPi ? "(" + this.phase + ")" : ""} Gold ${p.gold}`, 300 * i + 150, this.map.tiles[0][3].y + this.map.tiles[0][3].l * 2, 40, "black"));
+        ctx.textAlign = 'left';
+        this.players.forEach((p, i) => text(`${p.id} Gold ${p.gold}`,
+            280 * i , this.map.tiles[0][3].y + this.map.tiles[0][3].l * 1.5, 30,
+            this.curPi === i ? "yellow":"black"));
+        text("Phase: " + this.phaseToCaption[this.phase], 0, this.map.tiles[0][3].y  + this.map.tiles[0][3].l + 70,
+            30, "black");
+        ctx.textAlign = 'center';
 
         if (this.phase === 5) {
             const curP = this.players[this.curPi];
             const curUnit = curP.activeUnit;
             this.map.drawOverlay(curUnit);
+        }
+
+        if (this.phase === 8) {
+            const curP = this.players[this.curPi];
+            const curUnit = curP.activeUnit;
+            this.map.drawOverlay(curUnit, true);
         }
 
 
