@@ -24,23 +24,26 @@ function onTestsDone() {
     );
 
     canvas.addEventListener('click', function (e) {
-        console.log(e);
 
         const x = e.clientX,
             y = e.clientY;
         console.log(x, y);
 
         game.debugMarker = [x, y];
-        game.onClick(x, y);
+        game.onClickPxl(x, y);
         game.draw();
     }, false);
 
     const nextButton = document.getElementById("next");
     nextButton.addEventListener('click', function () {
         console.log("onNext", game.phase);
-        if (game.phase === 5) {
+        if (game.phase === 8) {
             console.log("startRound");
             game.startRound();
+            game.draw();
+        }
+        if (game.phase === 5) {
+            game.phase = 8;
             game.draw();
         }
     }, false);

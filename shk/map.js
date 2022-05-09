@@ -19,6 +19,10 @@ class Map {
         return selector.map(s => this.tiles[s[0]][s[1]]);
     }
 
+    getTile(xi, yi) {
+            return this.tiles[xi][yi];
+    }
+
     getTileAtPx(x, y) {
         const l = this.getTileSize();
         const xi = Math.floor(x/l);
@@ -74,7 +78,7 @@ class Map {
             this.tiles.push([]);
             for(let y=0; y<height; y++) {
                 const tile = new Tile(x*tileSize, y*tileSize,
-                    tileSize, x, y);
+                    tileSize, x, y, this);
                 this.tiles[x].push(tile);
             }
         }
@@ -86,8 +90,6 @@ class Map {
                 break;
 
         }
-
-
     }
 
 
@@ -116,13 +118,15 @@ class Map {
     drawOverlay(curUnit){
         const ts = this.flatTiles();
 
-        const inReach = ts.filter(t => Map.dist(t, curUnit.tile) <= curUnit.speed && t !== curUnit.tile && !t.hasPlayerOnIt(curUnit.player) && !t.hasEnemyOnIt(curUnit.player));
+        const inReach = ts.filter(t => Map.dist(t, curUnit.tile) <= curUnit.mov && t !== curUnit.tile && !t.hasPlayerOnIt(curUnit.player) && !t.hasEnemyOnIt(curUnit.player));
 
         inReach.forEach(ir => ir.drawOverlay("rgba(0, 255, 0, 0.3)"));
+        console.log("inReach", inReach);
 
-        const attackDistance = curUnit.reach > curUnit.speed ? curUnit.reach: curUnit.speed;
+        const attackDistance = curUnit.reach > curUnit.mov ? curUnit.reach: curUnit.mov;
         const attack = ts.filter(t => Map.dist(t, curUnit.tile) <= attackDistance && t !== curUnit.tile && t.hasEnemyOnIt(curUnit.player));
         attack.forEach(ir => ir.drawOverlay("rgba(255, 0, 0, 0.3)"));
+        console.log("attack", attack);
 
     }
 }

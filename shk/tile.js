@@ -1,6 +1,6 @@
 class Tile {
 
-    constructor(x, y, l, xi, yi) {
+    constructor(x, y, l, xi, yi, map) {
         this.units = [];
         this.x = x;
         this.y = y;
@@ -9,6 +9,7 @@ class Tile {
         this.yi = yi;
         this.color = "gray";
         this.text = "";
+        this.map = map;
     }
 
 
@@ -22,6 +23,14 @@ class Tile {
         ctx.fillStyle= "black";
         ctx.font = '30px serif';
         ctx.fillText(this.text, this.x+ this.l/2, this.y + this.l/1.5);
+    }
+
+    getNeighbour(dix, diy) {
+        const ix = this.xi + dix;
+        const iy = this.yi + diy;
+        if(this.map.tiles[ix]) {
+            return this.map.tiles[ix][iy];
+        }
     }
 
     hasPlayerOnIt(pl) {

@@ -1,4 +1,3 @@
-
 class Game {
 
     constructor(
@@ -30,8 +29,8 @@ class Game {
         this.map = new Map();
         this.map.generateSquareMap(15, 4, 70, this.mapType);
         this.players = [];
-        this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]])));
-        this.players.push(new Player("Jakob", this.map.getTiles([[13,2], [13,3], [14,2], [14,3]])));
+        this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]), "red"));
+        this.players.push(new Player("Jakob", this.map.getTiles([[13, 2], [13, 3], [14, 2], [14, 3]]), "blue"));
         this.curPi = 0;
     }
 
@@ -88,62 +87,99 @@ class Game {
     }
 
     buyUnit(ut, n) {
-        if(this.phase !== 2) {
+        if (this.phase !== 2) {
             return false;
         }
         const curP = this.players[this.curPi];
         const conf = this.config[ut];
         const cost = conf.cost * n;
         const freeBaseTiles = curP.getFreeBaseTiles();
-        if (curP.gold >= cost && freeBaseTiles.length > 0 ) {
-            curP.buyUnit(ut, n, cost, conf.mov, conf.reach);
+        if (curP.gold >= cost && freeBaseTiles.length > 0) {
+            const newUnit = curP.buyUnit(ut, n, cost
+                , conf.reach
+                , conf.mov
+                , conf.hp
+                , conf.numAttacks
+                , conf.dmg
+                , conf.def
+                , conf.revenge
+                , conf.mobility);
             this.phase = 5;
-            return true;
-        }else {
+            return newUnit;
+        } else {
             console.log(curP.id + " doesn't have enough gold or space.");
         }
     }
 
     draw() {
-        ctx.fillStyle = "white";
+        ctx.fillStyle = "lightgray";
         ctx.fillRect(0, 0, 10000, 10000);
         this.map.draw();
         this.players.forEach(p => p.draw());
 
-        this.players.forEach((p, i) => text(`${p.id} ${i === this.curPi ? "("+ this.phase + ")" : ""} Gold ${p.gold}`, 300* i + 150, this.map.tiles[0][3].y + this.map.tiles[0][3].l * 2, 40, "black"));
+        this.players.forEach((p, i) => text(`${p.id} ${i === this.curPi ? "(" + this.phase + ")" : ""} Gold ${p.gold}`, 300 * i + 150, this.map.tiles[0][3].y + this.map.tiles[0][3].l * 2, 40, "black"));
 
-        if(this.phase === 5) {
+        if (this.phase === 5) {
             const curP = this.players[this.curPi];
             const curUnit = curP.activeUnit;
             this.map.drawOverlay(curUnit);
         }
 
 
-        if(this.debugMode) {
+        if (this.debugMode) {
             const size = 5;
             ctx.fillStyle = "green";
-            circle(this.debugMarker[0]-size, this.debugMarker[1]-size, size);
+            circle(this.debugMarker[0] - size, this.debugMarker[1] - size, size);
         }
 
     }
 
-    onClick(x, y) {
-        if(this.phase !== 5 && this.phase !== 8) {
+    onClickPxl(x, y) {
+        const tile = this.map.getTileAtPx(x, y);
+        this.onClick(tile);
+    }
+
+    onClickIdx(x, y) {
+        const tile = this.map.tiles[x][y];
+        this.onClick(tile);
+    }
+
+    onClick(tile) {
+        if (this.phase !== 5 && this.phase !== 8) {
             return false;
         }
 
-        const tile = this.map.getTileAtPx(x, y);
         const curP = this.players[this.curPi];
-        if(tile) {
+        if (tile) {
 
-            const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
-            console.log(tile.units.map(u => u.player.id));
-            if(unitOfP) {
-                curP.activeUnit = unitOfP;
-            } else {
-                curP.activeUnit.move(tile);
+            if (this.phase === 5) {
+                const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
+                if (unitOfP) {
+                    curP.activeUnit = unitOfP;
+                } else {
+                    curP.activeUnit.move(tile);
+                }
+            }
+
+            if (this.phase === 8) {
+                const unitOfEnemy = tile.units.filter(u => u.player.id !== curP.id)[0];
+                if (unitOfEnemy) {
+                    curP.activeUnit.attack(unitOfEnemy);
+                    this.removeDeadUnits();
+                }
             }
         }
+    }
+
+    removeDeadUnits() {
+        this.players.forEach(p => p.units  = p.units.filter(u => u.alive));
+        this.map.flatTiles().forEach(t => t.units = t.units.filter(u => u.alive));
+    }
+
+    static throwDice() {
+        const result = Math.floor(Math.random() * 6 + 1);
+        console.log("Roll a d6: ", result)
+        return result;
     }
 
 
