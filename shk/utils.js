@@ -27,10 +27,8 @@ function circle(x, y, r, fill=true) {
     ctx.stroke();
 }
 
-ctx.textAlign = 'center';
 function text(t, x, y, size, color){
     ctx.fillStyle= color;
     ctx.font = ""+ size + "px serif";
     ctx.fillText(t, x, y);
-
 }

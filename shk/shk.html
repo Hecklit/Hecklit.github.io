@@ -11,8 +11,7 @@
 
 <canvas id="can"></canvas>
 
-<form>
-
+<form id="buyForm">
     <p>Buy unit:</p>
     <label for="numUnit">#</label>
     <input type="number" id="numUnit" min="1" name="numUnit" value="1"><br>
@@ -23,6 +22,7 @@
     <input type="radio" id="age3" name="age" value="K">
     <label for="age3">K (5 gold)</label><br><br>
 </form>
+<div id="errorMessage"></div>
 <button id="next">Buy</button>
 
 <script src="utils.js"></script>

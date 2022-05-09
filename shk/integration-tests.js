@@ -4,6 +4,7 @@ addEventListener('load', function () {
     canvas.width = 1200;
     canvas.height = 350;
     ctx = canvas.getContext("2d");
+    ctx.textAlign = 'center';
 
     function getDefaultGame() {
         return new Game(

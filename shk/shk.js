@@ -3,6 +3,7 @@ function onTestsDone() {
     canvas.width = 1200;
     canvas.height = 360;
     ctx = canvas.getContext("2d");
+    ctx.textAlign = 'center';
 
     const game = new Game(
         5,
@@ -34,6 +35,8 @@ function onTestsDone() {
         game.draw();
     }, false);
 
+    const buyForm = document.getElementById("buyForm");
+    const errorMessage = document.getElementById("errorMessage");
     const nextButton = document.getElementById("next");
     nextButton.addEventListener('click', function () {
         console.log("onNext", game.phase);
@@ -42,6 +45,7 @@ function onTestsDone() {
             game.startRound();
             game.draw();
             nextButton.innerHTML = "Buy";
+            buyForm.style.display = 'block';
         }
         else if (game.phase === 5) {
             game.phase = 8;
@@ -53,9 +57,16 @@ function onTestsDone() {
             const numUnit = document.querySelector(
                 'input[name="numUnit"]');
 
-            game.buyUnit(getSelectedValue.value, numUnit.value);
+            const newUnit = game.buyUnit(getSelectedValue.value, numUnit.value);
             game.draw();
-            nextButton.innerHTML = "Next";
+            if(newUnit) {
+                nextButton.innerHTML = "Next";
+                buyForm.style.display = 'none';
+                errorMessage.style.display = 'none';
+            } else {
+                errorMessage.innerHTML = game.errorMessage;
+                errorMessage.style.display = 'block';
+            }
         }
     }, false);
 

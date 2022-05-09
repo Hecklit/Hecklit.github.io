@@ -35,38 +35,42 @@ class Map {
     configureMiniMap() {
         const ex = this.tiles.length - 1;
         const ey = this.tiles[0].length - 1;
+        const redBase = "hsl(0, 70%, 60%)";
+        const blueBase = "hsl(240, 70%, 60%)";
+        const goldMine = "hsl(60, 70%, 50%)";
+        const monster = "hsl(120, 10%, 50%)";
 
         // red base
-        this.tiles[0][ey].config("red", "B");
-        this.tiles[0][ey - 1].config("red", "B");
-        this.tiles[1][ey].config("red", "B");
-        this.tiles[1][ey - 1].config("red", "B");
+        this.tiles[0][ey].config(redBase, "B");
+        this.tiles[0][ey - 1].config(redBase, "B");
+        this.tiles[1][ey].config(redBase, "B");
+        this.tiles[1][ey - 1].config(redBase, "B");
 
         // blue base
-        this.tiles[ex][ey].config("blue", "B");
-        this.tiles[ex][ey - 1].config("blue", "B");
-        this.tiles[ex-1][ey].config("blue", "B");
-        this.tiles[ex-1][ey - 1].config("blue", "B");
+        this.tiles[ex][ey].config(blueBase, "B");
+        this.tiles[ex][ey - 1].config(blueBase, "B");
+        this.tiles[ex-1][ey].config(blueBase, "B");
+        this.tiles[ex-1][ey - 1].config(blueBase, "B");
 
         // Goldmine
-        this.tiles[3][1].config("yellow", "G2");
-        this.tiles[ex-3][1].config("yellow", "G2");
-        this.tiles[7][2].config("yellow", "G5");
+        this.tiles[3][1].config(goldMine, "G2");
+        this.tiles[ex-3][1].config(goldMine, "G2");
+        this.tiles[7][2].config(goldMine, "G5");
 
         // Monster
-        this.tiles[2][0].config("darkgreen", "M1");
-        this.tiles[4][0].config("darkgreen", "M1");
-        this.tiles[ex-2][0].config("darkgreen", "M1");
-        this.tiles[ex-4][0].config("darkgreen", "M1");
-        this.tiles[5][2].config("darkgreen", "M1");
-        this.tiles[ex-5][2].config("darkgreen", "M1");
-        this.tiles[3][ey].config("darkgreen", "M1");
-        this.tiles[ex-3][ey].config("darkgreen", "M1");
+        this.tiles[2][0].config(monster, "M1");
+        this.tiles[4][0].config(monster, "M1");
+        this.tiles[ex-2][0].config(monster, "M1");
+        this.tiles[ex-4][0].config(monster, "M1");
+        this.tiles[5][2].config(monster, "M1");
+        this.tiles[ex-5][2].config(monster, "M1");
+        this.tiles[3][ey].config(monster, "M1");
+        this.tiles[ex-3][ey].config(monster, "M1");
 
-        this.tiles[0][0].config("darkgreen", "M2");
-        this.tiles[ex][0].config("darkgreen", "M2");
-        this.tiles[7][0].config("darkgreen", "M2");
-        this.tiles[7][ey].config("darkgreen", "M2");
+        this.tiles[0][0].config(monster, "M2");
+        this.tiles[ex][0].config(monster, "M2");
+        this.tiles[7][0].config(monster, "M2");
+        this.tiles[7][ey].config(monster, "M2");
 
     }
 

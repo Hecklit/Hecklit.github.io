@@ -17,3 +17,8 @@ input[type="number"] {
     width: 115px;
     text-align: right;
 }
+
+#errorMessage {
+    color: red;
+    font-size: 26px;
+}

@@ -23,6 +23,7 @@ class Game {
         this.movedThisRound = {};
         this.debugMarker = [100, 100];
         this.debugMode = true;
+        this.errorMessage = "";
         this.phaseToCaption = {
             2: "Rekrutierung",
             5: "Bewegung",
@@ -100,7 +101,7 @@ class Game {
         const conf = this.config[ut];
         const cost = conf.cost * n;
         const freeBaseTiles = curP.getFreeBaseTiles();
-        if (curP.gold >= cost && freeBaseTiles.length > 0) {
+        if (curP.gold >= cost && freeBaseTiles.length > 0 && n > 0) {
             const newUnit = curP.buyUnit(ut, n, cost
                 , conf.reach
                 , conf.mov
@@ -113,7 +114,9 @@ class Game {
             this.phase = 5;
             return newUnit;
         } else {
+            this.errorMessage = curP.id + " doesn't have enough gold or space.";
             console.log(curP.id + " doesn't have enough gold or space.");
+            return false;
         }
     }
 
