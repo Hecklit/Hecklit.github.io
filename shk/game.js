@@ -113,6 +113,8 @@ class Game {
                 , conf.mobility);
             this.phase = 5;
             return newUnit;
+        } else if (freeBaseTiles.length === 0) {
+            this.phase = 5;
         } else {
             this.errorMessage = curP.id + " doesn't have enough gold or space.";
             console.log(curP.id + " doesn't have enough gold or space.");
@@ -128,9 +130,9 @@ class Game {
 
         ctx.textAlign = 'left';
         this.players.forEach((p, i) => text(`${p.id} Gold ${p.gold}`,
-            280 * i , this.map.tiles[0][3].y + this.map.tiles[0][3].l * 1.5, 30,
-            this.curPi === i ? "yellow":"black"));
-        text("Phase: " + this.phaseToCaption[this.phase], 0, this.map.tiles[0][3].y  + this.map.tiles[0][3].l + 70,
+            280 * i, this.map.tiles[0][3].y + this.map.tiles[0][3].l * 1.5, 30,
+            this.curPi === i ? "yellow" : "black"));
+        text("Phase: " + this.phaseToCaption[this.phase], 0, this.map.tiles[0][3].y + this.map.tiles[0][3].l + 70,
             30, "black");
         ctx.textAlign = 'center';
 
@@ -185,7 +187,7 @@ class Game {
             if (this.phase === 8) {
                 const unitOfEnemy = tile.units.filter(u => u.player.id !== curP.id)[0];
                 if (unitOfEnemy) {
-                    curP.activeUnit.attack(unitOfEnemy);
+                    curP.activeUnit?.attack(unitOfEnemy);
                     this.removeDeadUnits();
                 }
             }
@@ -193,7 +195,7 @@ class Game {
     }
 
     removeDeadUnits() {
-        this.players.forEach(p => p.units  = p.units.filter(u => u.alive));
+        this.players.forEach(p => p.units = p.units.filter(u => u.alive));
         this.map.flatTiles().forEach(t => t.units = t.units.filter(u => u.alive));
     }
 

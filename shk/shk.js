@@ -1,4 +1,8 @@
-function onTestsDone() {
+function sleep(t) {
+    return new Promise(resolve => setTimeout(resolve, t));
+}
+
+async function onTestsDone() {
     let canvas = document.getElementById("can");
     canvas.width = 1200;
     canvas.height = 360;
@@ -35,7 +39,7 @@ function onTestsDone() {
         game.draw();
     }, false);
 
-    const buyForm = document.getElementById("buyForm");
+    const demo = document.getElementById("demo");
     const errorMessage = document.getElementById("errorMessage");
     const nextButton = document.getElementById("next");
     nextButton.addEventListener('click', function () {
@@ -46,12 +50,10 @@ function onTestsDone() {
             game.draw();
             nextButton.innerHTML = "Buy";
             buyForm.style.display = 'block';
-        }
-        else if (game.phase === 5) {
+        } else if (game.phase === 5) {
             game.phase = 8;
             game.draw();
-        }
-        else if (game.phase === 2) {
+        } else if (game.phase === 2) {
             const getSelectedValue = document.querySelector(
                 'input[name="age"]:checked');
             const numUnit = document.querySelector(
@@ -59,7 +61,7 @@ function onTestsDone() {
 
             const newUnit = game.buyUnit(getSelectedValue.value, numUnit.value);
             game.draw();
-            if(newUnit) {
+            if (newUnit || game.phase === 5) {
                 nextButton.innerHTML = "Next";
                 buyForm.style.display = 'none';
                 errorMessage.style.display = 'none';
@@ -73,4 +75,49 @@ function onTestsDone() {
     game.init();
     game.startRound();
     game.draw();
+
+    demo.addEventListener('click', async function () {
+        const sleepBetweenPhases = 0;
+        const sleepAttack = 2;
+        const sleepMovement = 2;
+
+        for (let i = 0; i < 100; i++) {
+            // buy unit
+            if(game.getCurrentPlayer().units.length <= 2) {
+                game.buyUnit(["F", "K", "B"].sample(), Math.floor(Math.random() * game.getCurrentPlayer().gold / 2 + 1));
+                game.draw();
+                await sleep(sleepBetweenPhases)
+            } else {
+                game.phase = 5;
+            }
+
+            // move
+            for (let i = 0; i < 200; i++) {
+                if(i % 50 === 0) {
+                    game.getCurrentPlayer().activeUnit = game.getCurrentPlayer().units.sample();
+                }
+                game.onClick(game.map.flatTiles().sample());
+                game.draw();
+                await sleep(sleepMovement)
+            }
+            game.phase = 8;
+            game.draw();
+            await sleep(sleepBetweenPhases)
+
+            // attack
+            for (let i = 0; i < 200; i++) {
+                if(i % 50 === 0) {
+                    game.getCurrentPlayer().activeUnit = game.getCurrentPlayer().units.sample();
+                }
+                game.onClick(game.map.flatTiles().sample());
+                game.draw();
+                await sleep(sleepAttack)
+            }
+            game.startRound();
+            game.draw();
+            await sleep(sleepBetweenPhases);
+        }
+    });
+
+
 }

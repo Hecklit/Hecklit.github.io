@@ -120,6 +120,9 @@ class Map {
     }
 
     drawOverlay(curUnit, attackOnly){
+        if(!curUnit) {
+            return;
+        }
         const ts = this.flatTiles();
 
         if(!attackOnly) {
@@ -128,9 +131,11 @@ class Map {
             inReach.forEach(ir => ir.drawOverlay("rgba(0, 255, 0, 0.3)"));
         }
 
-        const attackDistance = curUnit.reach > curUnit.mov ? curUnit.reach: curUnit.mov;
-        const attack = ts.filter(t => Map.dist(t, curUnit.tile) <= attackDistance && t.hasEnemyOnIt(curUnit.player));
-        attack.forEach(ir => ir.drawOverlay("rgba(255, 0, 0, 0.3)"));
+        if(attackOnly) {
+            const attackDistance = curUnit.reach > curUnit.mov ? curUnit.reach: curUnit.mov;
+            const attack = ts.filter(t => Map.dist(t, curUnit.tile) <= attackDistance && t.hasEnemyOnIt(curUnit.player));
+            attack.forEach(ir => ir.drawOverlay("rgba(255, 0, 0, 0.3)"));
+        }
 
     }
 }
