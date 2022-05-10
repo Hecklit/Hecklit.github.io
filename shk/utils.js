@@ -32,3 +32,20 @@ function text(t, x, y, size, color){
     ctx.font = ""+ size + "px serif";
     ctx.fillText(t, x, y);
 }
+
+function arrow(fx, fy, tx, ty, color ="black") {
+    const tmp = ctx.strokeStyle;
+    ctx.strokeStyle = color;
+    const headlen = 10; // length of head in pixels
+    const dx = tx - fx;
+    const dy = ty - fy;
+    const angle = Math.atan2(dy, dx);
+    ctx.beginPath();
+    ctx.moveTo(fx, fy);
+    ctx.lineTo(tx, ty);
+    ctx.lineTo(tx - headlen * Math.cos(angle - Math.PI / 6), ty - headlen * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(tx - headlen * Math.cos(angle + Math.PI / 6), ty - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.stroke();
+    ctx.strokeStyle = tmp;
+}

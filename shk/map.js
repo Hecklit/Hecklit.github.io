@@ -1,6 +1,6 @@
 class Map {
 
-    constructor () {
+    constructor() {
         this.tiles = [];
         this.isSquareMap = true;
         this.width = 0;
@@ -20,14 +20,14 @@ class Map {
     }
 
     getTile(xi, yi) {
-            return this.tiles[xi][yi];
+        return this.tiles[xi][yi];
     }
 
     getTileAtPx(x, y) {
         const l = this.getTileSize();
-        const xi = Math.floor(x/l);
-        const yi = Math.floor(y/l);
-        if(this.tiles[xi]) {
+        const xi = Math.floor(x / l);
+        const yi = Math.floor(y / l);
+        if (this.tiles[xi]) {
             return this.tiles[xi][yi];
         }
     }
@@ -49,23 +49,23 @@ class Map {
         // blue base
         this.tiles[ex][ey].config(blueBase, "B");
         this.tiles[ex][ey - 1].config(blueBase, "B");
-        this.tiles[ex-1][ey].config(blueBase, "B");
-        this.tiles[ex-1][ey - 1].config(blueBase, "B");
+        this.tiles[ex - 1][ey].config(blueBase, "B");
+        this.tiles[ex - 1][ey - 1].config(blueBase, "B");
 
         // Goldmine
         this.tiles[3][1].config(goldMine, "G2");
-        this.tiles[ex-3][1].config(goldMine, "G2");
+        this.tiles[ex - 3][1].config(goldMine, "G2");
         this.tiles[7][2].config(goldMine, "G5");
 
         // Monster
         this.tiles[2][0].config(monster, "M1");
         this.tiles[4][0].config(monster, "M1");
-        this.tiles[ex-2][0].config(monster, "M1");
-        this.tiles[ex-4][0].config(monster, "M1");
+        this.tiles[ex - 2][0].config(monster, "M1");
+        this.tiles[ex - 4][0].config(monster, "M1");
         this.tiles[5][2].config(monster, "M1");
-        this.tiles[ex-5][2].config(monster, "M1");
+        this.tiles[ex - 5][2].config(monster, "M1");
         this.tiles[3][ey].config(monster, "M1");
-        this.tiles[ex-3][ey].config(monster, "M1");
+        this.tiles[ex - 3][ey].config(monster, "M1");
 
         this.tiles[0][0].config(monster, "M2");
         this.tiles[ex][0].config(monster, "M2");
@@ -78,16 +78,16 @@ class Map {
         this.width = width;
         this.height = height;
 
-        for(let x=0; x< width; x++) {
+        for (let x = 0; x < width; x++) {
             this.tiles.push([]);
-            for(let y=0; y<height; y++) {
-                const tile = new Tile(x*tileSize, y*tileSize,
+            for (let y = 0; y < height; y++) {
+                const tile = new Tile(x * tileSize, y * tileSize,
                     tileSize, x, y, this);
                 this.tiles[x].push(tile);
             }
         }
 
-        switch(mapType) {
+        switch (mapType) {
 
             case MapType.FixMini:
                 this.configureMiniMap();
@@ -99,8 +99,8 @@ class Map {
 
     forEach2D(func) {
 
-        for(let x=0; x<this.width; x++) {
-            for(let y=0; y<this.height; y++) {
+        for (let x = 0; x < this.width; x++) {
+            for (let y = 0; y < this.height; y++) {
                 func(x, y);
             }
         }
@@ -110,7 +110,8 @@ class Map {
     flatTiles() {
         return this.tiles.reduce((acc, c) => {
             c.forEach(b => acc.push(b));
-            return acc; }, []);
+            return acc;
+        }, []);
     }
 
     draw() {
@@ -119,22 +120,78 @@ class Map {
         });
     }
 
-    drawOverlay(curUnit, attackOnly){
-        if(!curUnit) {
+
+    getPossibleFightsPerPlayer(pl) {
+        return pl.units.reduce((acc, cur) => {
+            return acc.concat(this.getPossibleFightsPerUnit(cur));
+        }, []);
+    }
+
+    getPossibleFightsPerUnit(unit) {
+        if (!unit || unit.cantAttackAnymore()) {
+            return [];
+        }
+        if (unit.reach === 0 && unit.tile.getEnemy(unit.player)) {
+            return [unit.tile.getEnemy(unit.player)]
+        }
+        if (unit.reach > 0) {
+            return this.getEnemiesInRange(unit.tile, unit.reach, unit.player);
+        }
+        return [];
+    }
+
+    getPossibleMovementPerUnit(unit) {
+        if (!unit || unit.cantMoveAnymore()) {
+            return [];
+        }
+        const ts = this.getTilesInRange(unit.tile, unit.getMovementLeftThisRound());
+        return ts.filter(t => t !== unit.tile && !t.hasPlayerOnIt(unit.player));
+    }
+
+    getTilesInRange(root, range) {
+        // TODO: Make this more performant
+        return this.flatTiles().filter(t => Map.dist(root, t) <= range);
+    }
+
+    getUnitsInRange(root, range, playerFilter) {
+        const allTiles = this.getTilesInRange(root, range);
+        return allTiles.reduce((acc, cur) => {
+            const unit = cur.units.filter(u => u.player === playerFilter || !playerFilter)[0];
+            if (unit) {
+                acc.push(unit);
+            }
+            return acc;
+        }, []);
+    }
+
+    getEnemiesInRange(root, range, playerFilter) {
+        const allTiles = this.getTilesInRange(root, range);
+        return allTiles.reduce((acc, cur) => {
+            const unit = cur.units.filter(u => u.player !== playerFilter || !playerFilter)[0];
+            if (unit) {
+                acc.push(unit);
+            }
+            return acc;
+        }, []);
+    }
+
+    drawOverlay(curUnit, attackOnly) {
+        if (!curUnit) {
             return;
         }
-        const ts = this.flatTiles();
 
-        if(!attackOnly) {
-            const inReach = ts.filter(t => Map.dist(t, curUnit.tile) <= curUnit.mov && t !== curUnit.tile && !t.hasPlayerOnIt(curUnit.player) && !t.hasEnemyOnIt(curUnit.player));
-
+        if (!attackOnly) {
+            const inReach = this.getPossibleMovementPerUnit(curUnit);
+            console.log("inReach", inReach)
             inReach.forEach(ir => ir.drawOverlay("rgba(0, 255, 0, 0.3)"));
         }
 
-        if(attackOnly) {
-            const attackDistance = curUnit.reach > curUnit.mov ? curUnit.reach: curUnit.mov;
-            const attack = ts.filter(t => Map.dist(t, curUnit.tile) <= attackDistance && t.hasEnemyOnIt(curUnit.player));
-            attack.forEach(ir => ir.drawOverlay("rgba(255, 0, 0, 0.3)"));
+        if (attackOnly) {
+            const pfs = this.getPossibleFightsPerUnit(curUnit).map(pf => pf.tile);
+            pfs.forEach(ir => ir.drawOverlay("rgba(255, 0, 0, 0.3)"));
+            if (curUnit.reach > 0) {
+                pfs.forEach(ir => arrow(curUnit.tile.cx, curUnit.tile.cy, ir.cx, ir.cy, curUnit.player.color));
+            }
         }
 
     }

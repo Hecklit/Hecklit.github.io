@@ -5,6 +5,8 @@ class Tile {
         this.x = x;
         this.y = y;
         this.l = l;
+        this.cx = x + l/2;
+        this.cy = y + l/2;
         this.xi = xi;
         this.yi = yi;
         this.color = "gray";
@@ -39,6 +41,18 @@ class Tile {
 
     hasEnemyOnIt(pl) {
         return this.units.length === 1 && !this.hasPlayerOnIt(pl) || this.units.length > 1;
+    }
+
+    getEnemy(pl) {
+        if(this.hasEnemyOnIt(pl)) {
+            return this.units.filter(u => u.player.id !== pl.id)[0];
+        }
+    }
+
+    getUnitOf(pl) {
+        if(this.hasPlayerOnIt(pl)) {
+            return this.units.filter(u => u.player.id === pl.id)[0];
+        }
     }
 
     drawOverlay(color){

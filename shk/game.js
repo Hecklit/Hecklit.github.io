@@ -128,7 +128,7 @@ class Game {
         ctx.fillStyle = "lightgray";
         ctx.fillRect(0, 0, 10000, 10000);
         this.map.draw();
-        this.players.forEach(p => p.draw());
+        this.players.forEach(p => p.draw(this.phase, this.getCurrentPlayer()));
 
         ctx.textAlign = 'left';
         this.players.forEach((p, i) => text(`${p.id} Gold ${p.gold}`,
@@ -184,17 +184,30 @@ class Game {
                 } else {
                     curP.activeUnit.move(tile);
                 }
+
+                if(curP.units.filter(u => !u.cantMoveAnymore()).length === 0) {
+                    this.phase = 8;
+
+                    if(curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
+                        this.startRound();
+                    }
+                }
             }
 
             if (this.phase === 8) {
-                const unitOfEnemy = tile.units.filter(u => u.player.id !== curP.id)[0];
+                const fights = this.map.getPossibleFightsPerUnit(curP.activeUnit);
+                const unitOfEnemy = fights.filter(f => f.tile === tile)[0];
+                const unitOfPlayer = tile.getUnitOf(curP);
                 if (unitOfEnemy) {
                     curP.activeUnit?.attack(unitOfEnemy);
                     this.removeDeadUnits();
+                } else if(unitOfPlayer) {
+                    curP.activeUnit = unitOfPlayer;
                 }
             }
         }
     }
+
 
     removeDeadUnits() {
         this.players.forEach(p => p.units = p.units.filter(u => u.alive));

@@ -49,7 +49,7 @@ async function onTestsDone() {
             game.startRound();
             game.draw();
             nextButton.innerHTML = "Buy";
-            buyForm.style.display = 'block';
+            // buyForm.style.display = 'block';
         } else if (game.phase === 5) {
             game.phase = 8;
             game.draw();
@@ -63,7 +63,7 @@ async function onTestsDone() {
             game.draw();
             if (newUnit || game.phase === 5) {
                 nextButton.innerHTML = "Next";
-                buyForm.style.display = 'none';
+                // buyForm.style.display = 'none';
                 errorMessage.style.display = 'none';
             } else {
                 errorMessage.innerHTML = game.errorMessage;
@@ -77,9 +77,9 @@ async function onTestsDone() {
     game.draw();
 
     demo.addEventListener('click', async function () {
-        const sleepBetweenPhases = 0;
-        const sleepAttack = 2;
-        const sleepMovement = 2;
+        const sleepBetweenPhases = 50;
+        const sleepAttack = 100;
+        const sleepMovement = 100;
 
         for (let i = 0; i < 100; i++) {
             // buy unit
@@ -92,26 +92,27 @@ async function onTestsDone() {
             }
 
             // move
-            for (let i = 0; i < 200; i++) {
-                if(i % 50 === 0) {
-                    game.getCurrentPlayer().activeUnit = game.getCurrentPlayer().units.sample();
+            for (const unit of game.getCurrentPlayer().units) {
+                const target = game.map.getPossibleMovementPerUnit(unit).sample();
+                if(target) {
+                    game.onClick(unit.tile);
+                    game.onClick(target);
+                    game.draw();
+                    await sleep(sleepMovement)
                 }
-                game.onClick(game.map.flatTiles().sample());
-                game.draw();
-                await sleep(sleepMovement)
             }
             game.phase = 8;
             game.draw();
             await sleep(sleepBetweenPhases)
 
             // attack
-            for (let i = 0; i < 200; i++) {
-                if(i % 50 === 0) {
-                    game.getCurrentPlayer().activeUnit = game.getCurrentPlayer().units.sample();
+            for (const unit of game.getCurrentPlayer().units) {
+                const target = game.map.getPossibleFightsPerUnit(unit).sample();
+                if(target) {
+                    game.onClick(target.tile);
+                    game.draw();
+                    await sleep(sleepAttack)
                 }
-                game.onClick(game.map.flatTiles().sample());
-                game.draw();
-                await sleep(sleepAttack)
             }
             game.startRound();
             game.draw();

@@ -38,9 +38,9 @@ class Player {
         return newUnit;
     }
 
-    draw() {
+    draw(phase, cP) {
         this.units.forEach((u) => {
-            u.draw();
+            u.draw(phase, cP);
         });
         if(this.activeUnit){
             this.activeUnit.drawActive();

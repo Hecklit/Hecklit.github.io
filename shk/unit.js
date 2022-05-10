@@ -58,21 +58,33 @@ class Unit {
         return this.alive;
     }
 
+    getMovementLeftThisRound() {
+        return this.mov -this.movedThisTurn;
+    }
+
+    cantMoveAnymore() {
+        return this.movedThisTurn >= this.mov;
+    }
+
+    cantAttackAnymore() {
+        return this.attacksThisTurn > 0;
+    }
+
     attack(enemyUnit, revenge = false) {
-        if(this.attacksThisTurn > 0) {
-            return false;
+        if(this.cantAttackAnymore()) {
+            return 0;
         }
 
-        console.log("Start attack! revenge:", revenge)
+        console.log("Start attack! revenge:", revenge, this.player.id, enemyUnit.player.id);
         // check if its in range
         const distance = Map.dist(this.tile, enemyUnit.tile);
         if (this.reach < distance) {
-            return false;
+            return 0;
         }
 
         // has to attack unit on same field if not alone
         if (this.reach > 0 && this.tile.units.length > 1 && this.tile !== enemyUnit.tile) {
-            return false;
+            return 0;
         }
 
         // we are in range
@@ -113,7 +125,7 @@ class Unit {
             false);*/
     }
 
-    draw() {
+    draw(phase, curP) {
         ctx.fillStyle = this.player.color;
         const notAlone = this.tile.units.length > 1;
         const sq = Math.ceil(Math.sqrt(this.num));
@@ -139,7 +151,14 @@ class Unit {
                 painted++;
             }
         }
-        text(this.type, this.tile.x + tileSize / 2 + xOffset, this.tile.y + tileSize / 1.25, tileSize * 0.8, "white");
+        let add = "";
+        if(phase === 8 && !this.cantAttackAnymore() && curP.id === this.player.id) {
+            add = "!"
+        }
+        if(phase === 5 && !this.cantMoveAnymore() && curP.id === this.player.id) {
+            add = "~"
+        }
+        text(this.type + add, this.tile.x + tileSize / 2 + xOffset, this.tile.y + tileSize / 1.4, tileSize * 0.6, "white");
     }
 
 }
