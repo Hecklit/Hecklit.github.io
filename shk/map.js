@@ -182,7 +182,6 @@ class Map {
 
         if (!attackOnly) {
             const inReach = this.getPossibleMovementPerUnit(curUnit);
-            console.log("inReach", inReach)
             inReach.forEach(ir => ir.drawOverlay("rgba(0, 255, 0, 0.3)"));
         }
 

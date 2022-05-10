@@ -77,11 +77,11 @@ async function onTestsDone() {
     game.draw();
 
     demo.addEventListener('click', async function () {
-        const sleepBetweenPhases = 50;
-        const sleepAttack = 100;
-        const sleepMovement = 100;
+        const sleepBetweenPhases = 0;
+        const sleepAttack = 150;
+        const sleepMovement = 0;
 
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 1000; i++) {
             // buy unit
             if(game.getCurrentPlayer().units.length <= 2) {
                 game.buyUnit(["F", "K", "B"].sample(), Math.floor(Math.random() * game.getCurrentPlayer().gold / 2 + 1));
@@ -96,6 +96,8 @@ async function onTestsDone() {
                 const target = game.map.getPossibleMovementPerUnit(unit).sample();
                 if(target) {
                     game.onClick(unit.tile);
+                    game.draw();
+                    await sleep(sleepMovement)
                     game.onClick(target);
                     game.draw();
                     await sleep(sleepMovement)
@@ -109,6 +111,9 @@ async function onTestsDone() {
             for (const unit of game.getCurrentPlayer().units) {
                 const target = game.map.getPossibleFightsPerUnit(unit).sample();
                 if(target) {
+                    game.onClick(unit.tile);
+                    game.draw();
+                    await sleep(sleepAttack)
                     game.onClick(target.tile);
                     game.draw();
                     await sleep(sleepAttack)
