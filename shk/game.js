@@ -91,6 +91,7 @@ class Game {
         const curP = this.players[this.curPi];
         curP.gold += this.pGold;
         this.phase = 2;
+        curP.units.forEach(u => u.movedThisTurn = 0);
     }
 
     buyUnit(ut, n) {

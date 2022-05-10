@@ -56,6 +56,23 @@ addEventListener('load', function () {
     })();
 
     (() => {
+        console.log("testUnitsCanOnlyMoveTheirMovPerTurn");
+        const game = getDefaultGame();
+        game.init();
+        game.startRound();
+        const unit = game.buyUnit('F', 2);
+        const startTile = unit.tile;
+        unit.moveIdx(-1, 0);
+        unit.moveIdx(-1, 0);
+        unit.moveIdx(0, 1); // expect this to not work
+
+        assertEquals(unit.mov, 2); // this test only works if mov is 2
+        assertEquals(startTile.xi -2, unit.tile.xi);
+        assertEquals(startTile.yi , unit.tile.yi);
+
+    })();
+
+    (() => {
         console.log("testPlayerNeedsGoldToBuyUnits");
         const game = getDefaultGame();
         game.init();
@@ -91,6 +108,8 @@ addEventListener('load', function () {
         const p1Unit = game.buyUnit('K', 1);
         for (let i = 0; i < 3; i++) {
             p1Unit.moveIdx(-3, 0);
+            game.startRound();
+            game.startRound();
         }
         p1Unit.moveIdx(-2, 0);
 

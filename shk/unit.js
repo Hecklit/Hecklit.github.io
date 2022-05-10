@@ -25,11 +25,13 @@ class Unit {
         this.mobility = mobility;
         this.alive = true;
         this.totalHp = this.num * this.hp;
+        this.movedThisTurn = 0;
     }
 
     move(tile) {
         const d = Map.dist(this.tile, tile);
-        if (this.mov >= d) {
+        if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
+            this.movedThisTurn += d;
             this.tile.units = this.tile.units.remove(this);
             tile.units.push(this);
             this.tile = tile;
