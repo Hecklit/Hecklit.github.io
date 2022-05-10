@@ -70,6 +70,11 @@ addEventListener('load', function () {
         assertEquals(startTile.xi -2, unit.tile.xi);
         assertEquals(startTile.yi , unit.tile.yi);
 
+        game.startRound();
+        game.startRound();
+        unit.moveIdx(0, 1); // now it should work
+        assertEquals(startTile.xi -2, unit.tile.xi);
+        assertEquals(startTile.yi +1 , unit.tile.yi);
     })();
 
     (() => {
@@ -121,6 +126,38 @@ addEventListener('load', function () {
 
         assertEquals(typeof result[p1Unit.player.id], 'number');
         assertEquals(typeof result[p2Unit.player.id], 'number');
+
+    })();
+
+
+    (() => {
+        console.log("testPlayerCanAttackOtherUnitsInMeleeOnlyOncePerTurn");
+        const game = getDefaultGame();
+        game.init();
+        game.startRound();
+        const p1Unit = game.buyUnit('K', 1);
+        for (let i = 0; i < 3; i++) {
+            p1Unit.moveIdx(-3, 0);
+            game.startRound();
+            game.startRound();
+        }
+        p1Unit.moveIdx(-2, 0);
+
+        game.startRound();
+        const p2Unit = game.buyUnit('F', 2);
+        p2Unit.moveIdx(2, 0);
+        const result1 = p2Unit.attack(p1Unit);
+        const result2 = p2Unit.attack(p1Unit);
+        game.startRound();
+        game.startRound();
+        const result3 = p2Unit.attack(p1Unit);
+        game.draw();
+
+        assertEquals(typeof result1[p1Unit.player.id], 'number');
+        assertEquals(typeof result1[p2Unit.player.id], 'number');
+        assertEquals(result2, false);
+        assertEquals(typeof result3[p1Unit.player.id], 'number');
+        assertEquals(typeof result3[p2Unit.player.id], 'number');
 
     })();
 

@@ -92,6 +92,7 @@ class Game {
         curP.gold += this.pGold;
         this.phase = 2;
         curP.units.forEach(u => u.movedThisTurn = 0);
+        curP.units.forEach(u => u.attacksThisTurn = 0);
     }
 
     buyUnit(ut, n) {

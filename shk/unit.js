@@ -26,6 +26,7 @@ class Unit {
         this.alive = true;
         this.totalHp = this.num * this.hp;
         this.movedThisTurn = 0;
+        this.attacksThisTurn = 0;
     }
 
     move(tile) {
@@ -58,6 +59,10 @@ class Unit {
     }
 
     attack(enemyUnit, revenge = false) {
+        if(this.attacksThisTurn > 0) {
+            return false;
+        }
+
         console.log("Start attack! revenge:", revenge)
         // check if its in range
         const distance = Map.dist(this.tile, enemyUnit.tile);
@@ -71,6 +76,7 @@ class Unit {
         }
 
         // we are in range
+        this.attacksThisTurn += 1;
         let hits = 0;
         for (let i = 0; i < this.num; i++) {
             const diceRoll = Game.throwDice();
