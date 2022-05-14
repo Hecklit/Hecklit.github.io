@@ -50,6 +50,11 @@ class Monster {
         }
     }
 
+    moveInDirection(start, end, map) {
+        const targetTile = map.lerp(start, end, this.mov);
+        return this.move(targetTile);
+    }
+
     moveIdx(ix, iy) {
         const neighbour = this.tile.getNeighbour(ix, iy);
         if (neighbour) {
@@ -135,6 +140,38 @@ class Monster {
                     false);*/
     }
 
+    takeTurn(map, index, isMovementTurn) {
+        if(isMovementTurn) {
+            return this.doMovementTurn(map, index);
+        } else {
+            return this.doAttackTurn(map, index);
+        }
+    }
+
+    doMovementTurn(map, index) {
+        if(this.mobility === MobileAttackType.BthenA && index === 0) {
+            // find closest target
+            const allTargets = map.getEnemiesInRange(this.tile, 4, this.player);
+            const closestTarget = allTargets.sort((a, b) => Map.dist(a.tile, b.tile))[0];
+            if(closestTarget) {
+                this.moveInDirection(this.tile, closestTarget.tile, map);
+            }
+            return false;
+        }
+    }
+
+    doAttackTurn(map, index) {
+        if(this.mobility === MobileAttackType.BthenA && index === 1) {
+            // find closest target
+            const allTargets = map.getEnemiesInRange(this.tile, 4, this.player);
+            const closestTarget = allTargets.sort((a, b) => Map.dist(a.tile, b.tile))[0];
+            if(closestTarget && Map.dist(closestTarget.tile, this.tile) <= this.reach){
+                this.attack(closestTarget);
+            }
+            return true;
+        }
+    }
+
     draw(phase, curP) {
         ctx.fillStyle = this.player.color;
         const notAlone = this.tile.units.length > 1;
@@ -144,7 +181,7 @@ class Monster {
 
         if (notAlone) {
             tileSize /= 2;
-            xOffset = this.tile.getEnemy(this.player).id === "Jonas" ? tileSize : 0;
+            xOffset = this.tile.getEnemy(this.player)?.id === "Jonas" ? tileSize : 0;
         }
 
         const size = tileSize * 0.9 / sq;

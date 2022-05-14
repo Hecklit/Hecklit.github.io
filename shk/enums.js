@@ -1,6 +1,7 @@
 
 // enums
 class MapType {
+    static Empty = new MapType('Empty');
     static FixMini = new MapType('FixMini');
     static Small = new MapType('Small');
     static Normal = new MapType('Normal');

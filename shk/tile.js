@@ -2,6 +2,7 @@ class Tile {
 
     constructor(x, y, l, xi, yi, map) {
         this.units = [];
+        this.id = IdGen.get();
         this.x = x;
         this.y = y;
         this.l = l;

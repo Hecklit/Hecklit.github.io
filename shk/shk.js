@@ -42,7 +42,7 @@ async function onTestsDone() {
     const demo = document.getElementById("demo");
     const errorMessage = document.getElementById("errorMessage");
     const nextButton = document.getElementById("next");
-    nextButton.addEventListener('click', function () {
+    nextButton.addEventListener('click', async function () {
         console.log("onNext", game.phase);
         if (game.phase === 8) {
             console.log("startRound");
@@ -59,7 +59,7 @@ async function onTestsDone() {
             const numUnit = document.querySelector(
                 'input[name="numUnit"]');
 
-            const newUnit = game.buyUnit(getSelectedValue.value, numUnit.value);
+            const newUnit = await game.buyUnit(getSelectedValue.value, numUnit.value);
             game.draw();
             if (newUnit || game.phase === 5) {
                 nextButton.innerHTML = "Next";
@@ -84,10 +84,12 @@ async function onTestsDone() {
         for (let i = 0; i < 1000; i++) {
             // buy unit
             if(game.getCurrentPlayer().units.length <= 2) {
-                game.buyUnit(["F", "K", "B"].sample(), Math.floor(Math.random() * game.getCurrentPlayer().gold / 2 + 1));
+                await game.buyUnit(["F", "K", "B"].sample(), Math.floor(Math.random() * game.getCurrentPlayer().gold / 2 + 1));
                 game.draw();
                 await sleep(sleepBetweenPhases)
             } else {
+                game.phase = 4;
+                await game.monsterTurn();
                 game.phase = 5;
             }
 

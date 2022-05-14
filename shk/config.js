@@ -23,4 +23,9 @@ class Config {
     static getAllMonstersOfLevel(lvl) {
         return Config.monsters.filter(m => m.lvl === lvl);
     }
+    static getMonsterByName(name) {
+        return Config.monsters.filter(m => m.name === name)[0];
+    }
+
+
 }

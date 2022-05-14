@@ -26,12 +26,14 @@ class Game {
         this.errorMessage = "";
         this.phaseToCaption = {
             2: "Rekrutierung",
+            4: "Monsters",
             5: "Bewegung",
             8: "Angriff",
         }
     }
 
     init(withMonsters = true) {
+        this.withMonsters = withMonsters;
         this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen") : null;
         this.map = new Map();
         this.map.generateSquareMap(15, 4, 70, this.mapType, this.monsters);
@@ -93,9 +95,13 @@ class Game {
         this.phase = 2;
         curP.units.forEach(u => u.movedThisTurn = 0);
         curP.units.forEach(u => u.attacksThisTurn = 0);
+        if(this.withMonsters) {
+            this.monsters.units.forEach(u => u.movedThisTurn = 0);
+            this.monsters.units.forEach(u => u.attacksThisTurn = 0);
+        }
     }
 
-    buyUnit(ut, n) {
+    async buyUnit(ut, n) {
         if (this.phase !== 2) {
             return false;
         }
@@ -113,9 +119,13 @@ class Game {
                 , conf.def
                 , conf.revenge
                 , conf.mobility);
+            this.phase = 4;
+            await this.monsterTurn(250);
             this.phase = 5;
             return newUnit;
         } else if (freeBaseTiles.length === 0) {
+            this.phase = 4;
+            await this.monsterTurn(250);
             this.phase = 5;
         } else {
             this.errorMessage = curP.id + " doesn't have enough gold or space.";
@@ -158,6 +168,30 @@ class Game {
             circle(this.debugMarker[0] - size, this.debugMarker[1] - size, size);
         }
 
+    }
+
+    async monsterTurn(sleepMillis) {
+        if (!this.withMonsters || this.monsters.units.length === 0) {
+            return;
+        }
+        let i = 0;
+        let allDone = false;
+
+        while (!allDone) {
+            allDone = this.monsters.units.reduce((acc, cur) => {
+                acc &= cur.takeTurn(this.map, i, i % 2 === 0);
+                return acc;
+            }, true);
+            i++;
+            if (i > 5) {
+                console.error("While loop reached 5 iterations")
+                break;
+            }
+            this.draw();
+            await sleep(sleepMillis)
+        }
+
+        this.removeDeadUnits();
     }
 
     onClickPxl(x, y) {

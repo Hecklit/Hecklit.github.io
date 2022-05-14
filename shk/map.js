@@ -7,6 +7,9 @@ class Map {
     }
 
     static dist(a, b) {
+        if(!a || !b){
+            return Infinity;
+        }
         return Math.abs(b.xi - a.xi) + Math.abs(b.yi - a.yi);
     }
 
@@ -19,7 +22,7 @@ class Map {
     }
 
     getTile(xi, yi) {
-        return this.tiles[xi][yi];
+        return this.tiles[xi] ? this.tiles[xi][yi]: null;
     }
 
     getTileAtPx(x, y) {
@@ -34,27 +37,9 @@ class Map {
     configureMiniMap(monsterPlayer) {
         const ex = this.tiles.length - 1;
         const ey = this.tiles[0].length - 1;
-        const redBase = "hsl(0, 70%, 60%)";
-        const blueBase = "hsl(240, 70%, 60%)";
-        const goldMine = "hsl(60, 70%, 50%)";
         const monster = "hsl(120, 10%, 50%)";
 
-        // red base
-        this.tiles[0][ey].config(redBase, "B");
-        this.tiles[0][ey - 1].config(redBase, "B");
-        this.tiles[1][ey].config(redBase, "B");
-        this.tiles[1][ey - 1].config(redBase, "B");
-
-        // blue base
-        this.tiles[ex][ey].config(blueBase, "B");
-        this.tiles[ex][ey - 1].config(blueBase, "B");
-        this.tiles[ex - 1][ey].config(blueBase, "B");
-        this.tiles[ex - 1][ey - 1].config(blueBase, "B");
-
-        // Goldmine
-        this.tiles[3][1].config(goldMine, "G2");
-        this.tiles[ex - 3][1].config(goldMine, "G2");
-        this.tiles[7][2].config(goldMine, "G5");
+        this.configureEmptyMap();
 
         // Monster
         if(monsterPlayer) {
@@ -83,6 +68,34 @@ class Map {
 
     }
 
+
+    configureEmptyMap() {
+        const ex = this.tiles.length - 1;
+        const ey = this.tiles[0].length - 1;
+        const redBase = "hsl(0, 70%, 60%)";
+        const blueBase = "hsl(240, 70%, 60%)";
+        const goldMine = "hsl(60, 70%, 50%)";
+
+        // red base
+        this.tiles[0][ey].config(redBase, "B");
+        this.tiles[0][ey - 1].config(redBase, "B");
+        this.tiles[1][ey].config(redBase, "B");
+        this.tiles[1][ey - 1].config(redBase, "B");
+
+        // blue base
+        this.tiles[ex][ey].config(blueBase, "B");
+        this.tiles[ex][ey - 1].config(blueBase, "B");
+        this.tiles[ex - 1][ey].config(blueBase, "B");
+        this.tiles[ex - 1][ey - 1].config(blueBase, "B");
+
+        // Goldmine
+        this.tiles[3][1].config(goldMine, "G2");
+        this.tiles[ex - 3][1].config(goldMine, "G2");
+        this.tiles[7][2].config(goldMine, "G5");
+
+
+    }
+
     generateSquareMap(width, height, tileSize, mapType, monsterPlayer) {
         this.width = width;
         this.height = height;
@@ -100,6 +113,9 @@ class Map {
 
             case MapType.FixMini:
                 this.configureMiniMap(monsterPlayer);
+                break;
+            case MapType.Empty:
+                this.configureEmptyMap();
                 break;
 
         }
@@ -182,6 +198,23 @@ class Map {
             }
             return acc;
         }, []);
+    }
+
+    lerp(a, b, d) {
+        const dx = b.xi - a.xi;
+        const dy = b.yi - a.yi;
+        const distanceToTravel = Math.abs(dx) + Math.abs(dy);
+        if(distanceToTravel <= d) {
+            return b;
+        } else {
+            if(dx > dy) {
+                const whatsLeft = d - dx <= 0 ? 0 : d- dx;
+                return this.getTile(a.xi + d - whatsLeft, a.yi + whatsLeft);
+            } else {
+                const whatsLeft = d - dy <= 0 ? 0 : d- dy;
+                return this.getTile(a.xi + whatsLeft, a.yi + d - whatsLeft);
+            }
+        }
     }
 
     drawOverlay(curUnit, attackOnly) {
