@@ -1,5 +1,5 @@
-class Unit {
-    constructor(player, tile, type, num, cost
+class Monster {
+    constructor(pl, name, lvl, gold, aiStrategy, tile, num
         , reach
         , mov
         , hp
@@ -9,11 +9,10 @@ class Unit {
         , revenge
         , mobility) {
         this.id = IdGen.get();
-        this.player = player;
-        tile.units.push(this);
+        this.player = pl;
+        this.homeTile = tile;
         this.tile = tile;
-        this.type = type;
-        this.cost = cost;
+        tile.units.push(this);
         this.reach = reach;
         this.num = num;
         this.mov = mov;
@@ -27,6 +26,17 @@ class Unit {
         this.totalHp = this.num * this.hp;
         this.movedThisTurn = 0;
         this.attacksThisTurn = 0;
+        this.name = name;
+        this.lvl = lvl;
+        this.gold = gold;
+        this.aiStrategy = aiStrategy;
+    }
+
+    static spawnMonster(c, tile, pl) {
+        const monster = new Monster(pl, c.name, c.lvl, c.gold, c.aiStrategy, tile, c.num,
+            c.reach, c.mov, c.hp, c.numAttacks, c.dmg, c.def, c.revenge, c.mobility);
+        pl.units.push(monster);
+        return monster;
     }
 
     move(tile) {
@@ -51,7 +61,7 @@ class Unit {
         this.totalHp -= amount;
         this.num = Math.ceil(this.totalHp / this.hp);
         if (this.totalHp <= 0 && this.alive) {
-            console.log(`${this.player.id} ${this.type} has died.`)
+            console.log(`${this.player.id} ${this.name} has died.`)
             this.alive = false;
             return false;
         }
@@ -59,7 +69,7 @@ class Unit {
     }
 
     getMovementLeftThisRound() {
-        return this.mov -this.movedThisTurn;
+        return this.mov - this.movedThisTurn;
     }
 
     cantMoveAnymore() {
@@ -71,7 +81,7 @@ class Unit {
     }
 
     attack(enemyUnit, revenge = false) {
-        if(this.cantAttackAnymore()) {
+        if (this.cantAttackAnymore()) {
             return 0;
         }
 
@@ -101,11 +111,11 @@ class Unit {
 
         // revenge?
         let enemyHits = 0;
-        if(!revenge && enemyUnit.alive && enemyUnit.revenge) {
+        if (!revenge && enemyUnit.alive && enemyUnit.revenge) {
             enemyHits = enemyUnit.attack(this, true);
         }
 
-        if(revenge) {
+        if (revenge) {
             return hits;
         } else {
             return {
@@ -118,11 +128,11 @@ class Unit {
 
     drawActive() {
         // TODO: Needs to be implemented better
-/*        ctx.fillStyle = "white";
-        circle(this.tile.x + this.tile.l / 2,
-            this.tile.y + this.tile.l / 2,
-            this.tile.l / 2,
-            false);*/
+        /*        ctx.fillStyle = "white";
+                circle(this.tile.x + this.tile.l / 2,
+                    this.tile.y + this.tile.l / 2,
+                    this.tile.l / 2,
+                    false);*/
     }
 
     draw(phase, curP) {
@@ -134,7 +144,7 @@ class Unit {
 
         if (notAlone) {
             tileSize /= 2;
-            xOffset = this.player.id === "Jonas" && this.player.id !== "Jakob" ? 0 : tileSize;
+            xOffset = this.tile.getEnemy(this.player).id === "Jonas" ? tileSize : 0;
         }
 
         const size = tileSize * 0.9 / sq;
@@ -152,13 +162,13 @@ class Unit {
             }
         }
         let add = "";
-        if(phase === 8 && !this.cantAttackAnymore() && curP.id === this.player.id) {
+        if (phase === 8 && !this.cantAttackAnymore() && curP.id === this.player.id) {
             add = "!"
         }
-        if(phase === 5 && !this.cantMoveAnymore() && curP.id === this.player.id) {
+        if (phase === 5 && !this.cantMoveAnymore() && curP.id === this.player.id) {
             add = "~"
         }
-        text(this.type + add, this.tile.x + tileSize / 2 + xOffset, this.tile.y + tileSize / 1.4, tileSize * 0.6, "white");
+        text(this.name.split(" ").map(e => e[0]).join("") + add, this.tile.x + tileSize / 2 + xOffset, this.tile.y + tileSize / 1.4, tileSize * 0.6, "white");
     }
 
 }

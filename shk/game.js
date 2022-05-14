@@ -28,13 +28,13 @@ class Game {
             2: "Rekrutierung",
             5: "Bewegung",
             8: "Angriff",
-
         }
     }
 
-    init() {
+    init(withMonsters = true) {
+        this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen") : null;
         this.map = new Map();
-        this.map.generateSquareMap(15, 4, 70, this.mapType);
+        this.map.generateSquareMap(15, 4, 70, this.mapType, this.monsters);
         this.players = [];
         this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]), "red"));
         this.players.push(new Player("Jakob", this.map.getTiles([[13, 2], [13, 3], [14, 2], [14, 3]]), "blue"));
@@ -129,6 +129,7 @@ class Game {
         ctx.fillRect(0, 0, 10000, 10000);
         this.map.draw();
         this.players.forEach(p => p.draw(this.phase, this.getCurrentPlayer()));
+        this.monsters?.draw(this.phase, this.getCurrentPlayer());
 
         ctx.textAlign = 'left';
         this.players.forEach((p, i) => text(`${p.id} Gold ${p.gold}`,
@@ -211,6 +212,7 @@ class Game {
 
     removeDeadUnits() {
         this.players.forEach(p => p.units = p.units.filter(u => u.alive));
+        this.monsters.units = this.monsters.units.filter(u => u.alive);
         this.map.flatTiles().forEach(t => t.units = t.units.filter(u => u.alive));
     }
 

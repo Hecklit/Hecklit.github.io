@@ -164,7 +164,7 @@ addEventListener('load', function () {
     (() => {
         console.log("testUnitsCanShootEachOtherFromDistance");
         const game = getDefaultGame();
-        game.init();
+        game.init(false);
         game.startRound();
         const p1Unit = game.buyUnit('B', 1);
         for (let i = 0; i < 3; i++) {

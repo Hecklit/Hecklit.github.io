@@ -79,7 +79,7 @@ async function onTestsDone() {
     demo.addEventListener('click', async function () {
         const sleepBetweenPhases = 0;
         const sleepAttack = 150;
-        const sleepMovement = 0;
+        const sleepMovement = 150;
 
         for (let i = 0; i < 1000; i++) {
             // buy unit

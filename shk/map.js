@@ -2,7 +2,6 @@ class Map {
 
     constructor() {
         this.tiles = [];
-        this.isSquareMap = true;
         this.width = 0;
         this.height = 0;
     }
@@ -32,7 +31,7 @@ class Map {
         }
     }
 
-    configureMiniMap() {
+    configureMiniMap(monsterPlayer) {
         const ex = this.tiles.length - 1;
         const ey = this.tiles[0].length - 1;
         const redBase = "hsl(0, 70%, 60%)";
@@ -58,23 +57,33 @@ class Map {
         this.tiles[7][2].config(goldMine, "G5");
 
         // Monster
-        this.tiles[2][0].config(monster, "M1");
-        this.tiles[4][0].config(monster, "M1");
-        this.tiles[ex - 2][0].config(monster, "M1");
-        this.tiles[ex - 4][0].config(monster, "M1");
-        this.tiles[5][2].config(monster, "M1");
-        this.tiles[ex - 5][2].config(monster, "M1");
-        this.tiles[3][ey].config(monster, "M1");
-        this.tiles[ex - 3][ey].config(monster, "M1");
+        if(monsterPlayer) {
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[2][0], monsterPlayer);
+            this.tiles[2][0].config(monster, "M1");
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[4][0], monsterPlayer);
+            this.tiles[4][0].config(monster, "M1");
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 2][0], monsterPlayer);
+            this.tiles[ex - 2][0].config(monster, "M1");
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 4][0], monsterPlayer);
+            this.tiles[ex - 4][0].config(monster, "M1");
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[5][2], monsterPlayer);
+            this.tiles[5][2].config(monster, "M1");
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 5][2], monsterPlayer);
+            this.tiles[ex - 5][2].config(monster, "M1");
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[3][ey], monsterPlayer);
+            this.tiles[3][ey].config(monster, "M1");
+            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 3][ey], monsterPlayer);
+            this.tiles[ex - 3][ey].config(monster, "M1");
 
-        this.tiles[0][0].config(monster, "M2");
-        this.tiles[ex][0].config(monster, "M2");
-        this.tiles[7][0].config(monster, "M2");
-        this.tiles[7][ey].config(monster, "M2");
+            this.tiles[0][0].config(monster, "M2");
+            this.tiles[ex][0].config(monster, "M2");
+            this.tiles[7][0].config(monster, "M2");
+            this.tiles[7][ey].config(monster, "M2");
+        }
 
     }
 
-    generateSquareMap(width, height, tileSize, mapType) {
+    generateSquareMap(width, height, tileSize, mapType, monsterPlayer) {
         this.width = width;
         this.height = height;
 
@@ -90,7 +99,7 @@ class Map {
         switch (mapType) {
 
             case MapType.FixMini:
-                this.configureMiniMap();
+                this.configureMiniMap(monsterPlayer);
                 break;
 
         }

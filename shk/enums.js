@@ -30,6 +30,7 @@ class UnitType {
 
 class MobileAttackType {
     static BthenA = new MobileAttackType('BthenA');
+    static BthenAthenB = new MobileAttackType('BthenAthenB');
     static BorA = new MobileAttackType('BorA');
     static AthenB = new MobileAttackType('AthenB');
 
@@ -38,5 +39,16 @@ class MobileAttackType {
     }
     toString() {
         return `MobileAttackType.${this.name}`;
+    }
+}
+class AIStrategyType {
+    static AttackOrIdle = new AIStrategyType('AttackOrIdle');
+    static AttackThenRetreat = new AIStrategyType('AttackThenRetreat');
+
+    constructor(name) {
+        this.name = name;
+    }
+    toString() {
+        return `AIStrategyType.${this.name}`;
     }
 }
