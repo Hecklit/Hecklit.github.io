@@ -128,6 +128,8 @@ class Game {
         const curP = this.players[this.curPi];
         const freeBaseTiles = curP.getFreeBaseTiles();
         if (ut === 'None' || freeBaseTiles.length === 0) {
+            this.phase = 3
+            curP.hero.heal(curP.hero.reg);
             this.phase = 4;
             await this.monsterTurn(250);
             this.phase = 5;
@@ -155,6 +157,8 @@ class Game {
                     , conf.def
                     , conf.revenge
                     , conf.mobility);
+                this.phase = 3
+                curP.hero.heal(curP.hero.reg);
                 this.phase = 4;
                 await this.monsterTurn(250);
                 this.phase = 5;

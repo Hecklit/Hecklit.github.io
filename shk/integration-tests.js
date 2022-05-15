@@ -188,6 +188,34 @@ addEventListener('load', async function () {
 
     })();
 
+    await (async () => {
+        const markTile = (tile) => Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters);
+        console.log("testMapLerpWorksAsExpected");
+        const game = getDefaultGame(MapType.Empty);
+        game.init(true);
+        const tile = game.map.getTile(7, 2);
+        const leftTile = game.map.getTile(2, 2);
+        markTile(tile);
+        markTile(leftTile);
+        game.draw();
+
+        let lerpTile = game.map.lerp(tile, leftTile, 1);
+        assertEquals(lerpTile.xi, tile.xi-1);
+
+        lerpTile = game.map.lerp(tile, leftTile, 2);
+        assertEquals(lerpTile.xi, tile.xi-2);
+
+        const leftTopTile = game.map.getTile(2, 0);
+        markTile(leftTopTile);
+
+        lerpTile = game.map.lerp(tile, leftTopTile, 6);
+        assertEquals(lerpTile.xi, leftTopTile.xi);
+        assertEquals(lerpTile.yi, leftTopTile.yi + 1);
+
+        markTile(lerpTile);
+        game.draw();
+
+    })();
 
     await (async () => {
         console.log("testEasyGoblinsMoveAndAttackBasedOnTheirRules");
@@ -233,6 +261,7 @@ addEventListener('load', async function () {
             assertEquals(1, 2);
         }
     })();
+
 
     await onTestsDone();
 

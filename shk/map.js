@@ -7,7 +7,7 @@ class Map {
     }
 
     static dist(a, b) {
-        if(!a || !b){
+        if (!a || !b) {
             return Infinity;
         }
         return Math.abs(b.xi - a.xi) + Math.abs(b.yi - a.yi);
@@ -22,7 +22,7 @@ class Map {
     }
 
     getTile(xi, yi) {
-        return this.tiles[xi] ? this.tiles[xi][yi]: null;
+        return this.tiles[xi] ? this.tiles[xi][yi] : null;
     }
 
     getTileAtPx(x, y) {
@@ -42,7 +42,7 @@ class Map {
         this.configureEmptyMap();
 
         // Monster
-        if(monsterPlayer) {
+        if (monsterPlayer) {
             //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[2][0], monsterPlayer);
             this.tiles[2][0].config(monster, "M1");
             //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[4][0], monsterPlayer);
@@ -203,16 +203,21 @@ class Map {
     lerp(a, b, d) {
         const dx = b.xi - a.xi;
         const dy = b.yi - a.yi;
-        const distanceToTravel = Math.abs(dx) + Math.abs(dy);
-        if(distanceToTravel <= d) {
+        const absdx = Math.abs(dx);
+        const absdy = Math.abs(dy);
+        const dirx = absdx === 0 ? 1 : dx / absdx;
+        const diry = absdy === 0 ? 1 : dy / absdy;
+
+        const distanceToTravel = absdx + absdy;
+        if (distanceToTravel <= d) {
             return b;
         } else {
-            if(dx > dy) {
-                const whatsLeft = d - dx <= 0 ? 0 : d- dx;
-                return this.getTile(a.xi + d - whatsLeft, a.yi + whatsLeft);
+            if (absdx > absdy) {
+                const whatsLeftMag = d - absdx <= 0 ? 0 : (d - absdx);
+                return this.getTile(a.xi + (d - whatsLeftMag) * dirx, a.yi + whatsLeftMag * diry);
             } else {
-                const whatsLeft = d - dy <= 0 ? 0 : d- dy;
-                return this.getTile(a.xi + whatsLeft, a.yi + d - whatsLeft);
+                const whatsLeftMag = d - absdy <= 0 ? 0 : (d - absdy);
+                return this.getTile(a.xi + whatsLeftMag * dirx, a.yi + (d - whatsLeftMag) * diry);
             }
         }
     }
