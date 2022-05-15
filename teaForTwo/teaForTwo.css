@@ -1,0 +1,21 @@
+body{
+    padding: 2rem;
+}
+
+span {
+    font-size: 32px;
+    padding: .25rem;
+}
+
+div {
+    padding: 2rem;
+}
+
+button {
+    background: mediumpurple;
+    border-radius: 10px;
+    border: none;
+    width: 200px;
+    height: 80px;
+    font-size: 32px;
+}
