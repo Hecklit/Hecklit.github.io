@@ -7,7 +7,7 @@ class Hero {
         , dmg
         , def
         , revenge
-        , mobility, reg, onHeroDeath, respawnTime) {
+        , mobility, reg, onHeroDeath, respawnTime, lvl, epToNextLvl) {
         this.id = IdGen.get();
         this.player = player;
         tile.units.push(this);
@@ -18,6 +18,9 @@ class Hero {
         this.reach = reach;
         this.num = 1;
         this.mov = mov;
+        this.lvl = lvl;
+        this.epToNextLvl = epToNextLvl;
+        this.curExp = 0;
         this.hp = hp;
         this.numAttacks = numAttacks;
         this.dmg = dmg;
@@ -54,11 +57,47 @@ class Hero {
         }
     }
 
+    gainExp(exp){
+        if(!this.alive) {
+            console.error("Hero cant gain exp while dead!", this)
+            return;
+        }
+        this.curExp += exp;
+        if(this.curExp >= this.epToNextLvl && this.lvl < 10){
+            this.curExp -= this.epToNextLvl;
+            this.lvl++;
+            const c = Config.getHeroStatsByLvl(this.lvl);
+            this.epToNextLvl = c.ep;
+            this.reach = c.reach;
+            this.mov = c.mov;
+            this.hp = c.hp;
+            this.numAttacks = c.numAttacks;
+            this.dmg = c.dmg;
+            this.def = c.def;
+            this.reg = c.reg;
+            this.mobility = c.mobility;
+            this.respawnTime = c.respawnTime;
+            this.heal(2);
+        }
+
+    }
+
+    heal(amount){
+        this.totalHp = Math.min(this.hp, this.totalHp + amount);
+    }
+
+    reviveAt(freeTile){
+        this.alive = true;
+        this.totalHp = this.hp;
+        this.setTile(freeTile);
+    }
+
     takeDmg(amount) {
         this.totalHp -= amount;
         if (this.totalHp <= 0 && this.alive) {
             console.log(`${this.player.id} ${this.type} has died.`)
             this.alive = false;
+            this.curExp = 0;
             this.onHeroDeath(this);
             return false;
         }
@@ -97,6 +136,7 @@ class Hero {
         // we are in range
         this.attacksThisTurn += 1;
         let hits = 0;
+        const prevNum = enemyUnit.num;
         for (let i = 0; i < this.num; i++) {
             const diceRoll = Game.throwDice();
             const successBelow = this.dmg - enemyUnit.def + 1;
@@ -104,6 +144,10 @@ class Hero {
                 hits++;
                 enemyUnit.takeDmg(1);
             }
+        }
+        const numEnemiesDied = prevNum - enemyUnit.num;
+        if (numEnemiesDied > 0) {
+            this.player.onEnemiesKilled(enemyUnit, numEnemiesDied);
         }
 
         // revenge?
@@ -165,7 +209,7 @@ class Hero {
         if(phase === 5 && !this.cantMoveAnymore() && curP.id === this.player.id) {
             add = "~"
         }
-        text(this.type + add, this.tile.x + tileSize / 2 + xOffset, this.tile.y + tileSize / 1.4, tileSize * 0.6, "white");
+        text(this.type + this.lvl + add, this.tile.x + tileSize / 2 + xOffset, this.tile.y + tileSize / 1.4, tileSize * 0.5, "white");
     }
 
 }

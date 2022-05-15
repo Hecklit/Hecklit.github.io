@@ -59,7 +59,7 @@ class Unit {
     }
 
     getMovementLeftThisRound() {
-        return this.mov -this.movedThisTurn;
+        return this.mov - this.movedThisTurn;
     }
 
     cantMoveAnymore() {
@@ -71,7 +71,7 @@ class Unit {
     }
 
     attack(enemyUnit, revenge = false) {
-        if(this.cantAttackAnymore()) {
+        if (this.cantAttackAnymore()) {
             return 0;
         }
 
@@ -90,6 +90,7 @@ class Unit {
         // we are in range
         this.attacksThisTurn += 1;
         let hits = 0;
+        const prevNum = enemyUnit.num;
         for (let i = 0; i < this.num; i++) {
             const diceRoll = Game.throwDice();
             const successBelow = this.dmg - enemyUnit.def + 1;
@@ -98,14 +99,18 @@ class Unit {
                 enemyUnit.takeDmg(1);
             }
         }
+        const numEnemiesDied = prevNum - enemyUnit.num;
+        if (numEnemiesDied > 0) {
+            this.player.onEnemiesKilled(enemyUnit, numEnemiesDied);
+        }
 
         // revenge?
         let enemyHits = 0;
-        if(!revenge && enemyUnit.alive && enemyUnit.revenge) {
+        if (!revenge && enemyUnit.alive && enemyUnit.revenge) {
             enemyHits = enemyUnit.attack(this, true);
         }
 
-        if(revenge) {
+        if (revenge) {
             return hits;
         } else {
             return {
@@ -118,11 +123,11 @@ class Unit {
 
     drawActive() {
         // TODO: Needs to be implemented better
-/*        ctx.fillStyle = "white";
-        circle(this.tile.x + this.tile.l / 2,
-            this.tile.y + this.tile.l / 2,
-            this.tile.l / 2,
-            false);*/
+        /*        ctx.fillStyle = "white";
+                circle(this.tile.x + this.tile.l / 2,
+                    this.tile.y + this.tile.l / 2,
+                    this.tile.l / 2,
+                    false);*/
     }
 
     draw(phase, curP) {
@@ -152,10 +157,10 @@ class Unit {
             }
         }
         let add = "";
-        if(phase === 8 && !this.cantAttackAnymore() && curP.id === this.player.id) {
+        if (phase === 8 && !this.cantAttackAnymore() && curP.id === this.player.id) {
             add = "!"
         }
-        if(phase === 5 && !this.cantMoveAnymore() && curP.id === this.player.id) {
+        if (phase === 5 && !this.cantMoveAnymore() && curP.id === this.player.id) {
             add = "~"
         }
         text(this.type + add, this.tile.x + tileSize / 2 + xOffset, this.tile.y + tileSize / 1.4, tileSize * 0.6, "white");

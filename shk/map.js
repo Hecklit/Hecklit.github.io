@@ -43,21 +43,21 @@ class Map {
 
         // Monster
         if(monsterPlayer) {
-            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[2][0], monsterPlayer);
+            //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[2][0], monsterPlayer);
             this.tiles[2][0].config(monster, "M1");
-            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[4][0], monsterPlayer);
+            //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[4][0], monsterPlayer);
             this.tiles[4][0].config(monster, "M1");
-            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 2][0], monsterPlayer);
+            //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 2][0], monsterPlayer);
             this.tiles[ex - 2][0].config(monster, "M1");
-            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 4][0], monsterPlayer);
+            //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 4][0], monsterPlayer);
             this.tiles[ex - 4][0].config(monster, "M1");
             Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[5][2], monsterPlayer);
             this.tiles[5][2].config(monster, "M1");
             Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 5][2], monsterPlayer);
             this.tiles[ex - 5][2].config(monster, "M1");
-            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[3][ey], monsterPlayer);
+            //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[3][ey], monsterPlayer);
             this.tiles[3][ey].config(monster, "M1");
-            Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 3][ey], monsterPlayer);
+            //Monster.spawnMonster(Config.getAllMonstersOfLevel(1).sample(), this.tiles[ex - 3][ey], monsterPlayer);
             this.tiles[ex - 3][ey].config(monster, "M1");
 
             this.tiles[0][0].config(monster, "M2");

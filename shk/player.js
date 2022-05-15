@@ -15,7 +15,7 @@ class Player {
                 hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
 
                     onHeroDeath(hero);
-                }, hc.respawnTime);
+                }, hc.respawnTime, hc.lvl, hc.ep);
             this.turnsTillHeroRes = 0
             this.units.push(this.hero);
         }
@@ -29,12 +29,20 @@ class Player {
     tryHeroRespawn(){
         const freeTile = this.getFreeBaseTiles()[0];
         if(this.turnsTillHeroRes <= 0 && freeTile) {
-            this.hero.alive = true;
-            this.hero.totalHp = this.hero.hp;
-            this.hero.setTile(freeTile);
+            this.hero.reviveAt(freeTile);
             this.units.push(this.hero);
         } else {
             this.turnsTillHeroRes--;
+        }
+    }
+
+    onEnemiesKilled(enemyUnit, numKilled){
+        const heroWasInReach = (this.hero.alive && Map.dist(this.hero.tile, enemyUnit.tile) <= this.hero.mov);
+        if(heroWasInReach){
+
+            const expEarned = enemyUnit.cost * numKilled;
+            this.hero.gainExp(expEarned);
+            console.log(this.id, " Hero earned ", expEarned, " EXP");
         }
     }
 

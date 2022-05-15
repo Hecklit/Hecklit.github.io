@@ -84,7 +84,7 @@ async function onTestsDone() {
     game.draw();
 
     demo.addEventListener('click', async function () {
-        const speed = 4;
+        const speed = 10;
         const sleepBetweenPhases = 500 / speed;
         const sleepAttack = 750 / speed;
         const sleepMovement = 750 / speed;

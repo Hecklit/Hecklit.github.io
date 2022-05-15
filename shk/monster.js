@@ -7,7 +7,8 @@ class Monster {
         , dmg
         , def
         , revenge
-        , mobility) {
+        , mobility,
+        epPerUnit) {
         this.id = IdGen.get();
         this.player = pl;
         this.homeTile = tile;
@@ -30,11 +31,12 @@ class Monster {
         this.lvl = lvl;
         this.gold = gold;
         this.aiStrategy = aiStrategy;
+        this.cost = epPerUnit;
     }
 
     static spawnMonster(c, tile, pl) {
         const monster = new Monster(pl, c.name, c.lvl, c.gold, c.aiStrategy, tile, c.num,
-            c.reach, c.mov, c.hp, c.numAttacks, c.dmg, c.def, c.revenge, c.mobility);
+            c.reach, c.mov, c.hp, c.numAttacks, c.dmg, c.def, c.revenge, c.mobility, c.EPperUnit);
         pl.units.push(monster);
         return monster;
     }
