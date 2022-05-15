@@ -64,7 +64,7 @@ addEventListener('load', async function () {
         const startTile = unit.tile;
         unit.moveIdx(-1, 0);
         unit.moveIdx(-1, 0);
-        unit.moveIdx(0, 1); // expect this to not work
+        unit.moveIdx(0, -1); // expect this to not work
 
         assertEquals(unit.mov, 2); // this test only works if mov is 2
         assertEquals(startTile.xi - 2, unit.tile.xi);
@@ -72,9 +72,11 @@ addEventListener('load', async function () {
 
         game.startRound();
         game.startRound();
-        unit.moveIdx(0, 1); // now it should work
+        game.phase = 5;
+        unit.moveIdx(0, -1); // now it should work
+        game.draw();
         assertEquals(startTile.xi - 2, unit.tile.xi);
-        assertEquals(startTile.yi + 1, unit.tile.yi);
+        assertEquals(startTile.yi - 1, unit.tile.yi);
     })();
 
     await (async () => {
@@ -84,9 +86,8 @@ addEventListener('load', async function () {
         game.startRound();
         await game.buyUnit('K', 3);
         const cP = game.getCurrentPlayer();
-        const tilesWithUnits = cP.baseTiles.filter(bt => bt.units.length > 0);
 
-        assertEquals(tilesWithUnits.length, 0);
+        assertEquals(cP.units.length, 1); // because of hero
     })();
 
 
@@ -101,7 +102,7 @@ addEventListener('load', async function () {
         }
         const cP = game.getCurrentPlayer();
 
-        assertEquals(cP.units.length, 4);
+        assertEquals(cP.units.length, 4); // one is taken by hero
     })();
 
 
@@ -116,7 +117,7 @@ addEventListener('load', async function () {
             game.startRound();
             game.startRound();
         }
-        p1Unit.moveIdx(-2, 0);
+        p1Unit.moveIdx(-3, 0);
 
         game.startRound();
         const p2Unit = await game.buyUnit('F', 2);
@@ -141,7 +142,7 @@ addEventListener('load', async function () {
             game.startRound();
             game.startRound();
         }
-        p1Unit.moveIdx(-2, 0);
+        p1Unit.moveIdx(-3, 0);
 
         game.startRound();
         const p2Unit = await game.buyUnit('F', 2);
@@ -182,7 +183,6 @@ addEventListener('load', async function () {
         game.draw();
         const result1 = p1Unit.attack(p2Unit);
 
-
         assertEquals(typeof result1[p1Unit.player.id], 'number');
         assertEquals(typeof result1[p2Unit.player.id], 'number');
 
@@ -193,7 +193,7 @@ addEventListener('load', async function () {
         console.log("testEasyGoblinsMoveAndAttackBasedOnTheirRules");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
-        const tile = game.map.getTile(9, 2);
+        const tile = game.map.getTile(10, 3);
         const monster = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters);
         game.startRound();
         const p1Unit = await game.buyUnit('B', 1);
@@ -208,6 +208,30 @@ addEventListener('load', async function () {
         game.draw();
         assertEquals(p1Unit.tile.xi, monster.tile.xi);
         assertEquals(p1Unit.tile.yi, monster.tile.yi);
+    })();
+
+
+
+    await (async () => {
+        console.log("testMonstersAreRenderedOnCorrectSide");
+        const game = getDefaultGame(MapType.Empty);
+        game.init(true);
+        const tile = game.map.getTile(2, 2);
+        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters);
+        const tile2 = game.map.getTile(10, 3);
+        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile2, game.monsters);
+        game.startRound();
+        await game.buyUnit('B', 1);
+
+        game.draw();
+
+        game.startRound();
+        await game.monsterTurn();
+        game.draw();
+        let testRender = false;
+        if(testRender){
+            assertEquals(1, 2);
+        }
     })();
 
     await onTestsDone();

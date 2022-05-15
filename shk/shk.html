@@ -15,14 +15,18 @@
     <p>Buy unit:</p>
     <label for="numUnit">#</label>
     <input type="number" id="numUnit" min="1" name="numUnit" value="1"><br>
-    <input type="radio" id="age1" name="age" value="F" checked>
+    <input type="radio" id="age0" name="age" value="None" checked>
+    <label for="age0">No unit</label><br>
+    <input type="radio" id="age1" name="age" value="F">
     <label for="age1">F (2 gold)</label><br>
     <input type="radio" id="age2" name="age" value="B">
     <label for="age2">B (3 gold)</label><br>
     <input type="radio" id="age3" name="age" value="K">
-    <label for="age3">K (5 gold)</label><br><br>
+    <label for="age3">K (5 gold)</label><br>
+    <input type="radio" id="age4" name="age" value="H" disabled>
+    <label for="age4">H</label><br>
+
 </form>
-<br>
 <div id="errorMessage"></div>
 <button id="next">Buy</button>
 <button id="demo">Demo</button>
@@ -36,6 +40,7 @@
 <script src="player.js"></script>
 <script src="tile.js"></script>
 <script src="unit.js"></script>
+<script src="hero.js"></script>
 <script src="integration-tests.js"></script>
 <script src="shk.js"></script>
 </body>

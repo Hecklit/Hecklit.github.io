@@ -1,5 +1,5 @@
-class Unit {
-    constructor(player, tile, type, num, cost
+class Hero {
+    constructor(player, tile, cost
         , reach
         , mov
         , hp
@@ -7,15 +7,16 @@ class Unit {
         , dmg
         , def
         , revenge
-        , mobility) {
+        , mobility, reg, onHeroDeath, respawnTime) {
         this.id = IdGen.get();
         this.player = player;
         tile.units.push(this);
         this.tile = tile;
-        this.type = type;
+        this.type = "H";
         this.cost = cost;
+        this.reg = reg;
         this.reach = reach;
-        this.num = num;
+        this.num = 1;
         this.mov = mov;
         this.hp = hp;
         this.numAttacks = numAttacks;
@@ -27,16 +28,22 @@ class Unit {
         this.totalHp = this.num * this.hp;
         this.movedThisTurn = 0;
         this.attacksThisTurn = 0;
+        this.onHeroDeath = onHeroDeath;
+        this.respawnTime = respawnTime;
+    }
+
+    setTile(tile) {
+        this.tile.units = this.tile.units.remove(this);
+        tile.units.push(this);
+        this.tile = tile;
+        return tile;
     }
 
     move(tile) {
         const d = Map.dist(this.tile, tile);
         if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
             this.movedThisTurn += d;
-            this.tile.units = this.tile.units.remove(this);
-            tile.units.push(this);
-            this.tile = tile;
-            return tile;
+            return this.setTile(tile);
         }
     }
 
@@ -49,10 +56,10 @@ class Unit {
 
     takeDmg(amount) {
         this.totalHp -= amount;
-        this.num = Math.ceil(this.totalHp / this.hp);
         if (this.totalHp <= 0 && this.alive) {
             console.log(`${this.player.id} ${this.type} has died.`)
             this.alive = false;
+            this.onHeroDeath(this);
             return false;
         }
         return this.alive;

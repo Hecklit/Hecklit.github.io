@@ -1,12 +1,41 @@
 class Player {
-    constructor(id, baseTiles, color) {
+    constructor(id, baseTiles, color, heroLvl, onHeroDeath) {
 
         this.id = id;
         this.gold = 0;
-        this.units = [];
         this.baseTiles = baseTiles;
         this.activeUnit = null;
         this.color = color;
+        this.units = [];
+        this.heroDeaths = 0;
+        if(heroLvl > 0){
+            const hc = Config.getHeroStatsByLvl(heroLvl);
+            console.log(hc);
+            this.hero = new Hero(this, this.getFreeBaseTiles()[0], hc.ep, hc.reach,
+                hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
+
+                    onHeroDeath(hero);
+                }, hc.respawnTime);
+            this.turnsTillHeroRes = 0
+            this.units.push(this.hero);
+        }
+    }
+
+    startHeroRevive(cost) {
+        this.gold -= cost;
+        this.turnsTillHeroRes = this.hero.respawnTime;
+    }
+
+    tryHeroRespawn(){
+        const freeTile = this.getFreeBaseTiles()[0];
+        if(this.turnsTillHeroRes <= 0 && freeTile) {
+            this.hero.alive = true;
+            this.hero.totalHp = this.hero.hp;
+            this.hero.setTile(freeTile);
+            this.units.push(this.hero);
+        } else {
+            this.turnsTillHeroRes--;
+        }
     }
 
     getFreeBaseTiles() {

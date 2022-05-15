@@ -22,10 +22,15 @@ async function onTestsDone() {
             "B": 1,
             "K": 1
         },
-        false,
+        0,
         [],
         MapType.FixMini,
         Game.defaultConfig(),
+        document.querySelectorAll(
+            'input[name="age"]'),
+        document.querySelectorAll(
+            'label',
+        )
     );
 
     canvas.addEventListener('click', function (e) {
@@ -72,19 +77,25 @@ async function onTestsDone() {
         }
     }, false);
 
-    game.init();
+    const curPi = Math.floor(Math.random()*2);
+    console.log("curPi", curPi);
+    game.init(true, curPi);
     game.startRound();
     game.draw();
 
     demo.addEventListener('click', async function () {
-        const sleepBetweenPhases = 0;
-        const sleepAttack = 150;
-        const sleepMovement = 150;
+        const speed = 4;
+        const sleepBetweenPhases = 500 / speed;
+        const sleepAttack = 750 / speed;
+        const sleepMovement = 750 / speed;
 
         for (let i = 0; i < 1000; i++) {
             // buy unit
-            if(game.getCurrentPlayer().units.length <= 2) {
-                await game.buyUnit(["F", "K", "B"].sample(), Math.floor(Math.random() * game.getCurrentPlayer().gold / 2 + 1));
+            if(game.winner){
+                break;
+            }
+            if (game.getCurrentPlayer().units.length <= 2) {
+                await game.buyUnit(["F", "K", "B", "H", "None"].sample(), Math.floor(Math.random() * game.getCurrentPlayer().gold / 2 + 1));
                 game.draw();
                 await sleep(sleepBetweenPhases)
             } else {
@@ -96,7 +107,7 @@ async function onTestsDone() {
             // move
             for (const unit of game.getCurrentPlayer().units) {
                 const target = game.map.getPossibleMovementPerUnit(unit).sample();
-                if(target) {
+                if (target) {
                     game.onClick(unit.tile);
                     game.draw();
                     await sleep(sleepMovement)
@@ -112,7 +123,7 @@ async function onTestsDone() {
             // attack
             for (const unit of game.getCurrentPlayer().units) {
                 const target = game.map.getPossibleFightsPerUnit(unit).sample();
-                if(target) {
+                if (target) {
                     game.onClick(unit.tile);
                     game.draw();
                     await sleep(sleepAttack)

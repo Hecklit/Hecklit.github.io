@@ -8,9 +8,13 @@ class Game {
         heroRevival,
         monsterLvls,
         mapType,
-        config) {
+        config,
+        unitRadioButtons,
+        unitRadioLabels) {
 
         this.pGold = pGold;
+        this.unitRadioButtons = unitRadioButtons;
+        this.unitRadioLabels = unitRadioLabels;
         this.startUnits = startUnits;
         this.maxNumUnits = maxNumUnits;
         this.maxNumTroups = maxNumTroups;
@@ -20,9 +24,21 @@ class Game {
         this.config = config;
         this.round = 0;
         this.phase = 0;
-        this.movedThisRound = {};
+        this.winner = null;
+        this.onHeroDeath = (hero) => {
+            hero.player.heroDeaths++;
+            console.log("onHeroDeath", hero)
+            if (hero.player.heroDeaths >= this.heroRevival) {
+                this.removeDeadUnits();
+                this.draw();
+                this.winner = this.players.filter(p => p.id !== hero.player.id)[0];
+                console.log("onHeroDeath Game over! " + this.winner.id + " has won!");
+            }
+            this.draw();
+        }
         this.debugMarker = [100, 100];
         this.debugMode = true;
+        this.gameOverScreenDrawn = false;
         this.errorMessage = "";
         this.phaseToCaption = {
             2: "Rekrutierung",
@@ -32,15 +48,16 @@ class Game {
         }
     }
 
-    init(withMonsters = true) {
+    init(withMonsters = true, curPi = 0) {
+        this.winner = null;
         this.withMonsters = withMonsters;
         this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen") : null;
         this.map = new Map();
         this.map.generateSquareMap(15, 4, 70, this.mapType, this.monsters);
         this.players = [];
-        this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]), "red"));
-        this.players.push(new Player("Jakob", this.map.getTiles([[13, 2], [13, 3], [14, 2], [14, 3]]), "blue"));
-        this.curPi = 0;
+        this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]), "red", 1, this.onHeroDeath));
+        this.players.push(new Player("Jakob", this.map.getTiles([[14, 2], [14, 3], [13, 2], [13, 3]]), "blue", 1, this.onHeroDeath));
+        this.curPi = curPi;
     }
 
     getCurrentPlayer() {
@@ -88,55 +105,85 @@ class Game {
     }
 
     startRound() {
+        if (this.winner) {
+            return;
+        }
         this.round += 1;
-        this.curPi = this.round % this.players.length;
+        this.curPi = (this.curPi+1)  % this.players.length;
         const curP = this.players[this.curPi];
         curP.gold += this.pGold;
         this.phase = 2;
         curP.units.forEach(u => u.movedThisTurn = 0);
         curP.units.forEach(u => u.attacksThisTurn = 0);
-        if(this.withMonsters) {
+        if (this.withMonsters) {
             this.monsters.units.forEach(u => u.movedThisTurn = 0);
             this.monsters.units.forEach(u => u.attacksThisTurn = 0);
         }
     }
 
     async buyUnit(ut, n) {
-        if (this.phase !== 2) {
+        if (this.phase !== 2 || this.winner) {
             return false;
         }
         const curP = this.players[this.curPi];
-        const conf = this.config[ut];
-        const cost = conf.cost * n;
         const freeBaseTiles = curP.getFreeBaseTiles();
+        if (ut === 'None' || freeBaseTiles.length === 0) {
+            this.phase = 4;
+            await this.monsterTurn(250);
+            this.phase = 5;
+            return true;
+        }
+        const conf = this.config[ut] ? this.config[ut] : curP.hero;
+        const cost = conf.cost * n;
         if (curP.gold >= cost && freeBaseTiles.length > 0 && n > 0) {
-            const newUnit = curP.buyUnit(ut, n, cost
-                , conf.reach
-                , conf.mov
-                , conf.hp
-                , conf.numAttacks
-                , conf.dmg
-                , conf.def
-                , conf.revenge
-                , conf.mobility);
-            this.phase = 4;
-            await this.monsterTurn(250);
-            this.phase = 5;
-            return newUnit;
-        } else if (freeBaseTiles.length === 0) {
-            this.phase = 4;
-            await this.monsterTurn(250);
-            this.phase = 5;
+
+            if (ut === 'H') {
+                if (!curP.hero.alive) {
+                    curP.startHeroRevive(cost);
+                    curP.tryHeroRespawn();
+                } else {
+                    this.errorMessage = curP.id + " hero is not dead";
+                    return false;
+                }
+            } else {
+                const newUnit = curP.buyUnit(ut, n, cost
+                    , conf.reach
+                    , conf.mov
+                    , conf.hp
+                    , conf.numAttacks
+                    , conf.dmg
+                    , conf.def
+                    , conf.revenge
+                    , conf.mobility);
+                this.phase = 4;
+                await this.monsterTurn(250);
+                this.phase = 5;
+                return newUnit;
+            }
         } else {
             this.errorMessage = curP.id + " doesn't have enough gold or space.";
             console.log(curP.id + " doesn't have enough gold or space.");
             return false;
         }
+
     }
 
     draw() {
+        if (this.winner) {
+            if(this.gameOverScreenDrawn){
+                return;
+            }
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(0, 0, 10000, 10000);
+            ctx.textAlign = "center";
+            text("Game over! " + this.winner.id + " has won!", 600, 200, 80, "white");
+            this.gameOverScreenDrawn = true;
+            return;
+        }
+
         ctx.fillStyle = "lightgray";
         ctx.fillRect(0, 0, 10000, 10000);
+
         this.map.draw();
         this.players.forEach(p => p.draw(this.phase, this.getCurrentPlayer()));
         this.monsters?.draw(this.phase, this.getCurrentPlayer());
@@ -161,6 +208,23 @@ class Game {
             this.map.drawOverlay(curUnit, true);
         }
 
+        if (this.unitRadioButtons) {
+            const curP = this.players[this.curPi];
+            if (curP.hero.alive) {
+                this.unitRadioLabels[this.unitRadioLabels.length - 1].innerHTML = `H`
+                this.unitRadioButtons[this.unitRadioButtons.length - 1].disabled = true;
+            } else {
+
+                if (curP.turnsTillHeroRes > 0) {
+                    this.unitRadioLabels[this.unitRadioLabels.length - 1].innerHTML = `H (${curP.turnsTillHeroRes} rounds)`
+                    this.unitRadioButtons[this.unitRadioButtons.length - 1].disabled = true;
+                } else {
+                    console.log(this.unitRadioButtons[this.unitRadioButtons.length - 1]);
+                    this.unitRadioLabels[this.unitRadioLabels.length - 1].innerHTML = `H (${curP.hero.cost} gold)`
+                    this.unitRadioButtons[this.unitRadioButtons.length - 1].disabled = false;
+                }
+            }
+        }
 
         if (this.debugMode) {
             const size = 5;
@@ -171,7 +235,7 @@ class Game {
     }
 
     async monsterTurn(sleepMillis) {
-        if (!this.withMonsters || this.monsters.units.length === 0) {
+        if (!this.withMonsters || this.monsters.units.length === 0 || this.winner) {
             return;
         }
         let i = 0;
@@ -205,7 +269,7 @@ class Game {
     }
 
     onClick(tile) {
-        if (this.phase !== 5 && this.phase !== 8) {
+        if (this.phase !== 5 && this.phase !== 8 || this.winner) {
             return false;
         }
 
@@ -216,14 +280,15 @@ class Game {
                 const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
                 if (unitOfP) {
                     curP.activeUnit = unitOfP;
+                    console.log(curP.activeUnit)
                 } else {
                     curP.activeUnit.move(tile);
                 }
 
-                if(curP.units.filter(u => !u.cantMoveAnymore()).length === 0) {
+                if (curP.units.filter(u => !u.cantMoveAnymore()).length === 0) {
                     this.phase = 8;
 
-                    if(curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
+                    if (curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
                         this.startRound();
                     }
                 }
@@ -236,7 +301,7 @@ class Game {
                 if (unitOfEnemy) {
                     curP.activeUnit?.attack(unitOfEnemy);
                     this.removeDeadUnits();
-                } else if(unitOfPlayer) {
+                } else if (unitOfPlayer) {
                     curP.activeUnit = unitOfPlayer;
                 }
             }

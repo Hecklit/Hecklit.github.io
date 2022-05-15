@@ -82,7 +82,7 @@ class Monster {
     }
 
     cantAttackAnymore() {
-        return this.attacksThisTurn > 0;
+        return this.attacksThisTurn >= this.numAttacks;
     }
 
     attack(enemyUnit, revenge = false) {
@@ -181,7 +181,8 @@ class Monster {
 
         if (notAlone) {
             tileSize /= 2;
-            xOffset = this.tile.getEnemy(this.player)?.id === "Jonas" ? tileSize : 0;
+            const enemy = this.tile.getEnemy(this);
+            xOffset = enemy.player.id === "Jonas" ? tileSize : 0;
         }
 
         const size = tileSize * 0.9 / sq;
