@@ -4,6 +4,7 @@ class Player {
         this.id = id;
         this.gold = 0;
         this.baseTiles = baseTiles;
+        this.activeBaseTile = this.getFreeBaseTiles()[0];
         this.activeUnit = null;
         this.color = color;
         this.units = [];
@@ -27,9 +28,8 @@ class Player {
     }
 
     tryHeroRespawn(){
-        const freeTile = this.getFreeBaseTiles()[0];
-        if(this.turnsTillHeroRes <= 0 && freeTile) {
-            this.hero.reviveAt(freeTile);
+        if(this.turnsTillHeroRes <= 0 && this.activeBaseTile) {
+            this.hero.reviveAt(this.activeBaseTile);
             this.units.push(this.hero);
         } else {
             this.turnsTillHeroRes--;
@@ -60,8 +60,7 @@ class Player {
         ,revenge
         ,mobility) {
         this.gold -= cost;
-        const freeBaseTiles = this.getFreeBaseTiles();
-        const newUnit = new Unit(this, freeBaseTiles[0], t, n, cost
+        const newUnit = new Unit(this, this.activeBaseTile, t, n, cost
             ,reach
             ,mov
             ,hp

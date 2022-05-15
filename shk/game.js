@@ -110,7 +110,7 @@ class Game {
             return;
         }
         this.round += 1;
-        this.curPi = (this.curPi+1)  % this.players.length;
+        this.curPi = (this.curPi + 1) % this.players.length;
         const curP = this.players[this.curPi];
         curP.gold += this.pGold;
         this.phase = 2;
@@ -120,7 +120,9 @@ class Game {
             this.monsters.units.forEach(u => u.movedThisTurn = 0);
             this.monsters.units.forEach(u => u.attacksThisTurn = 0);
         }
+        curP.activeBaseTile = curP.getFreeBaseTiles()[0];
     }
+
 
     async buyUnit(ut, n) {
         if (this.phase !== 2 || this.winner) {
@@ -201,20 +203,21 @@ class Game {
             30, "black");
         ctx.textAlign = 'center';
 
+        const curP = this.players[this.curPi];
+        const curUnit = curP.activeUnit;
+        if(this.phase === 2){
+            curP.activeBaseTile.drawOverlay("white");
+        }
+
         if (this.phase === 5) {
-            const curP = this.players[this.curPi];
-            const curUnit = curP.activeUnit;
             this.map.drawOverlay(curUnit);
         }
 
         if (this.phase === 8) {
-            const curP = this.players[this.curPi];
-            const curUnit = curP.activeUnit;
             this.map.drawOverlay(curUnit, true);
         }
 
         if (this.unitRadioButtons) {
-            const curP = this.players[this.curPi];
             if (curP.hero.alive) {
                 this.unitRadioLabels[this.unitRadioLabels.length - 1].innerHTML = `H`
                 this.unitRadioButtons[this.unitRadioButtons.length - 1].disabled = true;
@@ -274,12 +277,18 @@ class Game {
     }
 
     onClick(tile) {
-        if (this.phase !== 5 && this.phase !== 8  && this.phase !== 6 || this.winner) {
+        if (this.phase !== 5 && this.phase !== 8  && this.phase !== 6 && this.phase !== 2 || this.winner) {
             return false;
         }
 
         const curP = this.players[this.curPi];
         if (tile) {
+            if (this.phase === 2) {
+                if(curP.getFreeBaseTiles().filter(b => b.id === tile.id).length === 1){
+                    curP.activeBaseTile = tile;
+                }
+                return true;
+            }
 
             if (this.phase === 5) {
                 const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
