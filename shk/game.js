@@ -44,6 +44,7 @@ class Game {
             2: "Rekrutierung",
             4: "Monsters",
             5: "Bewegung",
+            6: "Trigger Monsters",
             8: "Angriff",
         }
     }
@@ -273,7 +274,7 @@ class Game {
     }
 
     onClick(tile) {
-        if (this.phase !== 5 && this.phase !== 8 || this.winner) {
+        if (this.phase !== 5 && this.phase !== 8  && this.phase !== 6 || this.winner) {
             return false;
         }
 
@@ -290,12 +291,32 @@ class Game {
                 }
 
                 if (curP.units.filter(u => !u.cantMoveAnymore()).length === 0) {
+                    if(this.map.getTriggerableMonsterDen(curP).length > 0){
+                        this.phase = 6;
+                    }else {
+                        this.phase = 8;
+
+                        if (curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
+                            this.startRound();
+                        }
+                    }
+                }
+                return true;
+            }
+
+            if (this.phase === 6) {
+                const monsterDens = this.map.getTriggerableMonsterDen(curP);
+                if(monsterDens.filter(d => d.id === tile.id).length === 1){
+                    tile.triggerMonsterDen(this.monsters);
+                }
+                if(this.map.getTriggerableMonsterDen(curP).length === 0){
                     this.phase = 8;
 
                     if (curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
                         this.startRound();
                     }
                 }
+                return true;
             }
 
             if (this.phase === 8) {
@@ -308,6 +329,7 @@ class Game {
                 } else if (unitOfPlayer) {
                     curP.activeUnit = unitOfPlayer;
                 }
+                return true;
             }
         }
     }

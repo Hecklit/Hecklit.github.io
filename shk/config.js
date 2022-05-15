@@ -18,7 +18,25 @@ class Config {
             attackPrio: ['F', 'B', 'K', 'H'],
             reg: 0,
             aiStrategy: AIStrategyType.AttackOrIdle
-        }
+        },
+        {
+            name: "Troll",
+            lvl: 2,
+            gold: 10,
+            reach: 0,
+            mov: 3,
+            hp: 5,
+            numAttacks: 5,
+            dmg: 7,
+            def: 3,
+            revenge: true,
+            mobility: MobileAttackType.BthenA,
+            num: 1,
+            EPperUnit: 1,
+            attackPrio: ['K', 'B', 'H', 'F'],
+            reg: 0,
+            aiStrategy: AIStrategyType.AttackOrIdle
+        },
     ]
     static getAllMonstersOfLevel(lvl) {
         return Config.monsters.filter(m => m.lvl === lvl);

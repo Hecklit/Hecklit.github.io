@@ -56,7 +56,15 @@ async function onTestsDone() {
             nextButton.innerHTML = "Buy";
             // buyForm.style.display = 'block';
         } else if (game.phase === 5) {
-            game.phase = 8;
+            if(game.map.getTriggerableMonsterDen(game.getCurrentPlayer()).length > 0){
+                game.phase = 6;
+            }else {
+                game.phase = 8;
+
+                if (game.getCurrentPlayer().units.filter(u => !u.cantAttackAnymore()).length === 0) {
+                    this.startRound();
+                }
+            }
             game.draw();
         } else if (game.phase === 2) {
             const getSelectedValue = document.querySelector(
@@ -116,6 +124,12 @@ async function onTestsDone() {
                     await sleep(sleepMovement)
                 }
             }
+
+            // trigger Monsters
+            game.phase = 6;
+            const monsterDens = game.map.getTriggerableMonsterDen(game.getCurrentPlayer());
+            monsterDens.forEach(md => game.onClick(md));
+
             game.phase = 8;
             game.draw();
             await sleep(sleepBetweenPhases)

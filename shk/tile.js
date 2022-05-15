@@ -13,8 +13,19 @@ class Tile {
         this.color = "gray";
         this.text = "";
         this.map = map;
+        this.isMonsterDen = false;
     }
 
+    makeMonsterDen(monsterConfig ){
+        this.isMonsterDen = true;
+        this.monsterConfig = monsterConfig;
+        this.monsterDenWasTriggered = false;
+    }
+
+    triggerMonsterDen(monsterPlayer){
+        this.monsterDenWasTriggered = true;
+        Monster.spawnMonster(this.monsterConfig, this, monsterPlayer);
+    }
 
     draw(){
         ctx.fillStyle= this.color;

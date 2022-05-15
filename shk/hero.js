@@ -148,6 +148,9 @@ class Hero {
         const numEnemiesDied = prevNum - enemyUnit.num;
         if (numEnemiesDied > 0) {
             this.player.onEnemiesKilled(enemyUnit, numEnemiesDied);
+            if(enemyUnit.gold){
+                this.player.gold += enemyUnit.gold * numEnemiesDied;
+            }
         }
 
         // revenge?
