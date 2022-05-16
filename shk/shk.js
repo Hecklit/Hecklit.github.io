@@ -9,6 +9,7 @@ async function onTestsDone() {
     ctx = canvas.getContext("2d");
     ctx.textAlign = 'center';
 
+    const heroRevivals = 2;
     const game = new Game(
         5,
         [],
@@ -22,7 +23,7 @@ async function onTestsDone() {
             "B": 1,
             "K": 1
         },
-        0,
+        heroRevivals,
         [],
         MapType.FixMini,
         Game.defaultConfig(),
@@ -49,11 +50,14 @@ async function onTestsDone() {
     const nextButton = document.getElementById("next");
     nextButton.addEventListener('click', async function () {
         console.log("onNext", game.phase);
-        if (game.phase === 8) {
+        if (game.phase === 10) {
             console.log("startRound");
+            nextButton.innerHTML = "Buy";
             game.startRound();
             game.draw();
-            nextButton.innerHTML = "Buy";
+        } else if (game.phase === 8) {
+            game.phase = 10;
+            game.draw();
             // buyForm.style.display = 'block';
         } else if (game.phase === 5) {
             if(game.map.getTriggerableMonsterDen(game.getCurrentPlayer()).length > 0){
@@ -114,6 +118,9 @@ async function onTestsDone() {
 
             // move
             for (const unit of game.getCurrentPlayer().units) {
+                if(unit.goldmine) {
+                    continue;
+                }
                 const target = game.map.getPossibleMovementPerUnit(unit).sample();
                 if (target) {
                     game.onClick(unit.tile);
@@ -127,12 +134,15 @@ async function onTestsDone() {
 
             // trigger Monsters
             game.phase = 6;
+            game.draw();
+            await sleep(sleepBetweenPhases)
             const monsterDens = game.map.getTriggerableMonsterDen(game.getCurrentPlayer());
             monsterDens.forEach(md => game.onClick(md));
 
+
             game.phase = 8;
             game.draw();
-            await sleep(sleepBetweenPhases)
+            await sleep(sleepBetweenPhases);
 
             // attack
             for (const unit of game.getCurrentPlayer().units) {
@@ -146,6 +156,13 @@ async function onTestsDone() {
                     await sleep(sleepAttack)
                 }
             }
+
+            // annex gold mines
+            game.phase = 10;
+            const goldMines = game.map.getPossibleAnnexedGoldminesPerPlayer(game.getCurrentPlayer());
+            goldMines.forEach(md => game.onClick(md));
+
+            game.draw();
             game.startRound();
             game.draw();
             await sleep(sleepBetweenPhases);

@@ -46,6 +46,7 @@ class Game {
             5: "Bewegung",
             6: "Trigger Monsters",
             8: "Angriff",
+            10: "Goldminen",
         }
     }
 
@@ -112,7 +113,13 @@ class Game {
         this.round += 1;
         this.curPi = (this.curPi + 1) % this.players.length;
         const curP = this.players[this.curPi];
-        curP.gold += this.pGold;
+        // player annexed any new goldmines?
+        const pGoldmines = curP.units.filter(u => u.goldmine).map(t => t.goldmine);
+        pGoldmines.forEach(gm => gm.tickRound());
+
+        const goldMineGold = curP.goldmines.reduce((acc, cur) => acc + cur.getGold(), 0);
+
+        curP.gold += this.pGold + goldMineGold;
         this.phase = 2;
         curP.units.forEach(u => u.movedThisTurn = 0);
         curP.units.forEach(u => u.attacksThisTurn = 0);
@@ -206,15 +213,25 @@ class Game {
         const curP = this.players[this.curPi];
         const curUnit = curP.activeUnit;
         if(this.phase === 2){
-            curP.activeBaseTile.drawOverlay("white");
+            curP.activeBaseTile.drawOverlay("rgba(255, 255, 255, 0.5)");
         }
 
         if (this.phase === 5) {
             this.map.drawOverlay(curUnit);
         }
 
+        if (this.phase === 6) {
+            const mD = this.map.getTriggerableMonsterDen(curP);
+            mD.forEach(d => d.drawOverlay("rgba(0, 255, 0, 0.5)"));
+        }
+
         if (this.phase === 8) {
             this.map.drawOverlay(curUnit, true);
+        }
+
+        if (this.phase === 10) {
+            const tiles = this.map.getPossibleAnnexedGoldminesPerPlayer(curP);
+            tiles.forEach(t => t.drawOverlay("rgba(0, 255, 0, 0.5)"));
         }
 
         if (this.unitRadioButtons) {
@@ -277,7 +294,7 @@ class Game {
     }
 
     onClick(tile) {
-        if (this.phase !== 5 && this.phase !== 8  && this.phase !== 6 && this.phase !== 2 || this.winner) {
+        if (![2, 5, 6, 8, 10].includes(this.phase) || this.winner) {
             return false;
         }
 
@@ -337,6 +354,16 @@ class Game {
                     this.removeDeadUnits();
                 } else if (unitOfPlayer) {
                     curP.activeUnit = unitOfPlayer;
+                }
+                return true;
+            }
+
+            if (this.phase === 10) {
+                const possibleGoldmines = this.map.getPossibleAnnexedGoldminesPerPlayer(curP);
+                console.log(possibleGoldmines);
+                if(possibleGoldmines.filter(g => g.id === tile.id).length === 1){
+                    const goldmineTile = possibleGoldmines[0];
+                    goldmineTile.goldmine.startOccupation(goldmineTile.units[0]);
                 }
                 return true;
             }

@@ -99,10 +99,11 @@ class Map {
 
         // Goldmine
         this.tiles[3][1].config(goldMine, "G2");
+        this.tiles[3][1].goldmine = new Goldmine(this.tiles[3][1],2);
         this.tiles[ex - 3][1].config(goldMine, "G2");
+        this.tiles[ex - 3][1].goldmine = new Goldmine(this.tiles[ex - 3][1],2);
         this.tiles[7][2].config(goldMine, "G5");
-
-
+        this.tiles[7][2].goldmine = new Goldmine(this.tiles[7][2],5);
     }
 
     generateSquareMap(width, height, tileSize, mapType, monsterPlayer) {
@@ -180,6 +181,15 @@ class Map {
         }
         const ts = this.getTilesInRange(unit.tile, unit.getMovementLeftThisRound());
         return ts.filter(t => t !== unit.tile && !t.hasPlayerOnIt(unit.player));
+    }
+
+
+    getPossibleAnnexedGoldminesPerPlayer(player) {
+        return player.units.filter(u => u.tile.goldmine
+            && u.tile.units.length === 1
+            && !u.tile.goldmine.annexProcessStarted
+            && (!u.tile.goldmine.player || u.tile.goldmine.player.id !== player.id))
+            .map(u => u.tile);
     }
 
     getTilesInRange(root, range) {

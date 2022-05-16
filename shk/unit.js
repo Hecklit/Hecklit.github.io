@@ -27,11 +27,16 @@ class Unit {
         this.totalHp = this.num * this.hp;
         this.movedThisTurn = 0;
         this.attacksThisTurn = 0;
+        this.goldmine = undefined;
     }
 
     move(tile) {
         const d = Map.dist(this.tile, tile);
         if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
+            if(this.goldmine) {
+                this.goldmine.reset();
+            }
+
             this.movedThisTurn += d;
             this.tile.units = this.tile.units.remove(this);
             tile.units.push(this);
@@ -48,6 +53,9 @@ class Unit {
     }
 
     takeDmg(amount) {
+        if(amount > 0 && this.goldmine){
+            this.goldmine.reset();
+        }
         this.totalHp -= amount;
         this.num = Math.ceil(this.totalHp / this.hp);
         if (this.totalHp <= 0 && this.alive) {

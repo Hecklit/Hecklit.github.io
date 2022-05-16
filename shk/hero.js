@@ -33,6 +33,7 @@ class Hero {
         this.attacksThisTurn = 0;
         this.onHeroDeath = onHeroDeath;
         this.respawnTime = respawnTime;
+        this.goldmine = undefined;
     }
 
     setTile(tile) {
@@ -45,6 +46,9 @@ class Hero {
     move(tile) {
         const d = Map.dist(this.tile, tile);
         if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
+            if(this.goldmine) {
+                this.goldmine.reset();
+            }
             this.movedThisTurn += d;
             return this.setTile(tile);
         }
@@ -93,6 +97,9 @@ class Hero {
     }
 
     takeDmg(amount) {
+        if(amount > 0 && this.goldmine){
+            this.goldmine.reset();
+        }
         this.totalHp -= amount;
         if (this.totalHp <= 0 && this.alive) {
             console.log(`${this.player.id} ${this.type} has died.`)

@@ -8,6 +8,7 @@ class Player {
         this.activeUnit = null;
         this.color = color;
         this.units = [];
+        this.goldmines = [];
         this.heroDeaths = 0;
         if(heroLvl > 0){
             const hc = Config.getHeroStatsByLvl(heroLvl);

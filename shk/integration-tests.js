@@ -262,6 +262,73 @@ addEventListener('load', async function () {
         }
     })();
 
+    await (async () => {
+        console.log("testKnightsCanAnnexGoldmine");
+        const game = getDefaultGame(MapType.Empty);
+        game.init(true);
+        game.startRound();
+        const cP = game.getCurrentPlayer();
+        cP.gold += 5;
+        cP.activeBaseTile = cP.getFreeBaseTiles()[1];
+        const p1Unit = await game.buyUnit('K', 2);
+        p1Unit.moveIdx(-2, -1);
+        p1Unit.tile.goldmine = new Goldmine(p1Unit.tile, 42);
+        p1Unit.takeDmg(1);
+        game.phase = 10;
+        assertEquals(p1Unit.num, 2);
+        game.onClick(p1Unit.tile);
+
+        assertEquals(p1Unit.tile.goldmine.annexProcessStarted, true);
+        assertEquals(p1Unit.num, 1);
+
+        // annex has started
+        assertEquals(p1Unit.tile.goldmine.player, null);
+        game.startRound();
+        game.startRound();
+        game.startRound();
+        game.startRound();
+
+        assertEquals(p1Unit.tile.goldmine.player.id, cP.id);
+        assertEquals(p1Unit.tile.goldmine.player.gold, 52);
+        game.draw();
+    })();
+
+
+    await (async () => {
+        console.log("testKnightsCanAnnexGoldmine");
+        const game = getDefaultGame(MapType.Empty);
+        game.init(true);
+        game.startRound();
+        const cP = game.getCurrentPlayer();
+        cP.gold += 5;
+        cP.activeBaseTile = cP.getFreeBaseTiles()[1];
+        const p1Unit = await game.buyUnit('K', 2);
+        p1Unit.moveIdx(-2, -1);
+        p1Unit.tile.goldmine = new Goldmine(p1Unit.tile, 42);
+        p1Unit.takeDmg(1);
+        game.phase = 10;
+        assertEquals(p1Unit.num, 2);
+        game.onClick(p1Unit.tile);
+
+        assertEquals(p1Unit.tile.goldmine.annexProcessStarted, true);
+        assertEquals(p1Unit.num, 1);
+
+        // annex has started
+        assertEquals(p1Unit.tile.goldmine.player, null);
+        game.startRound();
+        game.getCurrentPlayer().activeBaseTile = game.getCurrentPlayer().getFreeBaseTiles()[1];
+        const p2Unit = await game.buyUnit('K', 1);
+        p2Unit.mov = 20;
+        p2Unit.moveIdx(10, -1);
+        game.startRound();
+        game.startRound();
+        game.startRound();
+
+        game.draw();
+        assertEquals(p1Unit.tile.goldmine.player, null);
+        assertEquals(cP.gold, 10);
+    })();
+
 
     await onTestsDone();
 
