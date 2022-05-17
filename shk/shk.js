@@ -129,12 +129,17 @@ async function onTestsDone() {
                 if(unit.goldmine) {
                     continue;
                 }
+                if(unit.mobility === MobileAttackType.BorA) {
+                    if(Math.random() > 0.5) {
+                        continue;
+                    }
+                }
                 const target = game.map.getPossibleMovementPerUnit(unit).sample();
                 if (target) {
-                    game.onClick(unit.tile);
+                    await game.onClick(unit.tile);
                     game.draw();
                     await sleep(sleepMovement)
-                    game.onClick(target);
+                    await game.onClick(target);
                     game.draw();
                     await sleep(sleepMovement)
                 }
@@ -156,10 +161,10 @@ async function onTestsDone() {
             for (const unit of game.getCurrentPlayer().units) {
                 const target = game.map.getPossibleFightsPerUnit(unit).sample();
                 if (target) {
-                    game.onClick(unit.tile);
+                    await game.onClick(unit.tile);
                     game.draw();
                     await sleep(sleepAttack)
-                    game.onClick(target.tile);
+                    await game.onClick(target.tile);
                     game.draw();
                     await sleep(sleepAttack)
                 }

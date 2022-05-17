@@ -33,7 +33,7 @@ class Unit {
     move(tile) {
         const d = Map.dist(this.tile, tile);
         if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
-            if(this.goldmine) {
+            if (this.goldmine) {
                 this.goldmine.reset();
             }
 
@@ -53,7 +53,7 @@ class Unit {
     }
 
     takeDmg(amount) {
-        if(amount > 0 && this.goldmine){
+        if (amount > 0 && this.goldmine) {
             this.goldmine.reset();
         }
         this.totalHp -= amount;
@@ -75,61 +75,73 @@ class Unit {
     }
 
     cantAttackAnymore() {
-        if(this.mobility === MobileAttackType.BorA && this.movedThisTurn > 0) {
+        if (this.mobility === MobileAttackType.BorA && this.movedThisTurn > 0) {
             return true;
         }
         return this.attacksThisTurn >= this.numAttacks;
     }
 
-    attack(enemyUnit, revenge = false) {
+    async attack(enemyUnit, revenge = false, viz = false) {
         if (this.cantAttackAnymore()) {
-            return 0;
+            return [];
         }
 
         console.log("Start attack! revenge:", revenge, this.player.id, enemyUnit.player.id);
         // check if its in range
         const distance = Map.dist(this.tile, enemyUnit.tile);
         if (this.reach < distance) {
-            return 0;
+            return [];
         }
 
         // has to attack unit on same field if not alone
         if (this.reach > 0 && this.tile.units.length > 1 && this.tile !== enemyUnit.tile) {
-            return 0;
+            return [];
         }
 
         // we are in range
         this.attacksThisTurn += 1;
-        let hits = 0;
+        let rolls = [];
         const prevNum = enemyUnit.num;
         for (let i = 0; i < this.num; i++) {
             const diceRoll = Game.throwDice();
             const successBelow = this.dmg - enemyUnit.def + 1;
             if (diceRoll < successBelow) {
-                hits++;
                 enemyUnit.takeDmg(1);
             }
+            rolls.push({
+                n: diceRoll,
+                h: diceRoll < successBelow,
+            });
         }
         const numEnemiesDied = prevNum - enemyUnit.num;
         if (numEnemiesDied > 0) {
             this.player.onEnemiesKilled(enemyUnit, numEnemiesDied);
-            if(enemyUnit.gold){
+            if (enemyUnit.gold) {
                 this.player.gold += enemyUnit.gold * numEnemiesDied;
             }
         }
 
         // revenge?
-        let enemyHits = 0;
+        let enemyHits = [];
         if (!revenge && enemyUnit.alive && enemyUnit.revenge) {
-            enemyHits = enemyUnit.attack(this, true);
+            enemyHits = await enemyUnit.attack(this, true);
+            console.log("enemyHits", enemyHits)
         }
 
         if (revenge) {
-            return hits;
+            console.log("rolls", rolls);
+            return rolls;
         } else {
+
+            if (viz) {
+
+                // play viz
+                await Fightvis.playViz(this, enemyUnit, prevNum, rolls,  enemyHits);
+            }
+
             return {
-                [this.player.id]: hits,
-                [enemyUnit.player.id]: enemyHits
+                [this.player.id]: rolls.filter(r => r.h).length,
+                [enemyUnit.player.id]: enemyHits?.filter(r => r.h).length
             }
         }
 

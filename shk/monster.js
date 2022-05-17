@@ -28,6 +28,7 @@ class Monster {
         this.movedThisTurn = 0;
         this.attacksThisTurn = 0;
         this.name = name;
+        this.type = this.name.split(" ").map(e => e[0]).join("");
         this.lvl = lvl;
         this.gold = gold;
         this.aiStrategy = aiStrategy;
@@ -87,47 +88,67 @@ class Monster {
         return this.attacksThisTurn >= this.numAttacks;
     }
 
-    attack(enemyUnit, revenge = false) {
+    async attack(enemyUnit, revenge = false, viz = false) {
         if (this.cantAttackAnymore()) {
-            return 0;
+            return [];
         }
 
         console.log("Start attack! revenge:", revenge, this.player.id, enemyUnit.player.id);
         // check if its in range
         const distance = Map.dist(this.tile, enemyUnit.tile);
         if (this.reach < distance) {
-            return 0;
+            return [];
         }
 
         // has to attack unit on same field if not alone
         if (this.reach > 0 && this.tile.units.length > 1 && this.tile !== enemyUnit.tile) {
-            return 0;
+            return [];
         }
 
         // we are in range
         this.attacksThisTurn += 1;
-        let hits = 0;
+        let rolls = [];
+        const prevNum = enemyUnit.num;
         for (let i = 0; i < this.num; i++) {
             const diceRoll = Game.throwDice();
             const successBelow = this.dmg - enemyUnit.def + 1;
             if (diceRoll < successBelow) {
-                hits++;
                 enemyUnit.takeDmg(1);
+            }
+            rolls.push({
+                n: diceRoll,
+                h: diceRoll < successBelow,
+            });
+        }
+        const numEnemiesDied = prevNum - enemyUnit.num;
+        if (numEnemiesDied > 0) {
+            this.player.onEnemiesKilled(enemyUnit, numEnemiesDied);
+            if (enemyUnit.gold) {
+                this.player.gold += enemyUnit.gold * numEnemiesDied;
             }
         }
 
         // revenge?
-        let enemyHits = 0;
+        let enemyHits = [];
         if (!revenge && enemyUnit.alive && enemyUnit.revenge) {
-            enemyHits = enemyUnit.attack(this, true);
+            enemyHits = await enemyUnit.attack(this, true);
+            console.log("enemyHits", enemyHits)
         }
 
         if (revenge) {
-            return hits;
+            console.log("rolls", rolls);
+            return rolls;
         } else {
+
+            if (viz) {
+
+                // play viz
+                await Fightvis.playViz(this, enemyUnit, prevNum, rolls,  enemyHits);
+            }
+
             return {
-                [this.player.id]: hits,
-                [enemyUnit.player.id]: enemyHits
+                [this.player.id]: rolls.filter(r => r.h).length,
+                [enemyUnit.player.id]: enemyHits?.filter(r => r.h).length
             }
         }
 
@@ -142,11 +163,11 @@ class Monster {
                     false);*/
     }
 
-    takeTurn(map, index, isMovementTurn) {
+    async takeTurn(map, index, isMovementTurn) {
         if(isMovementTurn) {
             return this.doMovementTurn(map, index);
         } else {
-            return this.doAttackTurn(map, index);
+            return await this.doAttackTurn(map, index);
         }
     }
 
@@ -162,13 +183,13 @@ class Monster {
         }
     }
 
-    doAttackTurn(map, index) {
+    async doAttackTurn(map, index) {
         if(this.mobility === MobileAttackType.BthenA && index === 1) {
             // find closest target
             const allTargets = map.getEnemiesInRange(this.tile, 4, this.player);
             const closestTarget = allTargets.sort((a, b) => Map.dist(a.tile, b.tile))[0];
             if(closestTarget && Map.dist(closestTarget.tile, this.tile) <= this.reach){
-                this.attack(closestTarget);
+                await this.attack(closestTarget);
             }
             return true;
         }

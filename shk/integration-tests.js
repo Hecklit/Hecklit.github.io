@@ -122,7 +122,7 @@ addEventListener('load', async function () {
         game.startRound();
         const p2Unit = await game.buyUnit('F', 2);
         p2Unit.moveIdx(2, 0);
-        const result = p2Unit.attack(p1Unit);
+        const result = await p2Unit.attack(p1Unit);
 
         assertEquals(typeof result[p1Unit.player.id], 'number');
         assertEquals(typeof result[p2Unit.player.id], 'number');
@@ -146,15 +146,15 @@ addEventListener('load', async function () {
         game.startRound();
         const p2Unit = await game.buyUnit('F', 2);
         p2Unit.moveIdx(2, 0);
-        const result1 = p2Unit.attack(p1Unit);
-        const result2 = p2Unit.attack(p1Unit);
+        const result1 = await p2Unit.attack(p1Unit);
+        const result2 = await p2Unit.attack(p1Unit);
         game.startRound();
         game.startRound();
-        const result3 = p2Unit.attack(p1Unit);
+        const result3 = await p2Unit.attack(p1Unit);
 
         assertEquals(typeof result1[p1Unit.player.id], 'number');
         assertEquals(typeof result1[p2Unit.player.id], 'number');
-        assertEquals(result2, 0);
+        assertEquals(result2.length, 0);
         assertEquals(typeof result3[p1Unit.player.id], 'number');
         assertEquals(typeof result3[p2Unit.player.id], 'number');
 
@@ -178,7 +178,7 @@ addEventListener('load', async function () {
         p2Unit.moveIdx(2, 0);
         game.startRound();
         game.phase = 8;
-        const result1 = p1Unit.attack(p2Unit);
+        const result1 = await p1Unit.attack(p2Unit);
 
         assertEquals(typeof result1[p1Unit.player.id], 'number');
         assertEquals(typeof result1[p2Unit.player.id], 'number');
@@ -317,10 +317,9 @@ addEventListener('load', async function () {
         assertEquals(cP.gold, 10);
     })();
 
-    await Fightvis.demo();
+    // await Fightvis.demo();
 
 
     await onTestsDone();
-
 
 });

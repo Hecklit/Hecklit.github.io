@@ -30,7 +30,6 @@ class FightvisUnit {
         if (!this.target) {
             return;
         }
-        console.log("throwDiceAtTarget", this.target);
         this.dice.color = this.color;
         this.throwDice(-2, 0, 20);
     }

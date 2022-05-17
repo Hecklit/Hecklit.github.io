@@ -38,6 +38,9 @@ class Player {
     }
 
     onEnemiesKilled(enemyUnit, numKilled){
+        if(!this.hero) {
+            return;
+        }
         const heroWasInReach = (this.hero.alive && Map.dist(this.hero.tile, enemyUnit.tile) <= this.hero.mov);
         if(heroWasInReach){
 

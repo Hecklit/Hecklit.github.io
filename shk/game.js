@@ -267,8 +267,8 @@ class Game {
         let allDone = false;
 
         while (!allDone) {
-            allDone = this.monsters.units.reduce((acc, cur) => {
-                acc &= cur.takeTurn(this.map, i, i % 2 === 0);
+            allDone = await this.monsters.units.reduce(async (acc, cur) => {
+                acc &= await cur.takeTurn(this.map, i, i % 2 === 0);
                 return acc;
             }, true);
             i++;
@@ -283,17 +283,17 @@ class Game {
         this.removeDeadUnits();
     }
 
-    onClickPxl(x, y) {
+    async onClickPxl(x, y) {
         const tile = this.map.getTileAtPx(x, y);
-        this.onClick(tile);
+        await this.onClick(tile);
     }
 
-    onClickIdx(x, y) {
+    async onClickIdx(x, y) {
         const tile = this.map.tiles[x][y];
-        this.onClick(tile);
+        await this.onClick(tile);
     }
 
-    onClick(tile) {
+    async onClick(tile) {
         if (![2, 5, 6, 8, 10].includes(this.phase) || this.winner) {
             return false;
         }
@@ -350,7 +350,7 @@ class Game {
                 const unitOfEnemy = fights.filter(f => f.tile === tile)[0];
                 const unitOfPlayer = tile.getUnitOf(curP);
                 if (unitOfEnemy) {
-                    curP.activeUnit?.attack(unitOfEnemy);
+                    await curP.activeUnit?.attack(unitOfEnemy, false, true);
                     this.removeDeadUnits();
                 } else if (unitOfPlayer) {
                     curP.activeUnit = unitOfPlayer;

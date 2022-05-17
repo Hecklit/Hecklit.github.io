@@ -123,55 +123,65 @@ class Hero {
         return this.attacksThisTurn >= this.numAttacks;
     }
 
-    attack(enemyUnit, revenge = false) {
-        if(this.cantAttackAnymore()) {
-            return 0;
+    async attack(enemyUnit, revenge = false, viz = false) {
+        if (this.cantAttackAnymore()) {
+            return [];
         }
 
         console.log("Start attack! revenge:", revenge, this.player.id, enemyUnit.player.id);
         // check if its in range
         const distance = Map.dist(this.tile, enemyUnit.tile);
         if (this.reach < distance) {
-            return 0;
+            return [];
         }
 
         // has to attack unit on same field if not alone
         if (this.reach > 0 && this.tile.units.length > 1 && this.tile !== enemyUnit.tile) {
-            return 0;
+            return [];
         }
 
         // we are in range
         this.attacksThisTurn += 1;
-        let hits = 0;
+        let rolls = [];
         const prevNum = enemyUnit.num;
         for (let i = 0; i < this.num; i++) {
             const diceRoll = Game.throwDice();
             const successBelow = this.dmg - enemyUnit.def + 1;
             if (diceRoll < successBelow) {
-                hits++;
                 enemyUnit.takeDmg(1);
             }
+            rolls.push({
+                n: diceRoll,
+                h: diceRoll < successBelow,
+            });
         }
         const numEnemiesDied = prevNum - enemyUnit.num;
         if (numEnemiesDied > 0) {
             this.player.onEnemiesKilled(enemyUnit, numEnemiesDied);
-            if(enemyUnit.gold){
+            if (enemyUnit.gold) {
                 this.player.gold += enemyUnit.gold * numEnemiesDied;
             }
         }
 
         // revenge?
-        let enemyHits = 0;
-        if(!revenge && enemyUnit.alive && enemyUnit.revenge) {
-            enemyHits = enemyUnit.attack(this, true);
+        let enemyHits = [];
+        if (!revenge && enemyUnit.alive && enemyUnit.revenge) {
+            enemyHits = await enemyUnit.attack(this, true);
         }
 
-        if(revenge) {
-            return hits;
+        if (revenge) {
+            return rolls;
         } else {
+
+            if (viz) {
+
+                // play viz
+                await Fightvis.playViz(this, enemyUnit, prevNum, rolls, enemyHits);
+            }
+
             return {
-                [this.player.id]: hits,
-                [enemyUnit.player.id]: enemyHits
+                [this.player.id]: rolls.filter(r => r.h).length,
+                [enemyUnit.player.id]: enemyHits?.filter(r => r.h).length
             }
         }
 

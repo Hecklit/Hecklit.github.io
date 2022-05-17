@@ -105,6 +105,30 @@ class Fightvis {
         }
     }
 
+    static async playViz(au, du, prevNum, arolls, drolls) {
+        const vis = Fightvis.instance;
+        const apl = au.player;
+        const dpl = du.player;
+        vis.startFightVis([
+            {
+                playerId: apl.id,
+                color: apl.color,
+                type: au.type,
+                numBefore: prevNum,
+                numAfter: arolls.length,
+                rolls: arolls
+            }, {
+                playerId: dpl.id,
+                color: dpl.color,
+                type: du.type,
+                numBefore: prevNum,
+                numAfter: drolls.length,
+                rolls: drolls
+            }
+        ], 0, du.revenge);
+        await vis.play();
+    }
+
     static async demo(au = 13, eu = 7) {
         console.log("testKnightsCanAnnexGoldmine");
         const vis = Fightvis.instance;
