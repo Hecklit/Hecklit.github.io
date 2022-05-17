@@ -1,13 +1,8 @@
 class Tile {
 
-    constructor(x, y, l, xi, yi, map) {
+    constructor(xi, yi, map) {
         this.units = [];
         this.id = IdGen.get();
-        this.x = x;
-        this.y = y;
-        this.l = l;
-        this.cx = x + l / 2;
-        this.cy = y + l / 2;
         this.xi = xi;
         this.yi = yi;
         this.color = "gray";
@@ -15,6 +10,26 @@ class Tile {
         this.map = map;
         this.isMonsterDen = false;
         this.goldmine = null;
+    }
+
+    get cx() {
+        return this.x + Map.tileSize / 2;
+    }
+
+    get cy() {
+        return this.y + Map.tileSize / 2;
+    }
+
+    get x(){
+        return this.xi * Map.tileSize;
+    }
+
+    get y(){
+        return this.yi * Map.tileSize;
+    }
+
+    get l(){
+        return Map.tileSize;
     }
 
     makeMonsterDen(monsterConfig) {

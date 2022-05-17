@@ -6,6 +6,8 @@ class Map {
         this.height = 0;
     }
 
+    static tileSize = 60;
+
     static dist(a, b) {
         if (!a || !b) {
             return Infinity;
@@ -77,6 +79,11 @@ class Map {
 
     }
 
+    setRenderWidth(width) {
+        const numX = this.tiles.length;
+        Map.tileSize = Math.floor(width/numX);
+    }
+
 
     configureEmptyMap() {
         const ex = this.tiles.length - 1;
@@ -106,15 +113,14 @@ class Map {
         this.tiles[7][2].goldmine = new Goldmine(this.tiles[7][2],5);
     }
 
-    generateSquareMap(width, height, tileSize, mapType, monsterPlayer) {
+    generateSquareMap(width, height, mapType, monsterPlayer) {
         this.width = width;
         this.height = height;
 
         for (let x = 0; x < width; x++) {
             this.tiles.push([]);
             for (let y = 0; y < height; y++) {
-                const tile = new Tile(x * tileSize, y * tileSize,
-                    tileSize, x, y, this);
+                const tile = new Tile(x, y, this);
                 this.tiles[x].push(tile);
             }
         }
@@ -154,7 +160,6 @@ class Map {
             this.tiles[x][y].draw();
         });
     }
-
 
     getPossibleFightsPerPlayer(pl) {
         return pl.units.reduce((acc, cur) => {

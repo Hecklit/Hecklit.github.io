@@ -74,7 +74,6 @@ addEventListener('load', async function () {
         game.startRound();
         game.phase = 5;
         unit.moveIdx(0, -1); // now it should work
-        game.draw();
         assertEquals(startTile.xi - 2, unit.tile.xi);
         assertEquals(startTile.yi - 1, unit.tile.yi);
     })();
@@ -123,7 +122,6 @@ addEventListener('load', async function () {
         const p2Unit = await game.buyUnit('F', 2);
         p2Unit.moveIdx(2, 0);
         const result = p2Unit.attack(p1Unit);
-        game.draw();
 
         assertEquals(typeof result[p1Unit.player.id], 'number');
         assertEquals(typeof result[p2Unit.player.id], 'number');
@@ -152,7 +150,6 @@ addEventListener('load', async function () {
         game.startRound();
         game.startRound();
         const result3 = p2Unit.attack(p1Unit);
-        game.draw();
 
         assertEquals(typeof result1[p1Unit.player.id], 'number');
         assertEquals(typeof result1[p2Unit.player.id], 'number');
@@ -180,7 +177,6 @@ addEventListener('load', async function () {
         p2Unit.moveIdx(2, 0);
         game.startRound();
         game.phase = 8;
-        game.draw();
         const result1 = p1Unit.attack(p2Unit);
 
         assertEquals(typeof result1[p1Unit.player.id], 'number');
@@ -197,7 +193,6 @@ addEventListener('load', async function () {
         const leftTile = game.map.getTile(2, 2);
         markTile(tile);
         markTile(leftTile);
-        game.draw();
 
         let lerpTile = game.map.lerp(tile, leftTile, 1);
         assertEquals(lerpTile.xi, tile.xi-1);
@@ -213,7 +208,6 @@ addEventListener('load', async function () {
         assertEquals(lerpTile.yi, leftTopTile.yi + 1);
 
         markTile(lerpTile);
-        game.draw();
 
     })();
 
@@ -226,14 +220,12 @@ addEventListener('load', async function () {
         game.startRound();
         const p1Unit = await game.buyUnit('B', 1);
 
-        game.draw();
 
         assertEquals(monster.tile.xi, tile.xi + 2);
         assertEquals(monster.tile.yi, tile.yi);
 
         game.startRound();
         await game.monsterTurn();
-        game.draw();
         assertEquals(p1Unit.tile.xi, monster.tile.xi);
         assertEquals(p1Unit.tile.yi, monster.tile.yi);
     })();
@@ -251,11 +243,9 @@ addEventListener('load', async function () {
         game.startRound();
         await game.buyUnit('B', 1);
 
-        game.draw();
 
         game.startRound();
         await game.monsterTurn();
-        game.draw();
         let testRender = false;
         if(testRender){
             assertEquals(1, 2);
@@ -290,7 +280,6 @@ addEventListener('load', async function () {
 
         assertEquals(p1Unit.tile.goldmine.player.id, cP.id);
         assertEquals(p1Unit.tile.goldmine.player.gold, 52);
-        game.draw();
     })();
 
 
@@ -324,7 +313,6 @@ addEventListener('load', async function () {
         game.startRound();
         game.startRound();
 
-        game.draw();
         assertEquals(p1Unit.tile.goldmine.player, null);
         assertEquals(cP.gold, 10);
     })();

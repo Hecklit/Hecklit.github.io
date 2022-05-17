@@ -5,6 +5,7 @@
 body {
     font-size: 30px;
     background: lightgray;
+    margin: 0;
 }
 
 button{
@@ -18,7 +19,20 @@ input[type="number"] {
     text-align: right;
 }
 
+canvas {
+    /*border: 1px solid red;*/
+    align-self: flex-start;
+}
+
 #errorMessage {
     color: red;
     font-size: 26px;
+}
+
+.container {
+    display: flex;
+}
+
+.controls {
+    padding-left: 1rem;
 }

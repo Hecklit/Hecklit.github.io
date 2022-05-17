@@ -55,7 +55,7 @@ class Game {
         this.withMonsters = withMonsters;
         this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen") : null;
         this.map = new Map();
-        this.map.generateSquareMap(15, 4, 70, this.mapType, this.monsters);
+        this.map.generateSquareMap(15, 4, this.mapType, this.monsters);
         this.players = [];
         this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]), "red", 1, this.onHeroDeath));
         this.players.push(new Player("Jakob", this.map.getTiles([[14, 2], [14, 3], [13, 2], [13, 3]]), "blue", 1, this.onHeroDeath));
@@ -184,6 +184,7 @@ class Game {
 
     draw() {
         if (this.winner) {
+
             if(this.gameOverScreenDrawn){
                 return;
             }
@@ -256,7 +257,6 @@ class Game {
             ctx.fillStyle = "green";
             circle(this.debugMarker[0] - size, this.debugMarker[1] - size, size);
         }
-
     }
 
     async monsterTurn(sleepMillis) {

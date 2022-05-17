@@ -6,8 +6,17 @@ async function onTestsDone() {
     let canvas = document.getElementById("can");
     canvas.width = 1200;
     canvas.height = 360;
+    const ratio = canvas.height / canvas.width;
     ctx = canvas.getContext("2d");
     ctx.textAlign = 'center';
+
+    function resize(width) {
+        width = Math.max(width, 880);
+        ctx.canvas.width = width * 0.75;
+        ctx.canvas.height =  width * ratio;
+        game.map.setRenderWidth(ctx.canvas.width);
+        game.draw();
+    }
 
     const heroRevivals = 2;
     const game = new Game(
@@ -93,7 +102,10 @@ async function onTestsDone() {
     console.log("curPi", curPi);
     game.init(true, curPi);
     game.startRound();
-    game.draw();
+
+    // initial resize
+    console.log("ratio", ratio);
+    resize(window.visualViewport.width);
 
     demo.addEventListener('click', async function () {
         const speed = 10;
@@ -167,7 +179,10 @@ async function onTestsDone() {
             game.draw();
             await sleep(sleepBetweenPhases);
         }
+
     });
 
-
+    window.visualViewport.addEventListener('resize', (e) => {
+        resize(e.target.width);
+    });
 }
