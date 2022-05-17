@@ -1,7 +1,3 @@
-function sleep(t) {
-    return new Promise(resolve => setTimeout(resolve, t));
-}
-
 async function onTestsDone() {
     let canvas = document.getElementById("can");
     canvas.width = 1200;

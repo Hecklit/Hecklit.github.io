@@ -49,3 +49,25 @@ function arrow(fx, fy, tx, ty, color ="black") {
     ctx.stroke();
     ctx.strokeStyle = tmp;
 }
+
+function sleep(t) {
+    return new Promise(resolve => setTimeout(resolve, t));
+}
+
+function range(end, start= null){
+        const res = [];
+    if(!start) {
+        for (let i = 0; i < end; i++) {
+            res.push(i);
+        }
+    }else {
+        for (let i = start; i < end; i++) {
+            res.push(i);
+        }
+    }
+    return res;
+}
+
+function spread(center, deviation) {
+    return center + Math.random() * deviation - deviation/2;
+}
