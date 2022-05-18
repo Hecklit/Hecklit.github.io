@@ -38,30 +38,9 @@ class Tile {
         this.monsterDenWasTriggered = false;
     }
 
-    triggerMonsterDen(monsterPlayer) {
+    triggerMonsterDen(monsterPlayer, game) {
         this.monsterDenWasTriggered = true;
-        Monster.spawnMonster(this.monsterConfig, this, monsterPlayer);
-    }
-
-    draw() {
-        ctx.fillStyle = this.color;
-
-        ctx.fillRect(this.x, this.y, this.l, this.l);
-        ctx.rect(this.x, this.y, this.l, this.l);
-        ctx.stroke();
-
-        if (this.goldmine && this.goldmine.player) {
-            ctx.fillStyle = this.goldmine.player.color;
-            ctx.fillRect(this.x, this.y, this.l * 0.2, this.l * 0.2);
-        }
-        if (this.goldmine && this.goldmine.annexProcessStarted) {
-            ctx.fillStyle = "green";
-            ctx.fillRect(this.x, this.y, this.l * 0.2, this.l * 0.2);
-        }
-        ctx.textAlign = 'center';
-        ctx.fillStyle = "black";
-        ctx.font = '30px serif';
-        ctx.fillText(this.text, this.x + this.l / 2, this.y + this.l / 1.5);
+        Monster.spawnMonster(this.monsterConfig, this, monsterPlayer, game);
     }
 
     getNeighbour(dix, diy) {
@@ -90,14 +69,6 @@ class Tile {
         if (this.hasPlayerOnIt(pl)) {
             return this.units.filter(u => u.player.id === pl.id)[0];
         }
-    }
-
-
-    drawOverlay(color) {
-        const tmp = this.color;
-        this.color = color;
-        this.draw();
-        this.color = tmp;
     }
 
     config(color, text) {

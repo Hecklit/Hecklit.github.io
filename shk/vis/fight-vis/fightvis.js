@@ -1,4 +1,5 @@
 class Fightvis {
+    e;
 
     constructor() {
         this.running = false;
@@ -10,16 +11,20 @@ class Fightvis {
 
     static instance = new Fightvis();
 
+    static configureDrawEngine(drawEngine) {
+        Fightvis.instance.e = drawEngine;
+    }
+
     startFightVis(fightData, attackerIdx, revenge) {
         const maxUnitSize = Math.max(fightData[0].numBefore, fightData[1].numBefore);
-        Fightvis.unitSize = Math.min(1*ctx.canvas.width / maxUnitSize, 50);
+        Fightvis.unitSize = Math.min(this.e.ctx.canvas.width / maxUnitSize, 50);
 
         this.attackerIdx = attackerIdx;
         this.revenge = revenge;
         this.fightData = fightData;
         this.running = true;
-        const width = ctx.canvas.width;
-        const height = ctx.canvas.height;
+        const width = this.e.ctx.canvas.width;
+        const height = this.e.ctx.canvas.height;
         const leftX = width * 0.1;
         const dBetween = width - 4 * leftX;
         const startY = height/6;
@@ -39,7 +44,6 @@ class Fightvis {
         )));
 
         this.assignTargets(this.attackerIdx);
-        // this.shufflePositions();
     }
 
     removeDeadUnits() {
@@ -64,8 +68,8 @@ class Fightvis {
     }
 
     clear() {
-        ctx.fillStyle = "gray";
-        ctx.fillRect(0, 0, 10000, 10000);
+        this.e.ctx.fillStyle = "gray";
+        this.e.ctx.fillRect(0, 0, 10000, 10000);
     }
 
     async throwDiceForUnits(units) {
@@ -106,6 +110,9 @@ class Fightvis {
     }
 
     static async playViz(au, du, prevNum, arolls, drolls) {
+        if(Fightvis.instance.disabled) {
+            return
+        }
         const vis = Fightvis.instance;
         const apl = au.player;
         const dpl = du.player;
@@ -139,7 +146,7 @@ class Fightvis {
                 type: "F",
                 numBefore: au,
                 numAfter: 4,
-                rolls: range(au).map(i => {
+                rolls: range(au).map(() => {
                     const n = range(7, 1).sample();
                     return {n, h: n > 4};
                 })
@@ -149,7 +156,7 @@ class Fightvis {
                 type: "K",
                 numBefore: eu,
                 numAfter: 2,
-                rolls: range(eu).map(i => {
+                rolls: range(eu).map(() => {
                     const n = range(7, 1).sample();
                     return {n, h: n > 3};
                 }),

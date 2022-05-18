@@ -1,11 +1,5 @@
 addEventListener('load', async function () {
 
-    let canvas = document.getElementById("can");
-    canvas.width = 1200;
-    canvas.height = 350;
-    ctx = canvas.getContext("2d");
-    ctx.textAlign = 'center';
-
     function getDefaultGame(mapType = MapType.FixMini) {
         return new Game(
             5,
@@ -23,7 +17,7 @@ addEventListener('load', async function () {
             false,
             [],
             mapType,
-            Game.defaultConfig(),
+            Config.unitConfig,
         );
     }
 
@@ -37,13 +31,13 @@ addEventListener('load', async function () {
 
 
     console.log("Running tests:");
-    await (async () => {
+    (() => {
         console.log("testPlayerCanBuyAndMoveUnit");
         const game = getDefaultGame();
         game.init(false);
         game.startRound();
-        await game.buyUnit('F', 2);
-        const cP = game.getCurrentPlayer();
+        game.buyUnit('F', 2);
+        const cP = game.curP;
         const baseTile = cP.baseTiles[0];
         const xi = baseTile.xi - 1;
         const yi = baseTile.yi;
@@ -56,12 +50,12 @@ addEventListener('load', async function () {
         assertEquals(targetTile.units[0].player.gold, 1);
     })();
 
-    await (async () => {
+    (() => {
         console.log("testUnitsCanOnlyMoveTheirMovPerTurn");
         const game = getDefaultGame();
         game.init(false);
         game.startRound();
-        const unit = await game.buyUnit('F', 2);
+        const unit = game.buyUnit('F', 2);
         const startTile = unit.tile;
         unit.moveIdx(-1, 0);
         unit.moveIdx(-1, 0);
@@ -79,39 +73,39 @@ addEventListener('load', async function () {
         assertEquals(startTile.yi - 1, unit.tile.yi);
     })();
 
-    await (async () => {
+    (() => {
         console.log("testPlayerNeedsGoldToBuyUnits");
         const game = getDefaultGame();
         game.init(false);
         game.startRound();
-        await game.buyUnit('K', 3);
-        const cP = game.getCurrentPlayer();
+        game.buyUnit('K', 3);
+        const cP = game.curP;
 
         assertEquals(cP.units.length, 1); // because of hero
     })();
 
 
-    await (async () => {
+    (() => {
         console.log("testPlayerNeedsSpaceInHomeBaseToBuyUnits");
         const game = getDefaultGame();
         game.init(false);
 
         for (let i = 0; i < 9; i++) {
             game.startRound();
-            await game.buyUnit('F', 2);
+            game.buyUnit('F', 2);
         }
-        const cP = game.getCurrentPlayer();
+        const cP = game.curP;
 
         assertEquals(cP.units.length, 4); // one is taken by hero
     })();
 
 
-    await (async () => {
+    (() => {
         console.log("testPlayerCanAttackOtherUnitsInMelee");
         const game = getDefaultGame();
         game.init(false);
         game.startRound();
-        const p1Unit = await game.buyUnit('K', 1);
+        const p1Unit = game.buyUnit('K', 1);
         for (let i = 0; i < 3; i++) {
             p1Unit.moveIdx(-3, 0);
             game.startRound();
@@ -120,9 +114,9 @@ addEventListener('load', async function () {
         p1Unit.moveIdx(-3, 0);
 
         game.startRound();
-        const p2Unit = await game.buyUnit('F', 2);
+        const p2Unit = game.buyUnit('F', 2);
         p2Unit.moveIdx(2, 0);
-        const result = await p2Unit.attack(p1Unit);
+        const result = game.fight(p2Unit, p1Unit);
 
         assertEquals(typeof result[p1Unit.player.id], 'number');
         assertEquals(typeof result[p2Unit.player.id], 'number');
@@ -130,12 +124,12 @@ addEventListener('load', async function () {
     })();
 
 
-    await (async () => {
+    (() => {
         console.log("testPlayerCanAttackOtherUnitsInMeleeOnlyOncePerTurn");
         const game = getDefaultGame();
         game.init(false);
         game.startRound();
-        const p1Unit = await game.buyUnit('K', 1);
+        const p1Unit = game.buyUnit('K', 1);
         for (let i = 0; i < 3; i++) {
             p1Unit.moveIdx(-3, 0);
             game.startRound();
@@ -144,28 +138,29 @@ addEventListener('load', async function () {
         p1Unit.moveIdx(-3, 0);
 
         game.startRound();
-        const p2Unit = await game.buyUnit('F', 2);
+        const p2Unit = game.buyUnit('F', 2);
         p2Unit.moveIdx(2, 0);
-        const result1 = await p2Unit.attack(p1Unit);
-        const result2 = await p2Unit.attack(p1Unit);
+        const result1 = game.fight(p2Unit, p1Unit);
+        const result2 = game.fight(p2Unit, p1Unit);
         game.startRound();
         game.startRound();
-        const result3 = await p2Unit.attack(p1Unit);
+        const result3 = game.fight(p2Unit, p1Unit);
 
         assertEquals(typeof result1[p1Unit.player.id], 'number');
         assertEquals(typeof result1[p2Unit.player.id], 'number');
-        assertEquals(result2.length, 0);
+        assertEquals(result2[p1Unit.player.id], 0);
+        assertEquals(result2[p2Unit.player.id], 0);
         assertEquals(typeof result3[p1Unit.player.id], 'number');
         assertEquals(typeof result3[p2Unit.player.id], 'number');
 
     })();
 
-    await (async () => {
+    (() => {
         console.log("testUnitsCanShootEachOtherFromDistance");
         const game = getDefaultGame();
         game.init(false);
         game.startRound();
-        const p1Unit = await game.buyUnit('B', 1);
+        const p1Unit = game.buyUnit('B', 1);
         for (let i = 0; i < 3; i++) {
             p1Unit.moveIdx(-2, 0);
             game.startRound();
@@ -174,19 +169,19 @@ addEventListener('load', async function () {
         p1Unit.moveIdx(-2, 0);
 
         game.startRound();
-        const p2Unit = await game.buyUnit('F', 2);
+        const p2Unit = game.buyUnit('F', 2);
         p2Unit.moveIdx(2, 0);
         game.startRound();
         game.phase = 8;
-        const result1 = await p1Unit.attack(p2Unit);
+        const result1 = game.fight(p1Unit, p2Unit);
 
         assertEquals(typeof result1[p1Unit.player.id], 'number');
         assertEquals(typeof result1[p2Unit.player.id], 'number');
 
     })();
 
-    await (async () => {
-        const markTile = (tile) => Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters);
+    (() => {
+        const markTile = (tile) => Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         console.log("testMapLerpWorksAsExpected");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
@@ -212,55 +207,55 @@ addEventListener('load', async function () {
 
     })();
 
-    await (async () => {
+    (() => {
         console.log("testEasyGoblinsMoveAndAttackBasedOnTheirRules");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         const tile = game.map.getTile(10, 3);
-        const monster = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters);
+        const monster = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         game.startRound();
-        const p1Unit = await game.buyUnit('B', 1);
+        const p1Unit = game.buyUnit('B', 1);
 
 
         assertEquals(monster.tile.xi, tile.xi + 2);
         assertEquals(monster.tile.yi, tile.yi);
 
         game.startRound();
-        await game.monsterTurn();
+        game.monsterTurn();
         assertEquals(p1Unit.tile.xi, monster.tile.xi);
         assertEquals(p1Unit.tile.yi, monster.tile.yi);
     })();
 
 
-    await (async () => {
+    (() => {
         console.log("testMonstersAreRenderedOnCorrectSide");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         const tile = game.map.getTile(2, 2);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters);
+        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         const tile2 = game.map.getTile(10, 3);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile2, game.monsters);
+        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile2, game.monsters, game);
         game.startRound();
-        await game.buyUnit('B', 1);
+        game.buyUnit('B', 1);
 
 
         game.startRound();
-        await game.monsterTurn();
+        game.monsterTurn();
         let testRender = false;
         if (testRender) {
             assertEquals(1, 2);
         }
     })();
 
-    await (async () => {
+    (() => {
         console.log("testKnightsCanAnnexGoldmine");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         game.startRound();
-        const cP = game.getCurrentPlayer();
+        const cP = game.curP;
         cP.gold += 5;
         cP.activeBaseTile = cP.getFreeBaseTiles()[1];
-        const p1Unit = await game.buyUnit('K', 2);
+        const p1Unit = game.buyUnit('K', 2);
         p1Unit.moveIdx(-2, -1);
         p1Unit.tile.goldmine = new Goldmine(p1Unit.tile, 42);
         p1Unit.takeDmg(1);
@@ -283,15 +278,15 @@ addEventListener('load', async function () {
     })();
 
 
-    await (async () => {
+    (() => {
         console.log("testKnightsCanAnnexGoldmine");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         game.startRound();
-        const cP = game.getCurrentPlayer();
+        const cP = game.curP;
         cP.gold += 5;
         cP.activeBaseTile = cP.getFreeBaseTiles()[1];
-        const p1Unit = await game.buyUnit('K', 2);
+        const p1Unit = game.buyUnit('K', 2);
         p1Unit.moveIdx(-2, -1);
         p1Unit.tile.goldmine = new Goldmine(p1Unit.tile, 42);
         p1Unit.takeDmg(1);
@@ -305,8 +300,8 @@ addEventListener('load', async function () {
         // annex has started
         assertEquals(p1Unit.tile.goldmine.player, null);
         game.startRound();
-        game.getCurrentPlayer().activeBaseTile = game.getCurrentPlayer().getFreeBaseTiles()[1];
-        const p2Unit = await game.buyUnit('K', 1);
+        game.curP.activeBaseTile = game.curP.getFreeBaseTiles()[1];
+        const p2Unit = game.buyUnit('K', 1);
         p2Unit.mov = 20;
         p2Unit.moveIdx(10, -1);
         game.startRound();
@@ -318,8 +313,6 @@ addEventListener('load', async function () {
     })();
 
     // await Fightvis.demo();
-
-
     await onTestsDone();
 
 });
