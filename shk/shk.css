@@ -5,11 +5,11 @@
 body {
     font-size: 30px;
     background: lightgray;
-    margin: 0;
+
 }
 
 button{
-    min-width: 300px;
+    min-width: 275px;
     font-size: 40px;
 }
 
@@ -20,7 +20,6 @@ input[type="number"] {
 }
 
 canvas {
-    /*border: 1px solid red;*/
     align-self: flex-start;
 }
 

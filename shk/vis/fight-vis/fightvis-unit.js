@@ -46,7 +46,6 @@ class FightvisUnit {
             return;
         }
 
-        const gravity = 1;
         this.dice.x += this.dice.dx * mills;
         this.dice.y += this.dice.dy * mills;
 
@@ -102,18 +101,18 @@ class FightvisUnit {
 
     draw() {
         if (this.alive) {
-            ctx.fillStyle = this.color;
-            circle(this.cx, this.cy, this.l / 2, true);
-            text(this.type, this.cx, this.cy + this.l / 4, this.l * 0.9, "white");
+            Fightvis.instance.e.ctx.fillStyle = this.color;
+            Fightvis.instance.e.circle(this.cx, this.cy, this.l / 2, true);
+            Fightvis.instance.e.text(this.type, this.cx, this.cy + this.l / 4, this.l * 0.9, "white");
         }
 
         // dice
         if (this.dice.alive) {
 
-            ctx.fillStyle = this.color;
+            Fightvis.instance.e.ctx.fillStyle = this.color;
             const circleRadius = this.l * 0.25;
-            // ctx.fillRect(this.dice.x, this.dice.y, circleRadius , circleRadius);
-            text(this.dice.number, this.dice.x, this.dice.y + circleRadius /1.4, this.l * 0.5, this.dice.color);
+            // Fightvis.instance.e.ctx.fillRect(this.dice.x, this.dice.y, circleRadius , circleRadius);
+            Fightvis.instance.e.text(this.dice.number, this.dice.x, this.dice.y + circleRadius /1.4, this.l * 0.5, this.dice.color);
         }
 
     }

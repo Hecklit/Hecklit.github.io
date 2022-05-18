@@ -155,12 +155,6 @@ class Map {
         }, []);
     }
 
-    draw() {
-        this.forEach2D((x, y) => {
-            this.tiles[x][y].draw();
-        });
-    }
-
     getPossibleFightsPerPlayer(pl) {
         return pl.units.reduce((acc, cur) => {
             return acc.concat(this.getPossibleFightsPerUnit(cur));
@@ -246,23 +240,4 @@ class Map {
         }
     }
 
-    drawOverlay(curUnit, attackOnly) {
-        if (!curUnit) {
-            return;
-        }
-
-        if (!attackOnly) {
-            const inReach = this.getPossibleMovementPerUnit(curUnit);
-            inReach.forEach(ir => ir.drawOverlay("rgba(0, 255, 0, 0.3)"));
-        }
-
-        if (attackOnly) {
-            const pfs = this.getPossibleFightsPerUnit(curUnit).map(pf => pf.tile);
-            pfs.forEach(ir => ir.drawOverlay("rgba(255, 0, 0, 0.3)"));
-            if (curUnit.reach > 0) {
-                pfs.forEach(ir => arrow(curUnit.tile.cx, curUnit.tile.cy, ir.cx, ir.cy, curUnit.player.color));
-            }
-        }
-
-    }
 }
