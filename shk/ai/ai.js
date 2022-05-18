@@ -2,7 +2,7 @@ class Ai {
 
     async playDemo(game) {
         Fightvis.instance.disabled = true;
-        const speed = 10;
+        const speed = 6;
         const sleepBetweenPhases = 500 / speed;
         const sleepAttack = 750 / speed;
         const sleepMovement = 750 / speed;
@@ -33,9 +33,9 @@ class Ai {
                 }
                 const target = game.map.getPossibleMovementPerUnit(unit).sample();
                 if (target) {
-                    await game.onClick(unit.tile);
+                    game.onClick(unit.tile);
                     await sleep(sleepMovement)
-                    await game.onClick(target);
+                    game.onClick(target);
                     await sleep(sleepMovement)
                 }
             }
@@ -54,9 +54,9 @@ class Ai {
             for (const unit of game.curP.units) {
                 const target = game.map.getPossibleFightsPerUnit(unit).sample();
                 if (target) {
-                    await game.onClick(unit.tile);
+                    game.onClick(unit.tile);
                     await sleep(sleepAttack)
-                    await game.onClick(target.tile);
+                    game.onClick(target.tile);
                     await sleep(sleepAttack)
                 }
             }

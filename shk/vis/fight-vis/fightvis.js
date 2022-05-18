@@ -35,7 +35,7 @@ class Fightvis {
             const y = Math.floor(idx/ rowLength);
             const x = idx% rowLength;
             return new FightvisUnit(
-                    fd.rolls[idx],
+                fd.rolls ? fd.rolls[idx] : null,
                 leftX + spread(x * Fightvis.unitSize * 1.25, 0) + plI * dBetween,
                 startY + spread(y * Fightvis.unitSize * 1.25, 0) , 1 - 2 * plI,
                     fd.color, fd.type
@@ -55,8 +55,9 @@ class Fightvis {
         let hitIdx = 0;
         const enemyIdx = (plIdx + 1) % 2;
         const enemyArray = this.units[enemyIdx].shuffle();
+        console.log(this.units, plIdx, this.units[plIdx])
         this.units[plIdx].forEach(u => {
-            if (u.roll.h) {
+            if (u.roll && u.roll.h) {
                 u.target = enemyArray[hitIdx % this.units[enemyIdx].length];
                 hitIdx++;
             }
@@ -116,6 +117,23 @@ class Fightvis {
         const vis = Fightvis.instance;
         const apl = au.player;
         const dpl = du.player;
+        console.log("StartFightVis", [
+            {
+                playerId: apl.id,
+                color: apl.color,
+                type: au.type,
+                numBefore: prevNum,
+                numAfter: arolls.length,
+                rolls: arolls
+            }, {
+                playerId: dpl.id,
+                color: dpl.color,
+                type: du.type,
+                numBefore: prevNum,
+                numAfter: drolls?.length,
+                rolls: drolls
+            }
+        ], 0, du.revenge)
         vis.startFightVis([
             {
                 playerId: apl.id,
@@ -129,7 +147,7 @@ class Fightvis {
                 color: dpl.color,
                 type: du.type,
                 numBefore: prevNum,
-                numAfter: drolls.length,
+                numAfter: drolls?.length,
                 rolls: drolls
             }
         ], 0, du.revenge);

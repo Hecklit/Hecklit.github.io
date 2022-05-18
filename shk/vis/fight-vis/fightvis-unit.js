@@ -78,6 +78,9 @@ class FightvisUnit {
     }
 
     update(mills = 1) {
+        if(!this.roll) {
+            return;
+        }
         const gravity = 1;
         this.dice.x += this.dice.dx * mills;
         this.dice.y += this.dice.dy * mills;

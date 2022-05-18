@@ -201,7 +201,6 @@ class Game {
                 const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
                 if (unitOfP) {
                     curP.activeUnit = unitOfP;
-                    console.log(curP.activeUnit)
                 } else {
                     curP.activeUnit.move(tile);
                 }

@@ -10,7 +10,6 @@ class Goldmine {
     }
 
     startOccupation(unit) {
-        console.log("STart OCcupations")
         if((unit.num > 1 || unit.type ==="H") && unit.tile.id === this.tile.id && this.tile.units.length === 1) {
             if(unit.type === "K") {
                 unit.totalHp = unit.num%unit.totalHp === 0 ? unit.totalHp -2 : unit.totalHp -1;
@@ -37,15 +36,12 @@ class Goldmine {
     }
 
     tickRound() {
-        console.log("Annex tick")
         if(this.tile.units.length > 1){
-            console.log("Annex cancelled")
             this.reset();
             return false;
         }
         this.roundsTillAnnexed--;
         if(this.roundsTillAnnexed <= 0) {
-            console.log("Annex Happened")
             // annex happened
             this.annexProcessStarted = false;
             this.annexerUnit.goldmine = undefined;

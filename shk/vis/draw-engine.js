@@ -29,7 +29,9 @@ class DrawEngine {
         }
 
         this.ctx.fillStyle = "lightgray";
-        this.ctx.fillRect(0, 0, 10000, 10000);
+        this.ctx.beginPath();
+        this.ctx.stroke();
+        this.ctx.clearRect(0, 0, 10000, 10000);
 
         this.drawMap(game.map);
         game.players.forEach(p => this.drawPlayer(p, game.phase, game.curP));
@@ -46,7 +48,6 @@ class DrawEngine {
         const curP = game.players[game.curPi];
         const curUnit = curP.activeUnit;
         if (game.phase === 2) {
-            console.log("(game.phase === 2, drawTileOverlay")
             this.drawTileOverlay(curP.activeBaseTile, "rgba(255, 255, 255, 0.5)");
         }
 
@@ -78,7 +79,6 @@ class DrawEngine {
                     game.unitRadioLabels[game.unitRadioLabels.length - 1].innerHTML = `H (${curP.turnsTillHeroRes} rounds)`
                     game.unitRadioButtons[game.unitRadioButtons.length - 1].disabled = true;
                 } else {
-                    console.log(game.unitRadioButtons[game.unitRadioButtons.length - 1]);
                     game.unitRadioLabels[game.unitRadioLabels.length - 1].innerHTML = `H (${curP.hero.cost} gold)`
                     game.unitRadioButtons[game.unitRadioButtons.length - 1].disabled = false;
                 }
