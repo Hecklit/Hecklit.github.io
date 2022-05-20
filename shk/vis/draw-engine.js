@@ -270,7 +270,7 @@ class DrawEngine {
     }
 
     drawMonsterPlayer(monsters, phase, curP) {
-        monsters.units.forEach((u) => {
+        monsters?.units.forEach((u) => {
             this.drawMonster(u, phase, curP);
         });
     }

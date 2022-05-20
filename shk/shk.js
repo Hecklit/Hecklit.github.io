@@ -42,6 +42,8 @@ async function onTestsDone() {
     });
     game.onStepFinish.subscribe(() => {
         console.log("onStepFinish");
+        errorMessage.innerHTML = "";
+        errorMessage.style.display = "none";
         drawEngine.draw(game);
     });
     game.onAttack.subscribe(async (attacker, defender, prevNum, rolls, enemyHits) => {

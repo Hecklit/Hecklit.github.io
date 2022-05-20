@@ -105,7 +105,15 @@ class Game {
         if (this.phase !== 2 || this.winner) {
             return false;
         }
+        // is troup limit reached?
         const curP = this.players[this.curPi];
+        const troupsOfSameType = curP.units.filter(u => u.type === ut);
+        const totalNumOfTroupsOfSameType =troupsOfSameType.reduce((acc, cur) => acc + cur.num ,0);
+        if(troupsOfSameType.length >= this.maxNumTroups[ut]
+            || totalNumOfTroupsOfSameType >= this.maxNumUnits[ut]) {
+            this.errorMessage = curP.id + " already reached the maximum for this unit type.";
+            return false;
+        }
         const freeBaseTiles = curP.getFreeBaseTiles();
         if (ut === 'None' || freeBaseTiles.length === 0) {
             this.phase = 3
@@ -253,6 +261,7 @@ class Game {
 
     takeNextStep() {
         console.log("onNext", this.phase);
+        let error = false;
         if (this.phase === 10) {
             this.onTurnFinish.emit();
             this.startRound();
@@ -277,9 +286,12 @@ class Game {
             const newUnit = this.buyUnit(getSelectedValue.value, numUnit.value);
             if (!newUnit) {
                 this.onError.emit(this.errorMessage);
+                error = true;
             }
         }
-        this.onStepFinish.emit();
+        if(!error) {
+            this.onStepFinish.emit();
+        }
     }
 
     fight(attacker, defender) {

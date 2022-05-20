@@ -1,4 +1,8 @@
 addEventListener('load', async function () {
+    const canvas = document.getElementById("can");
+    canvas.width = 1200;
+    canvas.height = 360;
+    const drawEngine = new DrawEngine(canvas);
 
     function getDefaultGame(mapType = MapType.FixMini) {
         return new Game(
@@ -88,6 +92,7 @@ addEventListener('load', async function () {
     (() => {
         console.log("testPlayerNeedsSpaceInHomeBaseToBuyUnits");
         const game = getDefaultGame();
+        game.maxNumTroups.F = 10;
         game.init(false);
 
         for (let i = 0; i < 9; i++) {
@@ -310,6 +315,40 @@ addEventListener('load', async function () {
 
         assertEquals(p1Unit.tile.goldmine.player, null);
         assertEquals(cP.gold, 10);
+    })();
+
+    (() => {
+        console.log("testTroupMaximumsAreEnforced");
+        const game = getDefaultGame(MapType.Empty);
+        game.init(false);
+        game.startRound();
+        const p1Unit = game.buyUnit('K', 1);
+        game.startRound();
+        game.startRound();
+        const p2Unit = game.buyUnit('K', 1);
+
+        assertEquals(p1Unit.type, "K");
+        assertEquals(p2Unit, false);
+    })();
+
+    (() => {
+        console.log("testUnitMaximumsAreEnforced");
+        const game = getDefaultGame(MapType.Empty);
+        game.maxNumTroups.B = 3;
+        game.init(false);
+        game.startRound();
+        game.curP.gold += 3 * 21;
+        const p1Unit = game.buyUnit('B', 10);
+        game.startRound();
+        game.startRound();
+        const p2Unit = game.buyUnit('B', 10);
+        game.startRound();
+        game.startRound();
+        const p3Unit = game.buyUnit('B', 1);
+
+        assertEquals(p1Unit.num, 10);
+        assertEquals(p2Unit.num, 10);
+        assertEquals(p3Unit, false);
     })();
 
     // await Fightvis.demo();
