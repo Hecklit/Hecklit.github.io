@@ -64,7 +64,29 @@ class Player {
         ,revenge
         ,mobility) {
         this.gold -= cost;
-        const newUnit = new Unit(this, this.activeBaseTile, t, n, cost
+        const newUnit = this.spawnUnit(this.activeBaseTile, t, n, cost
+            ,reach
+            ,mov
+            ,hp
+            ,numAttacks
+            ,dmg
+            ,def
+            ,revenge
+            ,mobility)
+        this.activeUnit = newUnit;
+        return newUnit;
+    }
+
+    spawnUnit(tile, t, n, cost
+        ,reach
+        ,mov
+        ,hp
+        ,numAttacks
+        ,dmg
+        ,def
+        ,revenge
+        ,mobility) {
+        const newUnit = new Unit(this, tile, t, n, cost
             ,reach
             ,mov
             ,hp
@@ -74,8 +96,8 @@ class Player {
             ,revenge
             ,mobility);
         this.units.push(newUnit);
-        this.activeUnit = newUnit;
         return newUnit;
     }
+
 
 }

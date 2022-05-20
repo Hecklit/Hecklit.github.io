@@ -108,8 +108,8 @@ class Game {
         // is troup limit reached?
         const curP = this.players[this.curPi];
         const troupsOfSameType = curP.units.filter(u => u.type === ut);
-        const totalNumOfTroupsOfSameType =troupsOfSameType.reduce((acc, cur) => acc + cur.num ,0);
-        if(troupsOfSameType.length >= this.maxNumTroups[ut]
+        const totalNumOfTroupsOfSameType = troupsOfSameType.reduce((acc, cur) => acc + cur.num, 0);
+        if (troupsOfSameType.length >= this.maxNumTroups[ut]
             || totalNumOfTroupsOfSameType >= this.maxNumUnits[ut]) {
             this.errorMessage = curP.id + " already reached the maximum for this unit type.";
             return false;
@@ -205,12 +205,12 @@ class Game {
                 if (curP.getFreeBaseTiles().filter(b => b.id === tile.id).length === 1) {
                     curP.activeBaseTile = tile;
                 }
-            }else if (this.phase === 5) {
+            } else if (this.phase === 5) {
                 const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
                 if (unitOfP) {
                     curP.activeUnit = unitOfP;
                 } else {
-                    curP.activeUnit.move(tile);
+                    this.move(curP.activeUnit, tile);
                 }
 
                 if (curP.units.filter(u => !u.cantMoveAnymore()).length === 0) {
@@ -224,7 +224,7 @@ class Game {
                         }
                     }
                 }
-            }else if  (this.phase === 6) {
+            } else if (this.phase === 6) {
                 const monsterDens = this.map.getTriggerableMonsterDen(curP);
                 if (monsterDens.filter(d => d.id === tile.id).length === 1) {
                     tile.triggerMonsterDen(this.monsters, this);
@@ -236,7 +236,7 @@ class Game {
                         this.startRound();
                     }
                 }
-            }else if (this.phase === 8) {
+            } else if (this.phase === 8) {
                 const fights = this.map.getPossibleFightsPerUnit(curP.activeUnit);
                 const unitOfEnemy = fights.filter(f => f.tile === tile)[0];
                 const unitOfPlayer = tile.getUnitOf(curP);
@@ -246,7 +246,7 @@ class Game {
                 } else if (unitOfPlayer) {
                     curP.activeUnit = unitOfPlayer;
                 }
-            }else if (this.phase === 10) {
+            } else if (this.phase === 10) {
                 const possibleGoldmines = this.map.getPossibleAnnexedGoldminesPerPlayer(curP);
                 console.log(possibleGoldmines);
                 if (possibleGoldmines.filter(g => g.id === tile.id).length === 1) {
@@ -289,10 +289,38 @@ class Game {
                 error = true;
             }
         }
-        if(!error) {
+        if (!error) {
             this.onStepFinish.emit();
         }
     }
+
+    move(unit, tile) {
+        const d = Map.dist(unit.tile, tile);
+        if (unit.mov >= d && unit.movedThisTurn + d <= unit.mov) {
+            if (unit.goldmine) {
+                unit.goldmine.reset();
+            }
+
+            unit.movedThisTurn += d;
+            unit.tile.units = unit.tile.units.remove(unit);
+            tile.units.push(unit);
+            unit.tile = tile;
+            return tile;
+        }
+    }
+
+    moveIdx(unit, ix, iy) {
+        const neighbour = unit.tile.getNeighbour(ix, iy);
+        if (neighbour) {
+            return this.move(unit, neighbour);
+        }
+    }
+
+    moveInDirection(unit, start, end) {
+        const targetTile = this.map.lerp(start, end, unit.mov);
+        return this.move(unit, targetTile);
+    }
+
 
     fight(attacker, defender) {
         const prevNum = defender.num;
@@ -349,6 +377,20 @@ class Game {
         }
 
         return rolls;
+    }
+
+    spawnUnit(xi, yi, n, type, pl) {
+        const ut = this.map.getTile(xi, yi);
+        const conf = Config.unitConfig[type];
+        return pl.spawnUnit(ut, type, n, 0
+            , conf.reach
+            , conf.mov
+            , conf.hp
+            , conf.numAttacks
+            , conf.dmg
+            , conf.def
+            , conf.revenge
+            , conf.mobility);
     }
 
     removeDeadUnits() {

@@ -30,28 +30,6 @@ class Unit {
         this.goldmine = undefined;
     }
 
-    move(tile) {
-        const d = Map.dist(this.tile, tile);
-        if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
-            if (this.goldmine) {
-                this.goldmine.reset();
-            }
-
-            this.movedThisTurn += d;
-            this.tile.units = this.tile.units.remove(this);
-            tile.units.push(this);
-            this.tile = tile;
-            return tile;
-        }
-    }
-
-    moveIdx(ix, iy) {
-        const neighbour = this.tile.getNeighbour(ix, iy);
-        if (neighbour) {
-            return this.move(neighbour);
-        }
-    }
-
     takeDmg(amount) {
         if (amount > 0 && this.goldmine) {
             this.goldmine.reset();

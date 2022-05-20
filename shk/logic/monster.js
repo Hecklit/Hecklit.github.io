@@ -44,29 +44,6 @@ class Monster {
         return monster;
     }
 
-    move(tile) {
-        const d = Map.dist(this.tile, tile);
-        if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
-            this.movedThisTurn += d;
-            this.tile.units = this.tile.units.remove(this);
-            tile.units.push(this);
-            this.tile = tile;
-            return tile;
-        }
-    }
-
-    moveInDirection(start, end, map) {
-        const targetTile = map.lerp(start, end, this.mov);
-        return this.move(targetTile);
-    }
-
-    moveIdx(ix, iy) {
-        const neighbour = this.tile.getNeighbour(ix, iy);
-        if (neighbour) {
-            return this.move(neighbour);
-        }
-    }
-
     takeDmg(amount) {
         this.totalHp -= amount;
         this.num = Math.ceil(this.totalHp / this.hp);
@@ -104,7 +81,7 @@ class Monster {
             const allTargets = map.getEnemiesInRange(this.tile, 4, this.player);
             const closestTarget = allTargets.sort((a, b) => Map.dist(a.tile, b.tile))[0];
             if(closestTarget) {
-                this.moveInDirection(this.tile, closestTarget.tile, map);
+                this.game.moveInDirection(this, this.tile, closestTarget.tile);
             }
             return false;
         }

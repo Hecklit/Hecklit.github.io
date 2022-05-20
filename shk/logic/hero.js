@@ -43,24 +43,6 @@ class Hero {
         return tile;
     }
 
-    move(tile) {
-        const d = Map.dist(this.tile, tile);
-        if (this.mov >= d && this.movedThisTurn + d <= this.mov) {
-            if(this.goldmine) {
-                this.goldmine.reset();
-            }
-            this.movedThisTurn += d;
-            return this.setTile(tile);
-        }
-    }
-
-    moveIdx(ix, iy) {
-        const neighbour = this.tile.getNeighbour(ix, iy);
-        if (neighbour) {
-            return this.move(neighbour);
-        }
-    }
-
     gainExp(exp){
         if(!this.alive) {
             console.error("Hero cant gain exp while dead!", this)
