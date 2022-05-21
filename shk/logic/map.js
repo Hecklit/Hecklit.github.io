@@ -233,7 +233,6 @@ class Map {
         return neighbours.filter(t => t !== tile && !t.hasPlayerOnIt(unit.player));
     }
 
-
     getPossibleAnnexedGoldminesPerPlayer(player) {
         return player.units.filter(u => u.tile.goldmine
             && u.tile.units.length === 1

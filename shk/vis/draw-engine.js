@@ -145,7 +145,7 @@ class DrawEngine {
 
         if (!attackOnly) {
             const inReach = map.getPossibleMovementPerUnit(curUnit);
-            inReach.forEach(({t, dtg}) => this.drawTileOverlay(t, `rgba(0, 255, ${dtg*20}, 0.3)`, dtg));
+            inReach.forEach(({t, dtg}) => this.drawTileOverlay(t, `rgba(0, 255, 0, 0.3)`));
         }
 
         if (attackOnly) {

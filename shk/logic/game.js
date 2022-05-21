@@ -270,6 +270,8 @@ class Game {
             this.startRound();
         } else if (this.phase === 8) {
             this.phase = 10;
+        } else if (this.phase === 6) {
+            this.phase = 8;
         } else if (this.phase === 5) {
             if (this.map.getTriggerableMonsterDen(this.curP).length > 0) {
                 this.phase = 6;

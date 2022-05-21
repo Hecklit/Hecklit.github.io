@@ -44,6 +44,8 @@ async function onTestsDone() {
         console.log("onStepFinish");
         errorMessage.innerHTML = "";
         errorMessage.style.display = "none";
+        nextButton.innerHTML = game.phase === 2 ? "Buy" : "Next";
+        buyForm.style.opacity = game.phase === 2 ? "1" : "0.5";
         drawEngine.draw(game);
     });
     game.onAttack.subscribe(async (attacker, defender, prevNum, rolls, enemyHits) => {
@@ -74,6 +76,7 @@ async function onTestsDone() {
     const errorMessage = document.getElementById("errorMessage");
     const demo = document.getElementById("demo");
     const nextButton = document.getElementById("next");
+    const buyForm = document.getElementById("buyForm");
     canvas.addEventListener('click', function (e) {
         const x = e.clientX,
             y = e.clientY;
