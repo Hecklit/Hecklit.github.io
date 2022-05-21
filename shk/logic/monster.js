@@ -59,14 +59,6 @@ class Monster {
         return this.mov - this.movedThisTurn;
     }
 
-    cantMoveAnymore() {
-        return this.movedThisTurn >= this.mov;
-    }
-
-    cantAttackAnymore() {
-        return this.attacksThisTurn >= this.numAttacks;
-    }
-
     takeTurn(map, index, isMovementTurn) {
         if(isMovementTurn) {
             return this.doMovementTurn(map, index);

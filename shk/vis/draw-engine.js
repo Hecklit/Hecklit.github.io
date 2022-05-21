@@ -264,10 +264,13 @@ class DrawEngine {
             }
         }
         let add = "";
-        if (phase === 8 && !unit.cantAttackAnymore() && curP.id === unit.player.id) {
+        const game = unit.tile.map.game;
+        if (phase === 8 && !game.cantAttackAnymore(unit)
+            && curP.id === unit.player.id) {
             add = "!"
         }
-        if (phase === 5 && !unit.cantMoveAnymore() && curP.id === unit.player.id) {
+        if (phase === 5 && !game.cantMoveAnymore(unit)
+            && curP.id === unit.player.id) {
             add = "~"
         }
         return add;

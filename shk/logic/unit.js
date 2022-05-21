@@ -48,15 +48,5 @@ class Unit {
         return this.mov - this.movedThisTurn;
     }
 
-    cantMoveAnymore() {
-        return this.movedThisTurn >= this.mov;
-    }
-
-    cantAttackAnymore() {
-        if (this.mobility === MobileAttackType.BorA && this.movedThisTurn > 0) {
-            return true;
-        }
-        return this.attacksThisTurn >= this.numAttacks;
-    }
 
 }

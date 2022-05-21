@@ -97,12 +97,4 @@ class Hero {
         return this.mov -this.movedThisTurn;
     }
 
-    cantMoveAnymore() {
-        return this.movedThisTurn >= this.mov;
-    }
-
-    cantAttackAnymore() {
-        return this.attacksThisTurn >= this.numAttacks;
-    }
-
 }

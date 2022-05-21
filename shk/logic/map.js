@@ -1,9 +1,10 @@
 class Map {
 
-    constructor() {
+    constructor(game) {
         this.tiles = [];
         this.width = 0;
         this.height = 0;
+        this.game = game;
     }
 
     static tileSize = 60;
@@ -161,8 +162,17 @@ class Map {
         }, []);
     }
 
+    getPossibleForcedFightsPerPlayer(pl) {
+        return pl.units.reduce((acc, cur) => {
+            return acc.concat(this.getPossibleFightsPerUnit(cur).filter(
+                enemy => enemy.tile.id === cur.tile.id
+            ));
+        }, []);
+    }
+
     getPossibleFightsPerUnit(unit) {
-        if (!unit || unit.cantAttackAnymore()) {
+        if (!unit || unit.attacksThisTurn >= unit.numAttacks
+            || (unit.mobility === MobileAttackType.BorA && unit.movedThisTurn > 0)) {
             return [];
         }
         if (unit.reach === 0 && unit.tile.getEnemy(unit.player)) {
@@ -175,10 +185,10 @@ class Map {
     }
 
     getPossibleMovementPerUnit(unit) {
-        if (!unit || unit.cantMoveAnymore()) {
+        if (!unit || unit.movedThisTurn >= unit.mov) {
             return [];
         }
-        return this.getFloodFillTiles(unit, unit.tile, unit.getMovementLeftThisRound()-1);
+        return this.getFloodFillTiles(unit, unit.tile, unit.getMovementLeftThisRound() - 1);
     }
 
     recursiveFloorFill(unit, tilePool, tile, lvl, maxLvl = 1000) {
@@ -192,7 +202,7 @@ class Map {
         const validNeighbours = this.getAllValidNeighbours(unit, tile);
 
         validNeighbours.forEach(t => {
-            const isWorseThanOtherSolution = tilePool[t.id]?.dtg < (lvl+1);
+            const isWorseThanOtherSolution = tilePool[t.id]?.dtg < (lvl + 1);
             tilePool[t.id] = isWorseThanOtherSolution ? tilePool[t.id] : {t, dtg: lvl + 1}
             if (!t.hasEnemyOnIt(unit.player) && !isWorseThanOtherSolution) {
                 const result = this.recursiveFloorFill(unit, tilePool, t, lvl + 1, maxLvl);
@@ -236,7 +246,7 @@ class Map {
     getPossibleAnnexedGoldminesPerPlayer(player) {
         return player.units.filter(u => u.tile.goldmine
             && u.tile.units.length === 1
-            && (u.tile.units[0].type === "H" ||  u.tile.units[0].num > 1)
+            && (u.tile.units[0].type === "H" || u.tile.units[0].num > 1)
             && !u.tile.goldmine.annexProcessStarted
             && (!u.tile.goldmine.player || u.tile.goldmine.player.id !== player.id))
             .map(u => u.tile);

@@ -25,11 +25,11 @@ addEventListener('load', async function () {
         );
     }
 
-    function assertEquals(a, b) {
+    function assertEquals(a, b, msg="") {
         if (a !== b) {
-            throw `${a} !== ${b}`;
+            throw `${a} !== ${b}, ${msg}`;
         } else {
-            console.log(`${a} === ${b}`)
+            console.log(`${a} === ${b}`, msg)
         }
     }
 
@@ -387,6 +387,37 @@ addEventListener('load', async function () {
 
         drawEngine.draw(game);
         assertEquals(walker.tile.xi, 14);
+    })();
+
+    (() => {
+        console.log("test units on same field have to fight before fight phase is over");
+        const game = getDefaultGame(MapType.Empty);
+        game.init(false);
+        game.startRound();
+        game.phase = 8;
+
+        const wallX = 13;
+        const footSoldiers = game.spawnUnit(wallX, 1,1,  "F", game.curP);
+        const bows = game.spawnUnit(11, 1,1,  "B", game.curP);
+        game.spawnUnit(wallX, 1,4,  "F", game.players[0]);
+
+        game.takeNextStep();
+        assertEquals(game.phase, 8, "Game should " +
+            "still be on Attack phase");
+
+        game.curP.activeUnit = bows;
+        game.onClick(footSoldiers.tile);
+        game.takeNextStep();
+        assertEquals(game.phase, 8, "After bow shot " +
+            "should still be on attack");
+
+        game.curP.activeUnit = footSoldiers;
+        game.onClick(footSoldiers.tile);
+        game.takeNextStep();
+        drawEngine.draw(game);
+        assertEquals(game.phase, 10,
+            "Now after meele fight has happened" +
+            " it should be possible to go to the next phase");
     })();
 
     // await Fightvis.demo();

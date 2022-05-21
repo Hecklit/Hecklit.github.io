@@ -64,7 +64,7 @@ class Game {
         this.winner = null;
         this.withMonsters = withMonsters;
         this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen") : null;
-        this.map = new Map();
+        this.map = new Map(this);
         this.map.generateSquareMap(15, 4, this.mapType, this.monsters);
         this.players = [];
         this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]), "red", 1, this.handleHeroDeath));
@@ -206,9 +206,6 @@ class Game {
                     curP.activeBaseTile = tile;
                 }
             } else if (this.phase === 5) {
-                if(tile.units === undefined){
-                    debugger
-                }
                 const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
                 if (unitOfP) {
                     curP.activeUnit = unitOfP;
@@ -216,13 +213,13 @@ class Game {
                     this.move(curP.activeUnit, tile);
                 }
 
-                if (curP.units.filter(u => !u.cantMoveAnymore()).length === 0) {
+                if (curP.units.filter(u => !this.cantMoveAnymore(u)).length === 0) {
                     if (this.map.getTriggerableMonsterDen(curP).length > 0) {
                         this.phase = 6;
                     } else {
                         this.phase = 8;
 
-                        if (curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
+                        if (this.curP.hasUnitsThatCanStillAttack(this)) {
                             this.startRound();
                         }
                     }
@@ -235,7 +232,7 @@ class Game {
                 if (this.map.getTriggerableMonsterDen(curP).length === 0) {
                     this.phase = 8;
 
-                    if (curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
+                    if (this.curP.hasUnitsThatCanStillAttack(this)) {
                         this.startRound();
                     }
                 }
@@ -269,7 +266,13 @@ class Game {
             this.onTurnFinish.emit();
             this.startRound();
         } else if (this.phase === 8) {
-            this.phase = 10;
+            const meeleFights = this.map.getPossibleForcedFightsPerPlayer(this.curP);
+            if (meeleFights.length === 0) {
+                this.phase = 10;
+            }else{
+                this.errorMessage = `${this.curP.id} still has melee fights left.`
+                error = true;
+            }
         } else if (this.phase === 6) {
             this.phase = 8;
         } else if (this.phase === 5) {
@@ -278,7 +281,7 @@ class Game {
             } else {
                 this.phase = 8;
 
-                if (this.curP.units.filter(u => !u.cantAttackAnymore()).length === 0) {
+                if (this.curP.hasUnitsThatCanStillAttack(this)) {
                     this.startRound();
                 }
             }
@@ -290,12 +293,13 @@ class Game {
 
             const newUnit = this.buyUnit(getSelectedValue.value, numUnit.value);
             if (!newUnit) {
-                this.onError.emit(this.errorMessage);
                 error = true;
             }
         }
         if (!error) {
             this.onStepFinish.emit();
+        }else{
+            this.onError.emit(this.errorMessage);
         }
     }
 
@@ -323,6 +327,26 @@ class Game {
         }
     }
 
+
+    cantMoveAnymore(unit) {
+        const possibleMovements = unit.tile.map.getPossibleMovementPerUnit(unit);
+        if(possibleMovements.length === 0){
+            return true;
+        }
+        return unit.movedThisTurn >= unit.mov;
+    }
+
+    cantAttackAnymore(unit) {
+        if (unit.mobility === MobileAttackType.BorA && unit.movedThisTurn > 0) {
+            return true;
+        }
+        const possibleFights = unit.tile.map.getPossibleFightsPerUnit(unit);
+        if (possibleFights.length === 0) {
+            return true;
+        }
+        return unit.attacksThisTurn >= unit.numAttacks;
+    }
+
     moveInDirection(unit, start, end) {
         const targetTile = this.map.lerp(start, end, unit.mov);
         return this.move(unit, targetTile);
@@ -345,7 +369,7 @@ class Game {
     }
 
     attack(attacker, defender) {
-        if (attacker.cantAttackAnymore()) {
+        if (this.cantAttackAnymore(attacker)) {
             return [];
         }
 
@@ -402,8 +426,10 @@ class Game {
 
     removeDeadUnits() {
         this.players.forEach(p => p.units = p.units.filter(u => u.alive));
-        this.monsters.units = this.monsters.units.filter(u => u.alive);
         this.map.flatTiles().forEach(t => t.units = t.units.filter(u => u.alive));
+        if (this.monsters) {
+            this.monsters.units = this.monsters.units.filter(u => u.alive);
+        }
     }
 
     static throwDice() {
