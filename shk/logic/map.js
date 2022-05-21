@@ -237,6 +237,7 @@ class Map {
     getPossibleAnnexedGoldminesPerPlayer(player) {
         return player.units.filter(u => u.tile.goldmine
             && u.tile.units.length === 1
+            && (u.tile.units[0].type === "H" ||  u.tile.units[0].num > 1)
             && !u.tile.goldmine.annexProcessStarted
             && (!u.tile.goldmine.player || u.tile.goldmine.player.id !== player.id))
             .map(u => u.tile);
