@@ -61,9 +61,9 @@ addEventListener('load', async function () {
         game.startRound();
         const unit = game.buyUnit('F', 2);
         const startTile = unit.tile;
-        unit.moveIdx(-1, 0);
-        unit.moveIdx(-1, 0);
-        unit.moveIdx(0, -1); // expect this to not work
+        game.moveIdx(unit, -1, 0);
+        game.moveIdx(unit, -1, 0);
+        game.moveIdx(unit, 0, -1); // expect this to not work
 
         assertEquals(unit.mov, 2); // this test only works if mov is 2
         assertEquals(startTile.xi - 2, unit.tile.xi);
@@ -72,7 +72,7 @@ addEventListener('load', async function () {
         game.startRound();
         game.startRound();
         game.phase = 5;
-        unit.moveIdx(0, -1); // now it should work
+        game.moveIdx(unit, 0, -1); // now it should work
         assertEquals(startTile.xi - 2, unit.tile.xi);
         assertEquals(startTile.yi - 1, unit.tile.yi);
     })();
@@ -112,15 +112,15 @@ addEventListener('load', async function () {
         game.startRound();
         const p1Unit = game.buyUnit('K', 1);
         for (let i = 0; i < 3; i++) {
-            p1Unit.moveIdx(-3, 0);
+            game.moveIdx(p1Unit, -3, 0);
             game.startRound();
             game.startRound();
         }
-        p1Unit.moveIdx(-3, 0);
+        game.moveIdx(p1Unit, -3, 0);
 
         game.startRound();
         const p2Unit = game.buyUnit('F', 2);
-        p2Unit.moveIdx(2, 0);
+        game.moveIdx(p2Unit, 2, 0);
         const result = game.fight(p2Unit, p1Unit);
 
         assertEquals(typeof result[p1Unit.player.id], 'number');
@@ -136,15 +136,15 @@ addEventListener('load', async function () {
         game.startRound();
         const p1Unit = game.buyUnit('K', 1);
         for (let i = 0; i < 3; i++) {
-            p1Unit.moveIdx(-3, 0);
+            game.moveIdx(p1Unit, -3, 0);
             game.startRound();
             game.startRound();
         }
-        p1Unit.moveIdx(-3, 0);
+        game.moveIdx(p1Unit, -3, 0);
 
         game.startRound();
         const p2Unit = game.buyUnit('F', 2);
-        p2Unit.moveIdx(2, 0);
+        game.moveIdx(p2Unit, 2, 0);
         const result1 = game.fight(p2Unit, p1Unit);
         const result2 = game.fight(p2Unit, p1Unit);
         game.startRound();
@@ -167,15 +167,15 @@ addEventListener('load', async function () {
         game.startRound();
         const p1Unit = game.buyUnit('B', 1);
         for (let i = 0; i < 3; i++) {
-            p1Unit.moveIdx(-2, 0);
+            game.moveIdx(p1Unit, -2, 0);
             game.startRound();
             game.startRound();
         }
-        p1Unit.moveIdx(-2, 0);
+        game.moveIdx(p1Unit, -2, 0);
 
         game.startRound();
         const p2Unit = game.buyUnit('F', 2);
-        p2Unit.moveIdx(2, 0);
+        game.moveIdx(p2Unit, 2, 0);
         game.startRound();
         game.phase = 8;
         const result1 = game.fight(p1Unit, p2Unit);
@@ -261,7 +261,7 @@ addEventListener('load', async function () {
         cP.gold += 5;
         cP.activeBaseTile = cP.getFreeBaseTiles()[1];
         const p1Unit = game.buyUnit('K', 2);
-        p1Unit.moveIdx(-2, -1);
+        game.moveIdx(p1Unit, -2, -1);
         p1Unit.tile.goldmine = new Goldmine(p1Unit.tile, 42);
         p1Unit.takeDmg(1);
         game.phase = 10;
@@ -284,7 +284,7 @@ addEventListener('load', async function () {
 
 
     (() => {
-        console.log("testKnightsCanAnnexGoldmine");
+        console.log("testKnightsCanCancelAnnexGoldmine");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         game.startRound();
@@ -292,7 +292,7 @@ addEventListener('load', async function () {
         cP.gold += 5;
         cP.activeBaseTile = cP.getFreeBaseTiles()[1];
         const p1Unit = game.buyUnit('K', 2);
-        p1Unit.moveIdx(-2, -1);
+        game.moveIdx(p1Unit, -2, -1);
         p1Unit.tile.goldmine = new Goldmine(p1Unit.tile, 42);
         p1Unit.takeDmg(1);
         game.phase = 10;
@@ -308,10 +308,12 @@ addEventListener('load', async function () {
         game.curP.activeBaseTile = game.curP.getFreeBaseTiles()[1];
         const p2Unit = game.buyUnit('K', 1);
         p2Unit.mov = 20;
-        p2Unit.moveIdx(10, -1);
+        game.moveIdx(p2Unit, 10, -1);
         game.startRound();
         game.startRound();
         game.startRound();
+
+        game.phase = 5;
 
         assertEquals(p1Unit.tile.goldmine.player, null);
         assertEquals(cP.gold, 10);
@@ -349,6 +351,42 @@ addEventListener('load', async function () {
         assertEquals(p1Unit.num, 10);
         assertEquals(p2Unit.num, 10);
         assertEquals(p3Unit, false);
+    })();
+
+
+    (() => {
+        console.log("testUnitMaximumsAreEnforcedInitialBuy");
+        const game = getDefaultGame(MapType.Empty);
+        game.maxNumTroups.B = 3;
+        game.init(false);
+        game.startRound();
+        game.curP.gold += 5000;
+        const p1Unit = game.buyUnit('B', 31);
+
+        assertEquals(p1Unit, false);
+    })();
+
+    (() => {
+        console.log("test units cant walk through other units");
+        const game = getDefaultGame(MapType.Empty);
+        game.maxNumTroups.B = 3;
+        game.init(false);
+        game.startRound();
+        game.phase = 5;
+
+        const wallX = 13;
+        game.spawnUnit(wallX, 0,1,  "F", game.curP);
+        game.spawnUnit(wallX, 1,1,  "F", game.players[0]);
+        game.spawnUnit(wallX, 2,1,  "F", game.curP);
+        game.spawnUnit(wallX, 3,1,  "F", game.curP);
+
+        const walker = game.spawnUnit(14, 3,1,  "F", game.curP);
+
+        game.curP.activeUnit = walker;
+        // game.moveIdx(walker, -2, 0);
+
+        drawEngine.draw(game);
+        assertEquals(walker.tile.xi, 14);
     })();
 
     // await Fightvis.demo();

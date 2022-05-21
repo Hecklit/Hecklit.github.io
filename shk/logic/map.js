@@ -36,7 +36,7 @@ class Map {
         }
     }
 
-    getTriggerableMonsterDen(player){
+    getTriggerableMonsterDen(player) {
         return this.flatTiles().filter(tile => player.hero.alive && Map.dist(player.hero.tile, tile) <= 1
             && tile.isMonsterDen && !tile.monsterDenWasTriggered);
     }
@@ -81,7 +81,7 @@ class Map {
 
     setRenderWidth(width) {
         const numX = this.tiles.length;
-        Map.tileSize = Math.floor(width/numX);
+        Map.tileSize = Math.floor(width / numX);
     }
 
 
@@ -106,11 +106,11 @@ class Map {
 
         // Goldmine
         this.tiles[3][1].config(goldMine, "G2");
-        this.tiles[3][1].goldmine = new Goldmine(this.tiles[3][1],2);
+        this.tiles[3][1].goldmine = new Goldmine(this.tiles[3][1], 2);
         this.tiles[ex - 3][1].config(goldMine, "G2");
-        this.tiles[ex - 3][1].goldmine = new Goldmine(this.tiles[ex - 3][1],2);
+        this.tiles[ex - 3][1].goldmine = new Goldmine(this.tiles[ex - 3][1], 2);
         this.tiles[7][2].config(goldMine, "G5");
-        this.tiles[7][2].goldmine = new Goldmine(this.tiles[7][2],5);
+        this.tiles[7][2].goldmine = new Goldmine(this.tiles[7][2], 5);
     }
 
     generateSquareMap(width, height, mapType, monsterPlayer) {
@@ -178,8 +178,59 @@ class Map {
         if (!unit || unit.cantMoveAnymore()) {
             return [];
         }
-        const ts = this.getTilesInRange(unit.tile, unit.getMovementLeftThisRound());
-        return ts.filter(t => t !== unit.tile && !t.hasPlayerOnIt(unit.player));
+        return this.getFloodFillTiles(unit, unit.tile, unit.getMovementLeftThisRound()-1);
+    }
+
+    recursiveFloorFill(unit, tilePool, tile, lvl, maxLvl = 1000) {
+        if (lvl > maxLvl) {
+            return tilePool;
+        }
+        if (tile.id in tilePool && tilePool[tile.id].dtg > lvl) {
+            return tilePool;
+        }
+
+        const validNeighbours = this.getAllValidNeighbours(unit, tile);
+
+        validNeighbours.forEach(t => {
+            const isWorseThanOtherSolution = tilePool[t.id]?.dtg < (lvl+1);
+            tilePool[t.id] = isWorseThanOtherSolution ? tilePool[t.id] : {t, dtg: lvl + 1}
+            if (!t.hasEnemyOnIt(unit.player) && !isWorseThanOtherSolution) {
+                const result = this.recursiveFloorFill(unit, tilePool, t, lvl + 1, maxLvl);
+                tilePool = this.mergeTilePools(tilePool, result);
+            }
+        });
+
+        return tilePool;
+    }
+
+    mergeTilePools(a, b) {
+        const res = Object.entries(a).reduce((acc, [k, {t, dtg}]) => {
+            acc[k] = {t, dtg: Math.min(dtg, b[k]?.dtg || 1000)};
+            return acc;
+        }, {});
+        return Object.entries(b).reduce((acc, [k, {t, dtg}]) => {
+            acc[k] = {t, dtg: Math.min(dtg, res[k]?.dtg || 1000)};
+            return acc;
+        }, {});
+    }
+
+    getFloodFillTiles(unit, end, reach = 1000) {
+        let tilePool = {};
+        tilePool = this.recursiveFloorFill(unit, tilePool, end, 0, reach);
+        return Object.values(tilePool);
+    }
+
+    getShortestValidPath(unit, start, end) {
+        const tilePool = {};
+
+        this.recursiveFloorFill(unit, tilePool, end, 0, unit.reach);
+
+        return [];
+    }
+
+    getAllValidNeighbours(unit, tile) {
+        const neighbours = this.getTilesInRange(tile, 1);
+        return neighbours.filter(t => t !== tile && !t.hasPlayerOnIt(unit.player));
     }
 
 

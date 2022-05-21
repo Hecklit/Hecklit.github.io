@@ -31,7 +31,7 @@ class Ai {
                         continue;
                     }
                 }
-                const target = game.map.getPossibleMovementPerUnit(unit).sample();
+                const target = game.map.getPossibleMovementPerUnit(unit).sample().t;
                 if (target) {
                     game.onClick(unit.tile);
                     await sleep(sleepMovement)

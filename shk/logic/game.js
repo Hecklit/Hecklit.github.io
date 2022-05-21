@@ -110,7 +110,7 @@ class Game {
         const troupsOfSameType = curP.units.filter(u => u.type === ut);
         const totalNumOfTroupsOfSameType = troupsOfSameType.reduce((acc, cur) => acc + cur.num, 0);
         if (troupsOfSameType.length >= this.maxNumTroups[ut]
-            || totalNumOfTroupsOfSameType >= this.maxNumUnits[ut]) {
+            || ((totalNumOfTroupsOfSameType + n) > this.maxNumUnits[ut])) {
             this.errorMessage = curP.id + " already reached the maximum for this unit type.";
             return false;
         }
@@ -206,6 +206,9 @@ class Game {
                     curP.activeBaseTile = tile;
                 }
             } else if (this.phase === 5) {
+                if(tile.units === undefined){
+                    debugger
+                }
                 const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
                 if (unitOfP) {
                     curP.activeUnit = unitOfP;
@@ -295,8 +298,10 @@ class Game {
     }
 
     move(unit, tile) {
+        const validTiles = this.map.getPossibleMovementPerUnit(unit);
+        const onlyTiles = validTiles.map(o => o.t);
         const d = Map.dist(unit.tile, tile);
-        if (unit.mov >= d && unit.movedThisTurn + d <= unit.mov) {
+        if (onlyTiles.includes(tile)) {
             if (unit.goldmine) {
                 unit.goldmine.reset();
             }

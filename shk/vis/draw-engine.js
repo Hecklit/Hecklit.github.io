@@ -145,7 +145,7 @@ class DrawEngine {
 
         if (!attackOnly) {
             const inReach = map.getPossibleMovementPerUnit(curUnit);
-            inReach.forEach(ir => this.drawTileOverlay(ir, "rgba(0, 255, 0, 0.3)"));
+            inReach.forEach(({t, dtg}) => this.drawTileOverlay(t, `rgba(0, 255, ${dtg*20}, 0.3)`, dtg));
         }
 
         if (attackOnly) {
@@ -157,10 +157,13 @@ class DrawEngine {
         }
     }
 
-    drawTileOverlay(tile, color) {
+    drawTileOverlay(tile, color, text) {
         const tmp = tile.color;
         tile.color = color;
         this.drawTile(tile);
+        if(text){
+            this.text(text, tile.cx, tile.cy, 30, "white");
+        }
         tile.color = tmp;
     }
 
@@ -182,6 +185,7 @@ class DrawEngine {
         this.ctx.textAlign = 'center';
         this.ctx.fillStyle = "black";
         this.ctx.font = '30px serif';
+        // this.ctx.fillText(tile.id.slice(2), tile.x + tile.l / 2, tile.y + tile.l / 1.5);
         this.ctx.fillText(tile.text, tile.x + tile.l / 2, tile.y + tile.l / 1.5);
     }
 
