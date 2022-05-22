@@ -420,6 +420,36 @@ addEventListener('load', async function () {
             " it should be possible to go to the next phase");
     })();
 
+
+
+    (() => {
+        console.log("test units are displayed correctly on same field");
+        const game = getDefaultGame(MapType.Empty);
+        game.maxNumTroups.B = 3;
+        game.init(true);
+        game.startRound();
+
+        game.spawnUnit(0, 0,1,  "F", game.curP);
+        game.spawnUnit(0, 0,1,  "F", game.players[0]);
+
+        const u1 = game.spawnUnit(1, 0,1,  "F", game.curP);
+        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
+
+
+        const u2 = game.spawnUnit(2, 0,1,  "F", game.players[0]);
+        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
+
+        const u3 = game.spawnUnit(3, 0,1,  "F", game.players[0]);
+        game.spawnUnit(3, 0,1,  "F", game.curP);
+        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
+
+
+
+        drawEngine.draw(game);
+        assertEquals(false, false, "Show visual test");
+    })();
+
+
     // await Fightvis.demo();
     await onTestsDone();
 

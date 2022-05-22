@@ -12,16 +12,24 @@ class Ai {
             if(game.winner){
                 break;
             }
-            if (game.curP.units.length <= 2) {
-                await game.buyUnit(["F", "K", "B", "H", "None"].sample(), Math.floor(Math.random() * game.curP.gold / 2 + 1));
-                await sleep(sleepBetweenPhases)
+            if (game.curP.units.length <= 3) {
+                let ut = ["F", "K", "B", "None"].sample();
+                let numUnit = Math.min(game.maxNumUnits[ut], Math.floor(Math.random() * game.curP.gold / 2 + 1));
+                if(!game.curP.hero.alive) {
+                    ut = "H";
+                    numUnit = 1;
+                }
+                const unit = game.buyUnit(ut,numUnit);
+                if(!unit) {
+                    game.buyUnit("None", 1);
+                }
+                await sleep(sleepBetweenPhases);
             } else {
-                game.phase = 4;
-                await game.monsterTurn();
-                game.phase = 5;
+                game.takeNextStep();
             }
 
             // move
+            game.phase = 5;
             for (const unit of game.curP.units) {
                 if(unit.goldmine) {
                     continue;
@@ -31,7 +39,7 @@ class Ai {
                         continue;
                     }
                 }
-                const target = game.map.getPossibleMovementPerUnit(unit).sample().t;
+                const target = game.map.getPossibleMovementPerUnit(unit).sample()?.t;
                 if (target) {
                     game.onClick(unit.tile);
                     await sleep(sleepMovement)
@@ -44,7 +52,11 @@ class Ai {
             game.phase = 6;
             await sleep(sleepBetweenPhases)
             const monsterDens = game.map.getTriggerableMonsterDen(game.curP);
-            monsterDens.forEach(md => game.onClick(md));
+            monsterDens.forEach(md => {
+                if(Math.random() > 0.7){
+                    game.onClick(md)
+                }
+            });
 
 
             game.phase = 8;

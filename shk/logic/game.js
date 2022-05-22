@@ -210,7 +210,9 @@ class Game {
                 if (unitOfP) {
                     curP.activeUnit = unitOfP;
                 } else {
-                    this.move(curP.activeUnit, tile);
+                    if(curP.activeUnit) {
+                        this.move(curP.activeUnit, tile);
+                    }
                 }
 
                 if (curP.units.filter(u => !this.cantMoveAnymore(u)).length === 0) {

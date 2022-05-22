@@ -43,13 +43,13 @@ class Hero {
         return tile;
     }
 
-    gainExp(exp){
-        if(!this.alive) {
+    gainExp(exp) {
+        if (!this.alive) {
             console.error("Hero cant gain exp while dead!", this)
             return;
         }
         this.curExp += exp;
-        if(this.curExp >= this.epToNextLvl && this.lvl < 10){
+        if (this.curExp >= this.epToNextLvl && this.lvl < 10) {
             this.curExp -= this.epToNextLvl;
             this.lvl++;
             const c = Config.getHeroStatsByLvl(this.lvl);
@@ -68,18 +68,21 @@ class Hero {
 
     }
 
-    heal(amount){
+    heal(amount) {
+        const before = this.totalHp;
         this.totalHp = Math.min(this.hp, this.totalHp + amount);
+        if (before < this.totalHp)
+            console.log(this.player.id + " Hero healed by ", amount, before, this.totalHp);
     }
 
-    reviveAt(freeTile){
+    reviveAt(freeTile) {
         this.alive = true;
         this.totalHp = this.hp;
         this.setTile(freeTile);
     }
 
     takeDmg(amount) {
-        if(amount > 0 && this.goldmine){
+        if (amount > 0 && this.goldmine) {
             this.goldmine.reset();
         }
         this.totalHp -= amount;
@@ -94,7 +97,15 @@ class Hero {
     }
 
     getMovementLeftThisRound() {
-        return this.mov -this.movedThisTurn;
+        return this.mov - this.movedThisTurn;
+    }
+
+    toString() {
+        if (this.hp > this.totalHp) {
+            return this.type + " (" + this.totalHp + "/" + this.hp + "hp " + this.curExp + "/" + this.epToNextLvl + "ep)";
+        } else {
+            return this.type + " (" + this.totalHp + "hp " + this.curExp + "/" + this.epToNextLvl + "ep)";
+        }
     }
 
 }

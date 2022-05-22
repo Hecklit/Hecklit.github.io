@@ -48,5 +48,17 @@ class Unit {
         return this.mov - this.movedThisTurn;
     }
 
+    toString() {
+        if (this.hp > this.num) {
+            if (this.hp > this.totalHp) {
+                return this.type + " " + this.num + " (HP " + this.totalHp + "/" + this.hp +  ")";
+            } else {
+                return this.type + " " + this.num + " (HP " + this.totalHp + ")";
+            }
+        } else {
+            return this.type + " " + this.num;
+        }
+    }
+
 
 }

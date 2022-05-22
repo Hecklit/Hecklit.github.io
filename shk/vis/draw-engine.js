@@ -15,6 +15,62 @@ class DrawEngine {
         this.draw(game);
     }
 
+    drawColumnRow(row, x, y, cellWidth, size, color) {
+        row.forEach((c, i) => {
+            if(i === 4){
+                i += 1.4;
+            }
+            this.text(c, x + i * cellWidth, y, size, color);
+        });
+    }
+
+    drawInformationGrid(game) {
+        // Jonas Ep Gold F  F2  B   K   H
+        // Jakob Ep Gold F  F2  B   K   H
+        // Monsters EG EG2 T T2
+        const tileSize = game.map.tiles[0][0].l;
+        const XOffset = tileSize * 0.1;
+        // const totalWidth = this.ctx.canvas.width - XOffset*2;
+        // const maxUnitColumns = Math.max(...[
+        //     ...game.players.map(pl => pl.units.length),
+        //     (game.monsters?.units.length) || 0
+        // ]);
+        const lastYIndex = game.map.tiles[0].length - 1;
+        const yBelowBoard = game.map.tiles[0][lastYIndex].y
+            + tileSize * 1.5;
+        // const numColumns = 2 + maxUnitColumns;
+        const textSize = tileSize * 0.4;
+        const cellHeight = textSize;
+        const columnWidth = textSize * 3;
+        const textColor = "black";
+
+        this.ctx.textAlign = 'left';
+        this.text(game.phaseToCaption[game.phase], XOffset, yBelowBoard,
+            textSize, "black");
+
+        this.drawColumnRow(
+            ["Name", "Gold", "HDs", "Hero", "Units"],
+            XOffset,
+            yBelowBoard + cellHeight,
+            columnWidth,
+            textSize,
+            textColor
+        );
+        game.players.forEach((pl, i) => {
+            this.drawColumnRow(
+                [pl.id, pl.gold, pl.heroDeaths, pl.hero.toString(), pl.units.filter(u => u.type !== "H")
+                    .map((u) => u.toString()).join(", ")],
+                XOffset,
+                yBelowBoard + cellHeight * (2 + i),
+                columnWidth,
+                textSize,
+                pl.id === game.curP.id ? game.curP.color : textColor
+            );
+        })
+
+        this.ctx.textAlign = 'center';
+    }
+
     draw(game) {
         if (game.winner) {
             if (game.gameOverScreenDrawn) {
@@ -23,7 +79,9 @@ class DrawEngine {
             this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
             this.ctx.fillRect(0, 0, 10000, 10000);
             this.ctx.textAlign = "center";
-            this.text("Game over! " + game.winner.id + " has won!", this.canvas.width/2, this.canvas.height/1.8, 70, "white");
+            this.text("Game over! " + game.winner.id + " has won!",
+                this.canvas.width / 2, this.canvas.height / 1.8,
+                this.canvas.width * 0.08, "white");
             game.gameOverScreenDrawn = true;
             return;
         }
@@ -37,13 +95,7 @@ class DrawEngine {
         game.players.forEach(p => this.drawPlayer(p, game.phase, game.curP));
         this.drawMonsterPlayer(game.monsters, game.phase, game.curP);
 
-        this.ctx.textAlign = 'left';
-        game.players.forEach((p, i) => this.text(`${p.id} Gold ${p.gold}`,
-            280 * i, game.map.tiles[0][3].y + game.map.tiles[0][3].l * 1.5, 30,
-            game.curPi === i ? "yellow" : "black"));
-        this.text("Phase: " + game.phaseToCaption[game.phase], 0, game.map.tiles[0][3].y + game.map.tiles[0][3].l + 70,
-            30, "black");
-        this.ctx.textAlign = 'center';
+        this.drawInformationGrid(game);
 
         const curP = game.players[game.curPi];
         const curUnit = curP.activeUnit;
@@ -113,6 +165,13 @@ class DrawEngine {
         this.ctx.fillText(t, x, y);
     }
 
+    fillRect(x, y, w, h, color) {
+        this.ctx.save();
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(x, y, w, h)
+        this.ctx.restore();
+    }
+
     arrow(fx, fy, tx, ty, color = "black") {
         const tmp = this.ctx.strokeStyle;
         this.ctx.strokeStyle = color;
@@ -150,7 +209,7 @@ class DrawEngine {
 
         if (attackOnly) {
             const pfs = map.getPossibleFightsPerUnit(curUnit).map(pf => pf.tile);
-            pfs.forEach(ir => this.drawTileOverlay(ir,"rgba(255, 0, 0, 0.3)"));
+            pfs.forEach(ir => this.drawTileOverlay(ir, "rgba(255, 0, 0, 0.3)"));
             if (curUnit.reach > 0) {
                 pfs.forEach(ir => this.arrow(curUnit.tile.cx, curUnit.tile.cy, ir.cx, ir.cy, curUnit.player.color));
             }
@@ -161,7 +220,7 @@ class DrawEngine {
         const tmp = tile.color;
         tile.color = color;
         this.drawTile(tile);
-        if(text){
+        if (text) {
             this.text(text, tile.cx, tile.cy, 30, "white");
         }
         tile.color = tmp;
@@ -189,7 +248,7 @@ class DrawEngine {
         this.ctx.fillText(tile.text, tile.x + tile.l / 2, tile.y + tile.l / 1.5);
     }
 
-    drawActiveUnit(unit){
+    drawActiveUnit(unit) {
         // TODO: Implement Active Unit vis
     }
 
@@ -211,25 +270,28 @@ class DrawEngine {
         const notAlone = unit.tile.units.length > 1;
         const sq = Math.ceil(Math.sqrt(unit.num));
         let xOffset = 0;
+        let yOffset = 0;
         let tileSize = unit.tile.l;
 
         if (notAlone) {
             tileSize /= 2;
-            xOffset = unit.player.id === "Jonas" && unit.player.id !== "Jakob" ? 0 : tileSize;
+            const ownPlayer = unit.player;
+
+            xOffset = ownPlayer.id === "Jonas" ? 0 : tileSize;
         }
 
-        let add = this.drawAndGetAdd(tileSize, sq, unit, xOffset, phase, curP);
-        return [add, tileSize, xOffset];
+        let add = this.drawAndGetAdd(tileSize, sq, unit, xOffset, yOffset, phase, curP);
+        return [add, tileSize, xOffset, yOffset];
     }
 
     drawUnit(unit, phase, curP) {
-        const [add, tileSize, xOffset] = this.drawBaseUnit(unit, phase, curP);
-        this.text(unit.type + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4, tileSize * 0.6, "white");
+        const [add, tileSize, xOffset, yOffset] = this.drawBaseUnit(unit, phase, curP);
+        this.text(unit.type + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4 +yOffset, tileSize * 0.6, "white");
     }
 
     drawHero(unit, phase, curP) {
-        const [add, tileSize, xOffset] = this.drawBaseUnit(unit, phase, curP);
-        this.text(unit.type + unit.lvl + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4, tileSize * 0.5, "white");
+        const [add, tileSize, xOffset, yOffset] = this.drawBaseUnit(unit, phase, curP);
+        this.text(unit.type + unit.lvl + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4 +yOffset, tileSize * 0.5, "white");
     }
 
     drawMonster(unit, phase, curP) {
@@ -237,18 +299,26 @@ class DrawEngine {
         const notAlone = unit.tile.units.length > 1;
         const sq = Math.ceil(Math.sqrt(unit.num));
         let xOffset = 0;
+        let yOffset = 0;
         let tileSize = unit.tile.l;
 
         if (notAlone) {
             tileSize /= 2;
-            const enemy = unit.tile.getEnemy(unit);
-            xOffset = enemy.player.id === "Jonas" ? tileSize : 0;
+
+            if(unit.tile.units.length === 2){
+                const enemy = unit.tile.getEnemy(unit);
+                xOffset = enemy.player.id === "Jonas" ? tileSize : 0;
+            } else
+            if(unit.tile.units.length === 3){
+                xOffset = 0;
+                yOffset = tileSize;
+            }
         }
-        let add = this.drawAndGetAdd(tileSize, sq, unit, xOffset, phase, curP);
-        this.text(unit.name.split(" ").map(e => e[0]).join("") + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4, tileSize * 0.6, "white");
+        let add = this.drawAndGetAdd(tileSize, sq, unit, xOffset, yOffset, phase, curP);
+        this.text(unit.name.split(" ").map(e => e[0]).join("") + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4 + yOffset, tileSize * 0.6, "white");
     }
 
-    drawAndGetAdd(tileSize, sq, unit, xOffset, phase, curP) {
+    drawAndGetAdd(tileSize, sq, unit, xOffset, yOffset, phase, curP) {
         const size = tileSize * 0.9 / sq;
         let painted = 0;
         for (let x = 0; x < sq; x++) {
@@ -258,10 +328,17 @@ class DrawEngine {
                 }
                 this.circle(
                     unit.tile.x + x * size + tileSize * 0.075 + 0.5 * size + xOffset,
-                    unit.tile.y + y * size + tileSize * 0.075 + 0.5 * size,
+                    unit.tile.y + y * size + tileSize * 0.075 + 0.5 * size + yOffset,
                     size * 0.9 * 0.5);
                 painted++;
             }
+        }
+        if (unit.hp * unit.num > unit.totalHp) {
+            this.fillRect(unit.tile.x, unit.tile.y,
+                unit.tile.l, unit.tile.l * 0.1, "red");
+            const hpRatio = unit.totalHp / (unit.hp * unit.num);
+            this.fillRect(unit.tile.x, unit.tile.y,
+                unit.tile.l * hpRatio, unit.tile.l * 0.1, "green");
         }
         let add = "";
         const game = unit.tile.map.game;
