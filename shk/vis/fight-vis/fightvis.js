@@ -34,11 +34,14 @@ class Fightvis {
             const rowLength = Math.ceil(Math.sqrt(fd.numBefore));
             const y = Math.floor(idx/ rowLength);
             const x = idx% rowLength;
+            console.log("fd.rolls", fd.rolls)
+            const alreadyDamaged = fd.numBefore * fd.hpPerUnit - fd.hpBefore;
+            const curHP = idx === 0 ? fd.hpPerUnit - alreadyDamaged : fd.hpPerUnit;
             return new FightvisUnit(
                 fd.rolls ? fd.rolls[idx] : null,
                 leftX + spread(x * Fightvis.unitSize * 1.25, 0) + plI * dBetween,
                 startY + spread(y * Fightvis.unitSize * 1.25, 0) , 1 - 2 * plI,
-                    fd.color, fd.type
+                    fd.color, fd.type, fd.hpPerUnit,  curHP
                 )
             }
         )));
@@ -53,13 +56,20 @@ class Fightvis {
 
     assignTargets(plIdx) {
         let hitIdx = 0;
+        let numUnitTargets = 0;
         const enemyIdx = (plIdx + 1) % 2;
         const enemyArray = this.units[enemyIdx].shuffle();
+        console.log("assignTargets")
         console.log(this.units, plIdx, this.units[plIdx])
         this.units[plIdx].forEach(u => {
             if (u.roll && u.roll.h) {
+                console.log("assigning target")
                 u.target = enemyArray[hitIdx % this.units[enemyIdx].length];
-                hitIdx++;
+                numUnitTargets++;
+                if(numUnitTargets >= u.target.totalHp){
+                    hitIdx++;
+                    numUnitTargets = 0;
+                }
             }
         })
     }
@@ -110,76 +120,62 @@ class Fightvis {
         }
     }
 
-    static async playViz(au, du, prevNum, arolls, drolls) {
+    static async playViz(attacker, defender, attackerRolls, defenderRolls,
+                         prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp) {
         if(Fightvis.instance.disabled) {
             return
         }
         const vis = Fightvis.instance;
-        const apl = au.player;
-        const dpl = du.player;
+        const apl = attacker.player;
+        const dpl = defender.player;
+        const attackerHpPerUnit = attacker.hp;
+        const defenderHpPerUnit = defender.hp;
         console.log("StartFightVis", [
             {
                 playerId: apl.id,
                 color: apl.color,
-                type: au.type,
-                numBefore: prevNum,
-                numAfter: arolls.length,
-                rolls: arolls
+                type: attacker.type,
+                numBefore: prevAttackerNum,
+                numAfter: attackerRolls.length,
+                hpBefore: prevAttackerTotalHp,
+                hpAfter: attacker.totalHp,
+                hpPerUnit: attackerHpPerUnit,
+                rolls: attackerRolls,
             }, {
                 playerId: dpl.id,
                 color: dpl.color,
-                type: du.type,
-                numBefore: prevNum,
-                numAfter: drolls?.length,
-                rolls: drolls
+                type: defender.type,
+                numBefore: prevDefNum,
+                numAfter: defenderRolls?.length,
+                hpBefore: prevDefTotalHp,
+                hpAfter: defender.totalHp,
+                hpPerUnit: defenderHpPerUnit,
+                rolls: defenderRolls
             }
-        ], 0, du.revenge)
+        ], 0, defender.revenge)
         vis.startFightVis([
             {
                 playerId: apl.id,
                 color: apl.color,
-                type: au.type,
-                numBefore: prevNum,
-                numAfter: arolls.length,
-                rolls: arolls
+                type: attacker.type,
+                numBefore: prevAttackerNum,
+                numAfter: attackerRolls.length,
+                hpBefore: prevAttackerTotalHp,
+                hpAfter: attacker.totalHp,
+                hpPerUnit: attackerHpPerUnit,
+                rolls: attackerRolls,
             }, {
                 playerId: dpl.id,
                 color: dpl.color,
-                type: du.type,
-                numBefore: prevNum,
-                numAfter: drolls?.length,
-                rolls: drolls
+                type: defender.type,
+                numBefore: prevDefNum,
+                numAfter: defenderRolls?.length,
+                hpBefore: prevDefTotalHp,
+                hpAfter: defender.totalHp,
+                hpPerUnit: defenderHpPerUnit,
+                rolls: defenderRolls
             }
-        ], 0, du.revenge);
-        await vis.play();
-    }
-
-    static async demo(au = 13, eu = 7) {
-        console.log("testKnightsCanAnnexGoldmine");
-        const vis = Fightvis.instance;
-        vis.startFightVis([
-            {
-                playerId: "Jonas",
-                color: "red",
-                type: "F",
-                numBefore: au,
-                numAfter: 4,
-                rolls: range(au).map(() => {
-                    const n = range(7, 1).sample();
-                    return {n, h: n > 4};
-                })
-            }, {
-                playerId: "Jakob",
-                color: "blue",
-                type: "K",
-                numBefore: eu,
-                numAfter: 2,
-                rolls: range(eu).map(() => {
-                    const n = range(7, 1).sample();
-                    return {n, h: n > 3};
-                }),
-            }
-        ], 0, true);
+        ], 0, defender.revenge);
         await vis.play();
     }
 

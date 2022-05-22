@@ -48,9 +48,11 @@ async function onTestsDone() {
         buyForm.style.opacity = game.phase === 2 ? "1" : "0.5";
         drawEngine.draw(game);
     });
-    game.onAttack.subscribe(async (attacker, defender, prevNum, rolls, enemyHits) => {
+    game.onAttack.subscribe(async (attacker, defender, attackerRolls, defenderRolls,
+                                   prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp) => {
         console.log("onAttack");
-        await Fightvis.playViz(attacker, defender, prevNum, rolls, enemyHits);
+        await Fightvis.playViz(attacker, defender, attackerRolls, defenderRolls,
+            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp);
         drawEngine.draw(game);
     });
     game.onGameOver.subscribe(() => {

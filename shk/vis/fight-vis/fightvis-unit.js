@@ -1,6 +1,6 @@
 class FightvisUnit {
 
-    constructor(roll, x, y, dirx, color, type) {
+    constructor(roll, x, y, dirx, color, type, hp, totalHp) {
         this.roll = roll;
         this.target = null;
         this.x = x;
@@ -8,10 +8,16 @@ class FightvisUnit {
         this.dirx = dirx;
         this.color = color;
         this.type = type;
-        this.dice = {x, y, dx: 0, dy: 0,
+        this.dice = {
+            x, y, dx: 0, dy: 0,
             number: range(7, 1).sample(),
-            alive: false, color: "white"}
+            alive: false, color: "white"
+        }
         this.alive = true;
+        this.hp = hp;
+        this.totalHp = totalHp;
+        this.targetReached = false;
+        console.log(this.hp, this.totalHp)
     }
 
     get cx() {
@@ -59,13 +65,19 @@ class FightvisUnit {
         const diry = speed * dy / distance;
 
         if (distance < 10) {
-            // reached target
-            this.dice.x = this.target.cx;
-            this.dice.y = this.target.cy;
-            this.dice.dx = 0;
-            this.dice.dy = 0;
-            this.target.alive = false;
-            // this.dice.alive = false;
+            if (!this.targetReached) {
+                // reached target
+                this.dice.x = this.target.cx;
+                this.dice.y = this.target.cy;
+                this.dice.dx = 0;
+                this.dice.dy = 0;
+                this.target.totalHp -= 1;
+                if (this.target.totalHp <= 0) {
+                    this.target.alive = false;
+                }
+                this.targetReached = true;
+                // this.dice.alive = false;
+            }
 
         } else {
             // steer towards target
@@ -78,7 +90,7 @@ class FightvisUnit {
     }
 
     update(mills = 1) {
-        if(!this.roll) {
+        if (!this.roll) {
             return;
         }
         const gravity = 1;
@@ -103,10 +115,23 @@ class FightvisUnit {
     }
 
     draw() {
+        const e = Fightvis.instance.e;
         if (this.alive) {
-            Fightvis.instance.e.ctx.fillStyle = this.color;
-            Fightvis.instance.e.circle(this.cx, this.cy, this.l / 2, true);
-            Fightvis.instance.e.text(this.type, this.cx, this.cy + this.l / 4, this.l * 0.9, "white");
+            e.ctx.fillStyle = this.color;
+            e.circle(this.cx, this.cy, this.l / 2, true);
+            e.text(this.type, this.cx, this.cy + this.l / 4, this.l * 0.9, "white");
+            // if (this.target) {
+            //     e.arrow(this.cx, this.cy,
+            //         this.target.cx, this.target.cy, this.color)
+            // }
+
+            // HP Bar
+            e.fillRect(this.x, this.y,
+                this.l, this.l * 0.1, "red");
+            const hpRatio = this.totalHp / this.hp;
+            e.fillRect(this.x, this.y,
+                this.l * hpRatio, this.l * 0.1, "green");
+
         }
 
         // dice
@@ -115,7 +140,7 @@ class FightvisUnit {
             Fightvis.instance.e.ctx.fillStyle = this.color;
             const circleRadius = this.l * 0.25;
             // Fightvis.instance.e.ctx.fillRect(this.dice.x, this.dice.y, circleRadius , circleRadius);
-            Fightvis.instance.e.text(this.dice.number, this.dice.x, this.dice.y + circleRadius /1.4, this.l * 0.5, this.dice.color);
+            Fightvis.instance.e.text(this.dice.number, this.dice.x, this.dice.y + circleRadius / 1.4, this.l * 0.5, this.dice.color);
         }
 
     }

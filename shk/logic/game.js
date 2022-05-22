@@ -210,7 +210,7 @@ class Game {
                 if (unitOfP) {
                     curP.activeUnit = unitOfP;
                 } else {
-                    if(curP.activeUnit) {
+                    if (curP.activeUnit) {
                         this.move(curP.activeUnit, tile);
                     }
                 }
@@ -271,7 +271,7 @@ class Game {
             const meeleFights = this.map.getPossibleForcedFightsPerPlayer(this.curP);
             if (meeleFights.length === 0) {
                 this.phase = 10;
-            }else{
+            } else {
                 this.errorMessage = `${this.curP.id} still has melee fights left.`
                 error = true;
             }
@@ -300,7 +300,7 @@ class Game {
         }
         if (!error) {
             this.onStepFinish.emit();
-        }else{
+        } else {
             this.onError.emit(this.errorMessage);
         }
     }
@@ -332,7 +332,7 @@ class Game {
 
     cantMoveAnymore(unit) {
         const possibleMovements = unit.tile.map.getPossibleMovementPerUnit(unit);
-        if(possibleMovements.length === 0){
+        if (possibleMovements.length === 0) {
             return true;
         }
         return unit.movedThisTurn >= unit.mov;
@@ -356,17 +356,21 @@ class Game {
 
 
     fight(attacker, defender) {
-        const prevNum = defender.num;
+        const prevDefNum = defender.num;
+        const prevDefTotalHp = defender.totalHp;
+        const prevAttackerNum = attacker.num;
+        const prevAttackerTotalHp = attacker.totalHp;
         const attackerRolls = this.attack(attacker, defender);
         let defenderRolls = null;
         if (defender.alive && defender.revenge) {
-            defenderRolls = this.attack(attacker, defender);
+            defenderRolls = this.attack(defender, attacker);
         }
 
-        this.onAttack.emit(attacker, defender, prevNum, attackerRolls, defenderRolls);
+        this.onAttack.emit(attacker, defender, attackerRolls, defenderRolls,
+            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp);
         return {
-            [attacker.player.id]: attackerRolls.filter(r => r.h).length,
-            [defender.player.id]: defenderRolls ? defenderRolls.filter(r => r.h).length : 0,
+            attacker, defender, attackerRolls, defenderRolls,
+            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
         }
     }
 
