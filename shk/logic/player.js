@@ -1,5 +1,5 @@
 class Player {
-    constructor(id, baseTiles, color, heroLvl, onHeroDeath) {
+    constructor(id, baseTiles, color, onHeroDeath, startUnits) {
 
         this.id = id;
         this.gold = 0;
@@ -10,17 +10,19 @@ class Player {
         this.units = [];
         this.goldmines = [];
         this.heroDeaths = 0;
-        if(heroLvl > 0){
-            const hc = Config.getHeroStatsByLvl(heroLvl);
-            console.log(hc);
-            this.hero = new Hero(this, this.getFreeBaseTiles()[0], hc.ep, hc.reach,
-                hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
+        startUnits.forEach(unit => {
+            if(unit.type === "H"){
+                const hc = Config.getHeroStatsByLvl(unit.lvl);
+                console.log(hc);
+                this.hero = new Hero(this, this.getFreeBaseTiles()[0], hc.ep, hc.reach,
+                    hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
 
-                    onHeroDeath(hero);
-                }, hc.respawnTime, hc.lvl, hc.ep);
-            this.turnsTillHeroRes = 0
-            this.units.push(this.hero);
-        }
+                        onHeroDeath(hero);
+                    }, hc.respawnTime, hc.lvl, hc.ep);
+                this.turnsTillHeroRes = 0
+                this.units.push(this.hero);
+            }
+        })
     }
 
     startHeroRevive(cost) {

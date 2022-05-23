@@ -47,6 +47,59 @@ class Config {
         return Config.monsters.filter(m => m.name === name)[0];
     }
 
+    static gameConfig = (overrides = {}) => ({
+        "Empty":
+            Object.values({
+                    pg: 5,
+                    startUnits: [
+                        {
+                            type: "H",
+                            lvl: "1",
+                        }
+                    ],
+                    maxNumUnits: {
+                        "F": 30,
+                        "B": 20,
+                        "K": 24
+                    },
+                    maxNumTroups: {
+                        "F": 1,
+                        "B": 1,
+                        "K": 1
+                    },
+                    heroRevival: false,
+                    map: MapType.Empty,
+                    unitConfig: Config.unitConfig,
+                    ...overrides
+                }
+            ),
+        "FixesMini":
+            Object.values({
+                    pg: 5,
+                    startUnits: [
+                        {
+                            type: "H",
+                            lvl: "2",
+                        }
+                    ],
+                    maxNumUnits: {
+                        "F": 30,
+                        "B": 20,
+                        "K": 24
+                    },
+                    maxNumTroups: {
+                        "F": 1,
+                        "B": 1,
+                        "K": 1
+                    },
+                    heroRevival: false,
+                    map: MapType.FixMini,
+                    unitConfig: Config.unitConfig,
+                    ...overrides
+                }
+            ),
+    });
+
     static unitConfig = {
         "F": {
             cost: 2,

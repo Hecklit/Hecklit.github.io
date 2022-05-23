@@ -6,11 +6,21 @@ class Game {
         maxNumUnits,
         maxNumTroups,
         heroRevival,
-        monsterLvls,
         mapType,
         config,
         unitRadioButtons,
         unitRadioLabels) {
+
+        console.log(
+            {pGold,
+                startUnits,
+                maxNumUnits,
+                maxNumTroups,
+                heroRevival,
+                mapType,
+                config,
+                unitRadioButtons,
+                unitRadioLabels});
 
         // eventEmitters
         this.onHeroDeath = new EventEmitter();
@@ -29,23 +39,11 @@ class Game {
         this.maxNumUnits = maxNumUnits;
         this.maxNumTroups = maxNumTroups;
         this.heroRevival = heroRevival;
-        this.monsterLvls = monsterLvls;
         this.mapType = mapType;
         this.config = config;
         this.round = 0;
         this.phase = 0;
         this.winner = null;
-        this.handleHeroDeath = (hero) => {
-            hero.player.heroDeaths++;
-            console.log("onHeroDeath", hero)
-            if (hero.player.heroDeaths >= this.heroRevival) {
-                this.removeDeadUnits();
-                this.winner = this.players.filter(p => p.id !== hero.player.id)[0];
-                this.onGameOver.emit(this.winner);
-                console.log("onHeroDeath Game over! " + this.winner.id + " has won!");
-            }
-            this.onHeroDeath.emit(hero);
-        }
         this.debugMarker = [100, 100];
         this.debugMode = true;
         this.gameOverScreenDrawn = false;
@@ -63,13 +61,29 @@ class Game {
     init(withMonsters = true, curPi = 0) {
         this.winner = null;
         this.withMonsters = withMonsters;
-        this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen") : null;
+        this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen", null, []) : null;
         this.map = new Map(this);
         this.map.generateSquareMap(15, 4, this.mapType, this.monsters);
         this.players = [];
-        this.players.push(new Player("Jonas", this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]), "red", 1, this.handleHeroDeath));
-        this.players.push(new Player("Jakob", this.map.getTiles([[14, 2], [14, 3], [13, 2], [13, 3]]), "blue", 1, this.handleHeroDeath));
+        this.players.push(new Player("Jonas",
+            this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]),
+            "red", this.handleHeroDeath.bind(this), this.startUnits));
+        this.players.push(new Player("Jakob",
+            this.map.getTiles([[14, 2], [14, 3], [13, 2], [13, 3]]),
+            "blue", this.handleHeroDeath.bind(this), this.startUnits));
         this.curPi = curPi;
+    }
+
+    handleHeroDeath(hero) {
+        hero.player.heroDeaths++;
+        console.log("onHeroDeath", hero)
+        if (hero.player.heroDeaths >= this.heroRevival) {
+            this.removeDeadUnits();
+            this.winner = this.players.filter(p => p.id !== hero.player.id)[0];
+            this.onGameOver.emit(this.winner);
+            console.log("onHeroDeath Game over! " + this.winner.id + " has won!");
+        }
+        this.onHeroDeath.emit(hero);
     }
 
     get curP() {

@@ -3,24 +3,8 @@ async function onTestsDone() {
     canvas.width = 1200;
     canvas.height = 360;
 
-    const heroRevivals = 2;
     const game = new Game(
-        5,
-        [],
-        {
-            "F": 30,
-            "B": 20,
-            "K": 24
-        },
-        {
-            "F": 1,
-            "B": 1,
-            "K": 1
-        },
-        heroRevivals,
-        [],
-        MapType.FixMini,
-        Config.unitConfig,
+            ...Config.gameConfig({heroRevival: 3}).FixesMini,
         document.querySelectorAll(
             'input[name="age"]'),
         document.querySelectorAll(

@@ -7,22 +7,7 @@ addEventListener('load', async function () {
 
     function getDefaultGame(mapType = MapType.FixMini) {
         return new Game(
-            5,
-            [],
-            {
-                "F": 30,
-                "B": 20,
-                "K": 24
-            },
-            {
-                "F": 1,
-                "B": 1,
-                "K": 1
-            },
-            false,
-            [],
-            mapType,
-            Config.unitConfig,
+            ...(mapType === MapType.FixMini ? Config.gameConfig().FixesMini : Config.gameConfig().Empty)
         );
     }
 
@@ -456,7 +441,7 @@ addEventListener('load', async function () {
 
 
     await (async () => {
-        console.log("test units are displayed correctly on same field");
+        console.log("test fight vis visual test");
         const game = getDefaultGame(MapType.Empty);
         game.maxNumTroups.B = 3;
         game.init(true);
@@ -466,18 +451,18 @@ addEventListener('load', async function () {
         game.spawnUnit(0, 0, 1, "F", game.players[0]);
 
         const u1 = game.spawnUnit(1, 0, 10, "F", game.curP);
-        const m1 = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
+       Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
 
 
         const u2 = game.spawnUnit(1, 0, 5, "K", game.players[0]);
-        const m2 = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
+       Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
 
         const u3 = game.spawnUnit(3, 0, 1, "F", game.players[0]);
         game.spawnUnit(3, 0, 1, "F", game.curP);
         Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
-
-        const {attacker, defender, attackerRolls, defenderRolls,
-            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp} = game.fight(u1, u2);
+        //
+        // const {attacker, defender, attackerRolls, defenderRolls,
+        //     prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp} = game.fight(u1, u2);
 
         drawEngine.draw(game);
         // await Fightvis.playViz(
@@ -488,8 +473,6 @@ addEventListener('load', async function () {
     })();
 
 
-
-    // await Fightvis.demo();
     await onTestsDone();
 
 });
