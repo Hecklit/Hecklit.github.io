@@ -255,16 +255,16 @@ addEventListener('load', async function () {
         markTile(tile);
         markTile(leftTile);
 
-        let lerpTile = game.map.lerp(tile, leftTile, 1);
+        let lerpTile = game.map.lerp(tile, leftTile, 1)[0];
         assertEquals(lerpTile.xi, tile.xi - 1);
 
-        lerpTile = game.map.lerp(tile, leftTile, 2);
+        lerpTile = game.map.lerp(tile, leftTile, 2)[0];
         assertEquals(lerpTile.xi, tile.xi - 2);
 
         const leftTopTile = game.map.getTile(2, 0);
         markTile(leftTopTile);
 
-        lerpTile = game.map.lerp(tile, leftTopTile, 6);
+        lerpTile = game.map.lerp(tile, leftTopTile, 6)[0];
         assertEquals(lerpTile.xi, leftTopTile.xi);
         assertEquals(lerpTile.yi, leftTopTile.yi + 1);
 
@@ -279,15 +279,28 @@ addEventListener('load', async function () {
         const tile = game.map.getTile(10, 3);
         const monster = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         game.startRound();
-        const p1Unit = game.buyUnit('B', 1);
+        const p1Unit = game.spawnUnit(8,  0, 3, "F", game.curP);
+        game.spawnUnit(8,  1, 3, "B", game.curP);
+        game.spawnUnit(8,  2, 3, "K", game.curP);
+        game.curP.hero.setTile(game.map.getTile(8, 3));
 
-
-        assertEquals(monster.tile.xi, tile.xi + 2);
+        assertEquals(monster.tile.xi, tile.xi);
         assertEquals(monster.tile.yi, tile.yi);
 
         game.startRound();
         game.startRound();
         game.monsterTurn();
+        assertEquals(monster.tile.xi, 10);
+        assertEquals(monster.tile.yi, 1);
+
+        game.startRound();
+        game.startRound();
+        game.monsterTurn();
+
+        game.startRound();
+        game.startRound();
+        game.monsterTurn();
+        drawEngine.draw(game);
         assertEquals(p1Unit.tile.xi, monster.tile.xi);
         assertEquals(p1Unit.tile.yi, monster.tile.yi);
     })();

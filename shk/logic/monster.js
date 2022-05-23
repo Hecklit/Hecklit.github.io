@@ -8,8 +8,9 @@ class Monster {
         , def
         , revenge
         , mobility,
-        epPerUnit) {
+                epPerUnit, attackPrio) {
         this.id = IdGen.get();
+        this.attackPrio = attackPrio;
         this.player = pl;
         this.homeTile = tile;
         this.tile = tile;
@@ -39,7 +40,7 @@ class Monster {
     static spawnMonster(c, tile, pl, game) {
         console.log("spawnMonster", game);
         const monster = new Monster(game, pl, c.name, c.lvl, c.gold, c.aiStrategy, tile, c.num,
-            c.reach, c.mov, c.hp, c.numAttacks, c.dmg, c.def, c.revenge, c.mobility, c.EPperUnit);
+            c.reach, c.mov, c.hp, c.numAttacks, c.dmg, c.def, c.revenge, c.mobility, c.EPperUnit, c.attackPrio);
         pl.units.push(monster);
         return monster;
     }
@@ -60,19 +61,34 @@ class Monster {
     }
 
     takeTurn(map, index, isMovementTurn, curP) {
-        if(isMovementTurn) {
+        if (isMovementTurn) {
             return this.doMovementTurn(map, index, curP);
         } else {
             return this.doAttackTurn(map, index, curP);
         }
     }
 
+    findTarget(map, curP) {
+        // find closest target
+        const allTargets = map.getEnemiesInRange(this.tile, 4, this.player).filter(u => u.player.id === curP.id);
+        const closestTargets = allTargets.sort((a, b) => Map.dist(a.tile, b.tile));
+        let target = null;
+        this.attackPrio.forEach(p => {
+            if(target) {
+                return;
+            }
+            const pTarget = closestTargets.filter(t => t.type === p)[0];
+            if(pTarget){
+                target = pTarget;
+            }
+        })
+        return target;
+    }
+
     doMovementTurn(map, index, curP) {
-        if(this.mobility === MobileAttackType.BthenA && index === 0) {
-            // find closest target
-            const allTargets = map.getEnemiesInRange(this.tile, 4, this.player).filter(u => u.player.id === curP.id);
-            const closestTarget = allTargets.sort((a, b) => Map.dist(a.tile, b.tile))[0];
-            if(closestTarget) {
+        if (this.mobility === MobileAttackType.BthenA && index === 0) {
+            const closestTarget = this.findTarget(map, curP);
+            if (closestTarget) {
                 this.game.moveInDirection(this, this.tile, closestTarget.tile);
             }
             return false;
@@ -80,11 +96,9 @@ class Monster {
     }
 
     doAttackTurn(map, index, curP) {
-        if(this.mobility === MobileAttackType.BthenA && index === 1) {
-            // find closest target
-            const allTargets = map.getEnemiesInRange(this.tile, 4, this.player).filter(u => u.player.id === curP.id);
-            const closestTarget = allTargets.sort((a, b) => Map.dist(a.tile, b.tile))[0];
-            if(closestTarget && Map.dist(closestTarget.tile, this.tile) <= this.reach){
+        if (this.mobility === MobileAttackType.BthenA && index === 1) {
+            const closestTarget = this.findTarget(map, curP);
+            if (closestTarget && Map.dist(closestTarget.tile, this.tile) <= this.reach) {
                 this.game.fight(this, closestTarget);
             }
             return true;

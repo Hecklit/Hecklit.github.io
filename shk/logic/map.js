@@ -279,7 +279,7 @@ class Map {
         }, []);
     }
 
-    lerp(a, b, d) {
+    lerp(a, b, d, pref=null) {
         const dx = b.xi - a.xi;
         const dy = b.yi - a.yi;
         const absdx = Math.abs(dx);
@@ -289,14 +289,18 @@ class Map {
 
         const distanceToTravel = absdx + absdy;
         if (distanceToTravel <= d) {
-            return b;
+            return [b, null];
         } else {
-            if (absdx > absdy) {
+            if ((pref && pref === 'X') || (!pref && absdx > absdy)) {
                 const whatsLeftMag = d - absdx <= 0 ? 0 : (d - absdx);
-                return this.getTile(a.xi + (d - whatsLeftMag) * dirx, a.yi + whatsLeftMag * diry);
+                return [
+                    this.getTile(a.xi + (d - whatsLeftMag) * dirx, a.yi + whatsLeftMag * diry),
+                    'X']
             } else {
                 const whatsLeftMag = d - absdy <= 0 ? 0 : (d - absdy);
-                return this.getTile(a.xi + whatsLeftMag * dirx, a.yi + (d - whatsLeftMag) * diry);
+                return [
+                    this.getTile(a.xi + whatsLeftMag * dirx, a.yi + (d - whatsLeftMag) * diry),
+                    'Y']
             }
         }
     }

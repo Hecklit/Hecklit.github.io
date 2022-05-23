@@ -376,10 +376,12 @@ class Game {
     }
 
     moveInDirection(unit, start, end) {
-        const targetTile = this.map.lerp(start, end, unit.mov);
+        let [targetTile, pref] = this.map.lerp(start, end, unit.mov);
+        if(pref && targetTile.getEnemy(unit.player)){
+            [targetTile] = this.map.lerp(start, end, unit.mov, pref === "X" ? 'Y': 'X');
+        }
         return this.move(unit, targetTile);
     }
-
 
     fight(attacker, defender) {
         const prevDefNum = defender.num;
