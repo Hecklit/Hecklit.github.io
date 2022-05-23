@@ -44,6 +44,11 @@ class Unit {
         return this.alive;
     }
 
+    recruitNewUnits(num) {
+        this.num += num;
+        this.totalHp += num * this.hp;
+    }
+
     getMovementLeftThisRound() {
         return this.mov - this.movedThisTurn;
     }

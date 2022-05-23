@@ -119,17 +119,22 @@ class Game {
         if (this.phase !== 2 || this.winner) {
             return false;
         }
-        // is troup limit reached?
         const curP = this.players[this.curPi];
+        // stock up troup?
+        let troup = curP.activeBaseTile?.getUnitOf(curP);
+        troup = troup?.type === ut? troup : null;
+        const outOfBase = !curP.baseTiles.includes(curP.activeBaseTile);
+        console.log(troup);
+        // is troup limit reached?
         const troupsOfSameType = curP.units.filter(u => u.type === ut);
         const totalNumOfTroupsOfSameType = troupsOfSameType.reduce((acc, cur) => acc + cur.num, 0);
-        if (troupsOfSameType.length >= this.maxNumTroups[ut]
+        if ((!troup && troupsOfSameType.length >= this.maxNumTroups[ut])
             || ((totalNumOfTroupsOfSameType + n) > this.maxNumUnits[ut])) {
             this.errorMessage = curP.id + " already reached the maximum for this unit type.";
             return false;
         }
         const freeBaseTiles = curP.getFreeBaseTiles();
-        if (ut === 'None' || freeBaseTiles.length === 0) {
+        if (!troup && (ut === 'None' || freeBaseTiles.length === 0)) {
             this.phase = 3
             curP.hero.heal(curP.hero.reg);
             this.phase = 4;
@@ -138,8 +143,9 @@ class Game {
             return true;
         }
         const conf = this.config[ut] ? this.config[ut] : curP.hero;
-        const cost = conf.cost * n;
-        if (curP.gold >= cost && freeBaseTiles.length > 0 && n > 0) {
+        const outOfBaseModifier = outOfBase ? 2 : 1;
+        const cost = conf.cost * n * outOfBaseModifier;
+        if (curP.gold >= cost && (freeBaseTiles.length > 0 || troup) && n > 0) {
 
             if (ut === 'H') {
                 if (!curP.hero.alive) {
@@ -149,6 +155,10 @@ class Game {
                     this.errorMessage = curP.id + " hero is not dead";
                     return false;
                 }
+            }else if (troup) {
+                curP.gold -= cost;
+                troup.recruitNewUnits(n);
+                return troup;
             } else {
                 const newUnit = curP.buyUnit(ut, n, cost
                     , conf.reach
@@ -216,9 +226,7 @@ class Game {
         const curP = this.players[this.curPi];
         if (tile) {
             if (this.phase === 2) {
-                if (curP.getFreeBaseTiles().filter(b => b.id === tile.id).length === 1) {
-                    curP.activeBaseTile = tile;
-                }
+                curP.activeBaseTile = tile;
             } else if (this.phase === 5) {
                 const unitOfP = tile.units.filter(u => u.player.id === curP.id)[0];
                 if (unitOfP) {

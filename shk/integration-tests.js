@@ -92,6 +92,56 @@ addEventListener('load', async function () {
 
 
     (() => {
+        console.log("testPlayerCanAddUnitsToExistingTroupsInBase");
+        const game = getDefaultGame();
+        game.maxNumTroups.F = 10;
+        game.init(false);
+
+        const cP = game.curP;
+        const tile = cP.getFreeBaseTiles()[0];
+        for (let i = 0; i < 3; i++) {
+            game.startRound();
+            game.startRound();
+            game.buyUnit('F', 2);
+        }
+        game.startRound();
+        game.startRound();
+        game.onClick(tile);
+        game.buyUnit('F', 2);
+
+        drawEngine.draw(game);
+        assertEquals(tile.units[0].num, 4); // one is taken by hero
+    })();
+
+    (() => {
+        console.log("testPlayerCanAddUnitsToExistingTroupsOutOfBaseForDoubleThePrice");
+        const game = getDefaultGame();
+        game.maxNumTroups.F = 10;
+        game.init(false);
+        game.startRound();
+
+        const cP = game.curP;
+        cP.activeBaseTile = cP.getFreeBaseTiles()[1];
+        const unit = game.buyUnit('F', 2);
+        game.moveIdx(unit, -1, -1);
+        const tile = unit.tile;
+        game.startRound();
+        game.startRound();
+        game.onClick(tile);
+        assertEquals(game.curP.activeBaseTile.id, tile.id); // one is taken by hero
+        game.buyUnit('F', 2);
+        drawEngine.draw(game);
+        assertEquals(tile.units[0].num, 2); // one is taken by hero
+        game.startRound();
+        game.startRound();
+        game.onClick(tile);
+        assertEquals(game.curP.activeBaseTile.id, tile.id); // one is taken by hero
+        game.buyUnit('F', 2);
+        assertEquals(tile.units[0].num, 4); // one is taken by hero
+    })();
+
+
+    (() => {
         console.log("testPlayerCanAttackOtherUnitsInMelee");
         const game = getDefaultGame();
         game.init(false);
@@ -119,6 +169,27 @@ addEventListener('load', async function () {
         assertEquals(result.defenderRolls.length > 0, true);
     })();
 
+
+    (() => {
+        console.log("test15FactuallyGetToRoll15TimesAgainst2F");
+        const game = getDefaultGame();
+        game.init(false);
+        game.startRound();
+        const p1Unit = game.buyUnit('F', 2);
+        for (let i = 0; i < 5; i++) {
+            game.moveIdx(p1Unit, -2, 0);
+            game.startRound();
+            game.startRound();
+        }
+        game.moveIdx(p1Unit, -2, 0);
+
+        game.startRound();
+        game.curP.gold += 15*2;
+        const p2Unit = game.buyUnit('F', 15);
+        game.moveIdx(p2Unit, 2, 0);
+        const result = game.fight(p2Unit, p1Unit);
+        assertEquals(result.attackerRolls.length, 15);
+    })();
 
     (() => {
         console.log("testPlayerCanAttackOtherUnitsInMeleeOnlyOncePerTurn");
