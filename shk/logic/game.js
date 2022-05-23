@@ -159,7 +159,7 @@ class Game {
                 curP.gold -= cost;
                 troup.recruitNewUnits(n);
                 return troup;
-            } else {
+            } else if (!curP.activeBaseTile?.getUnitOf(curP)) {
                 const newUnit = curP.buyUnit(ut, n, cost
                     , conf.reach
                     , conf.mov
@@ -175,6 +175,10 @@ class Game {
                 this.monsterTurn(250);
                 this.phase = 5;
                 return newUnit;
+            } else {
+                this.errorMessage = curP.id + " has already of different type on this tile.";
+                console.log(curP.id + " has already of different type on this tile.");
+                return false;
             }
         } else {
             this.errorMessage = curP.id + " doesn't have enough gold or space.";
@@ -194,7 +198,7 @@ class Game {
 
         while (!allDone) {
             allDone = this.monsters.units.reduce((acc, cur) => {
-                acc &= cur.takeTurn(this.map, i, i % 2 === 0);
+                acc &= cur.takeTurn(this.map, i, i % 2 === 0, this.curP);
                 return acc;
             }, true);
             i++;
@@ -331,7 +335,7 @@ class Game {
         const validTiles = this.map.getPossibleMovementPerUnit(unit);
         const onlyTiles = validTiles.map(o => o.t);
         const d = Map.dist(unit.tile, tile);
-        if (onlyTiles.includes(tile)) {
+        if (onlyTiles.includes(tile) && !tile.getUnitOf(unit.player)) {
             if (unit.goldmine) {
                 unit.goldmine.reset();
             }

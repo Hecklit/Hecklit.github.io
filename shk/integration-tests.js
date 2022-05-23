@@ -286,6 +286,7 @@ addEventListener('load', async function () {
         assertEquals(monster.tile.yi, tile.yi);
 
         game.startRound();
+        game.startRound();
         game.monsterTurn();
         assertEquals(p1Unit.tile.xi, monster.tile.xi);
         assertEquals(p1Unit.tile.yi, monster.tile.yi);
