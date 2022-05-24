@@ -27,6 +27,7 @@ class Game {
         // eventEmitters
         this.onHeroDeath = new EventEmitter();
         this.onTurnFinish = new EventEmitter();
+        this.onTurnStart = new EventEmitter();
         this.onStepFinish = new EventEmitter();
         this.onAttack = new EventEmitter();
         this.onGameOver = new EventEmitter();
@@ -118,6 +119,7 @@ class Game {
             this.monsters.units.forEach(u => u.attacksThisTurn = 0);
         }
         curP.activeBaseTile = curP.getFreeBaseTiles()[0];
+        this.onTurnStart.emit(game.curP);
     }
 
 
@@ -318,6 +320,7 @@ class Game {
 
     takeNextStep(unitType=null, numUnits= null, fastForward = true) {
         console.log("onNext", this.phase);
+        let newUnit = null;
         let error = false;
         if (this.phase === 10) {
             this.onTurnFinish.emit();
@@ -355,7 +358,7 @@ class Game {
             this.phase = 5;
         } else if (this.phase === 2) {
 
-            const newUnit = this.buyUnit(unitType, numUnits);
+            newUnit = this.buyUnit(unitType, numUnits);
             if (!newUnit) {
                 error = true;
             }else {
@@ -371,6 +374,7 @@ class Game {
         } else {
             this.onError.emit(this.errorMessage);
         }
+        return newUnit;
     }
 
     move(unit, tile) {

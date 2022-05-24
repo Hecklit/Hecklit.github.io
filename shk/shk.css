@@ -9,9 +9,19 @@ body {
 }
 
 button{
+    border-radius: 10px;
+    margin: 0.5rem;
+    background: white;
+    padding: 0.5rem;
+    transition: transform .01s; /* Animation */
     min-width: 275px;
     font-size: 40px;
 }
+button:hover:not([disabled]) {
+    background: #FA9F42;
+    transform: scale(1.02);
+}
+
 
 input[type="number"] {
     font-size: 26px;
@@ -32,6 +42,36 @@ canvas {
     display: flex;
 }
 
+.game {
+    display: flex;
+}
+
 .controls {
     padding-left: 1rem;
+}
+
+.d-none {
+    display: none !important;
+}
+
+.main-menu {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.main-menu button {
+    border-radius: 10px;
+    margin: 0.5rem;
+    background: white;
+    padding: 0.5rem;
+    transition: transform .1s; /* Animation */
+}
+
+.main-menu button:hover:not([disabled]) {
+    background: #FA9F42;
+    transform: scale(1.1);
 }

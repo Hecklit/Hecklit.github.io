@@ -2,36 +2,50 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width"/>
     <title>SHK4</title>
-    <link rel="stylesheet" href="shk.css" />
+    <link rel="stylesheet" href="shk.css"/>
 </head>
 <body>
 <div id="test"></div>
 
 <div class="container">
-<canvas id="can"></canvas>
-<div class="controls">
-<form id="buyForm">
-    <p>Buy unit:</p>
-    <label for="numUnit">#</label>
-    <input type="number" id="numUnit" min="1" name="numUnit" value="1"><br>
-    <input type="radio" id="age0" name="age" value="None" checked>
-    <label for="age0">No unit</label><br>
-    <input type="radio" id="age1" name="age" value="F">
-    <label for="age1">F (2 gold)</label><br>
-    <input type="radio" id="age2" name="age" value="B">
-    <label for="age2">B (3 gold)</label><br>
-    <input type="radio" id="age3" name="age" value="K">
-    <label for="age3">K (5 gold)</label><br>
-    <input type="radio" id="age4" name="age" value="H" disabled>
-    <label for="age4">H</label><br>
+    <div class="main-menu" id="main-menu">
+        <h1>SHK</h1>
+        <button id="sp">
+            Singleplayer
+        </button>
+        <button id="couch" >
+            Couch MP
+        </button>
+        <button id="mp" disabled title="Coming soon">
+            Multiplayer
+        </button>
+        <button id="demo">Demo</button>
+    </div>
+    <div class="game d-none" id="game">
+        <canvas id="can"></canvas>
+        <div class="controls">
+            <form id="buyForm">
+                <p>Buy unit:</p>
+                <label for="numUnit">#</label>
+                <input type="number" id="numUnit" min="1" name="numUnit" value="1"><br>
+                <input type="radio" id="age0" name="age" value="None" checked>
+                <label for="age0">No unit</label><br>
+                <input type="radio" id="age1" name="age" value="F">
+                <label for="age1">F (2 gold)</label><br>
+                <input type="radio" id="age2" name="age" value="B">
+                <label for="age2">B (3 gold)</label><br>
+                <input type="radio" id="age3" name="age" value="K">
+                <label for="age3">K (5 gold)</label><br>
+                <input type="radio" id="age4" name="age" value="H" disabled>
+                <label for="age4">H</label><br>
 
-</form>
-<div id="errorMessage"></div>
-<button id="next">Buy</button>
-<button id="demo">Demo</button>
-</div>
+            </form>
+            <div id="errorMessage"></div>
+            <button id="next">Buy</button>
+        </div>
+    </div>
 </div>
 
 <script src="logic/enums.js"></script>

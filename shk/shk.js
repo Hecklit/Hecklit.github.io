@@ -1,10 +1,35 @@
 async function onTestsDone() {
+    const singlePlayerBtn = document.getElementById("sp");
+    // const multiPlayerBtn = document.getElementById("mp");
+    const couchBtn = document.getElementById("couch");
+    const mainMenuDiv = document.getElementById("main-menu");
+    const gameDiv = document.getElementById("game");
+    const demo = document.getElementById("demo");
+    couchBtn.addEventListener('click', async function () {
+        mainMenuDiv.classList.add("d-none");
+        gameDiv.classList.remove("d-none");
+        await startGame();
+    }, false);
+    singlePlayerBtn.addEventListener('click', async function () {
+        mainMenuDiv.classList.add("d-none");
+        gameDiv.classList.remove("d-none");
+        await startGame(true);
+    }, false);
+    demo.addEventListener('click', async function () {
+        mainMenuDiv.classList.add("d-none");
+        gameDiv.classList.remove("d-none");
+        await startGame(false, true );
+    });
+}
+
+async function startGame(aiPlayer=false, demo=false){
+    let disableInput = false;
     const canvas = document.getElementById("can");
     canvas.width = 1200;
     canvas.height = 360;
     resetRandomNumberGenerator();
     const game = new Game(
-            ...Config.gameConfig({heroRevival: 3}).FixesMini,
+        ...Config.gameConfig({heroRevival: 3}).FixesMini,
         document.querySelectorAll(
             'input[name="age"]'),
         document.querySelectorAll(
@@ -20,8 +45,21 @@ async function onTestsDone() {
         console.log("onHeroDeath");
         drawEngine.draw(game);
     });
-    game.onTurnFinish.subscribe(() => {
+    game.onTurnFinish.subscribe(async () => {
         console.log("onTurnFinish");
+        drawEngine.draw(game);
+    });
+    game.onTurnStart.subscribe(async () => {
+        console.log("onTurnStart");
+        drawEngine.draw(game);
+        if (game.phase !== 2) {
+            throw "Turn finished not on phase 2"
+        }
+        if (game.curP.id === "Jonas" && aiPlayer) {
+            disableInput = true;
+            await demoPlayer.playTurn(game, game.curP);
+            disableInput = false;
+        }
         drawEngine.draw(game);
     });
     game.onStepFinish.subscribe(() => {
@@ -60,10 +98,12 @@ async function onTestsDone() {
 
     // INPUTS
     const errorMessage = document.getElementById("errorMessage");
-    const demo = document.getElementById("demo");
     const nextButton = document.getElementById("next");
     const buyForm = document.getElementById("buyForm");
     canvas.addEventListener('click', function (e) {
+        if(disableInput) {
+            return
+        }
         const x = e.clientX,
             y = e.clientY;
         console.log(x, y);
@@ -73,16 +113,15 @@ async function onTestsDone() {
     }, false);
 
     nextButton.addEventListener('click', function () {
+        if(disableInput) {
+            return
+        }
         const getSelectedValue = document.querySelector(
             'input[name="age"]:checked');
         const numUnit = document.querySelector(
             'input[name="numUnit"]');
-        game.takeNextStep(getSelectedValue.value, numUnit);
+        game.takeNextStep(getSelectedValue.value, +numUnit.value);
     }, false);
-
-    demo.addEventListener('click', async function () {
-        await demoPlayer.playDemo(game);
-    });
 
     window.visualViewport.addEventListener('resize', (e) => {
         drawEngine.resize(e.target.width, game);
@@ -96,4 +135,12 @@ async function onTestsDone() {
 
     // initial resize
     drawEngine.resize(window.visualViewport.width, game);
+
+    if(demo) {
+        document.getElementsByClassName('controls')[0].classList.add("d-none");
+
+        // initial resize
+        drawEngine.resize(window.visualViewport.width, game);
+        await demoPlayer.playDemo(game);
+    }
 }

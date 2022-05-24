@@ -335,10 +335,10 @@ class DrawEngine {
         }
         if (unit.hp * unit.num > unit.totalHp) {
             this.fillRect(unit.tile.x, unit.tile.y,
-                size, size * 0.15, "red");
+                tileSize, tileSize * 0.15, "red");
             const hpRatio = unit.totalHp / (unit.hp * unit.num);
             this.fillRect(unit.tile.x, unit.tile.y,
-                size * hpRatio, size * 0.15, "green");
+                tileSize * hpRatio, tileSize * 0.15, "green");
         }
         let add = "";
         const game = unit.tile.map.game;
