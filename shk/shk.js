@@ -60,6 +60,10 @@ async function startGame(aiPlayer=false, demo=false){
             await demoPlayer.playTurn(game, game.curP);
             disableInput = false;
         }
+        errorMessage.innerHTML = "";
+        errorMessage.style.display = "none";
+        nextButton.innerHTML = game.phase === 2 ? "Buy" : "Next";
+        buyForm.style.opacity = game.phase === 2 ? "1" : "0.5";
         drawEngine.draw(game);
     });
     game.onStepFinish.subscribe(() => {
