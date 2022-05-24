@@ -22,7 +22,6 @@ class Fightvis {
         this.attackerIdx = attackerIdx;
         this.revenge = revenge;
         this.fightData = fightData;
-        this.running = true;
         const width = this.e.ctx.canvas.width;
         const height = this.e.ctx.canvas.height;
         const leftX = width * 0.1;
@@ -110,14 +109,18 @@ class Fightvis {
         await sleep(400);
         await this.homingDiceForUnits(this.units[this.attackerIdx]);
 
-        if (this.fightData.defenderRolls?.length() > 0) {
+        if (this.fightData[1].rolls.length > 0) {
             const defenderIdx = (this.attackerIdx + 1) % 2;
             this.removeDeadUnits();
             this.assignTargets(defenderIdx);
             await this.throwDiceForUnits(this.units[defenderIdx]);
             await sleep(400);
             await this.homingDiceForUnits(this.units[defenderIdx]);
+            await sleep(400);
+        }else{
+            console.log("skipping because no fight vis", this.fightData.defenderRolls, this.fightData)
         }
+        await sleep(400);
     }
 
     static async playViz(attacker, defender, attackerRolls, defenderRolls,
@@ -125,6 +128,7 @@ class Fightvis {
         if(Fightvis.instance.disabled) {
             return
         }
+        Fightvis.instance.running = true;
         const vis = Fightvis.instance;
         const apl = attacker.player;
         const dpl = defender.player;
@@ -177,6 +181,7 @@ class Fightvis {
             }
         ], 0, defender.revenge);
         await vis.play();
+        Fightvis.instance.running = false;
     }
 
 }

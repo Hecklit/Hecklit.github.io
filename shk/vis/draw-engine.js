@@ -17,7 +17,7 @@ class DrawEngine {
 
     drawColumnRow(row, x, y, cellWidth, size, color) {
         row.forEach((c, i) => {
-            if(i === 4){
+            if (i === 4) {
                 i += 2.5;
             }
             this.text(c, x + i * cellWidth, y, size, color);
@@ -72,6 +72,9 @@ class DrawEngine {
     }
 
     draw(game) {
+        if(Fightvis.instance.running) {
+            return;
+        }
         if (game.winner) {
             if (game.gameOverScreenDrawn) {
                 return;
@@ -286,12 +289,12 @@ class DrawEngine {
 
     drawUnit(unit, phase, curP) {
         const [add, tileSize, xOffset, yOffset] = this.drawBaseUnit(unit, phase, curP);
-        this.text(unit.type + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4 +yOffset, tileSize * 0.6, "white");
+        this.text(unit.type + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4 + yOffset, tileSize * 0.6, "white");
     }
 
     drawHero(unit, phase, curP) {
         const [add, tileSize, xOffset, yOffset] = this.drawBaseUnit(unit, phase, curP);
-        this.text(unit.type + unit.lvl + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4 +yOffset, tileSize * 0.5, "white");
+        this.text(unit.type + unit.lvl + add, unit.tile.x + tileSize / 2 + xOffset, unit.tile.y + tileSize / 1.4 + yOffset, tileSize * 0.5, "white");
     }
 
     drawMonster(unit, phase, curP) {
@@ -305,11 +308,10 @@ class DrawEngine {
         if (notAlone) {
             tileSize /= 2;
 
-            if(unit.tile.units.length === 2){
+            if (unit.tile.units.length === 2) {
                 const enemy = unit.tile.getEnemy(unit);
                 xOffset = enemy.player.id === "Jonas" ? tileSize : 0;
-            } else
-            if(unit.tile.units.length === 3){
+            } else if (unit.tile.units.length === 3) {
                 xOffset = 0;
                 yOffset = tileSize;
             }
@@ -334,10 +336,10 @@ class DrawEngine {
             }
         }
         if (unit.hp * unit.num > unit.totalHp) {
-            this.fillRect(unit.tile.x, unit.tile.y,
+            this.fillRect(unit.tile.x + xOffset, unit.tile.y + yOffset,
                 tileSize, tileSize * 0.15, "red");
             const hpRatio = unit.totalHp / (unit.hp * unit.num);
-            this.fillRect(unit.tile.x, unit.tile.y,
+            this.fillRect(unit.tile.x + xOffset, unit.tile.y + yOffset,
                 tileSize * hpRatio, tileSize * 0.15, "green");
         }
         let add = "";
