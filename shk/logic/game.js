@@ -174,8 +174,8 @@ class Game {
                     , conf.revenge
                     , conf.mobility);
             } else {
-                this.errorMessage = curP.id + " has already of different type on this tile.";
-                console.log(curP.id + " has already of different type on this tile.");
+                this.errorMessage = curP.id + " has already a troup of different type on this tile.";
+                console.log(curP.id + " has already a troup of different type on this tile.");
                 return false;
             }
         } else {
