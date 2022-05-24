@@ -4,6 +4,7 @@ addEventListener('load', async function () {
     canvas.height = 360;
     const drawEngine = new DrawEngine(canvas);
     Fightvis.configureDrawEngine(drawEngine);
+    seedRandomNumberGenerator(42);
 
     function getDefaultGame(mapType = MapType.FixMini) {
         return new Game(
@@ -18,7 +19,98 @@ addEventListener('load', async function () {
             console.log(`${a} === ${b}`, msg)
         }
     }
+    (() => {
+        // console.log("check that random gen is seeded");
+        assertEquals(Math.random(), 0.6011037519201636  );
+        assertEquals(Math.random(), 0.44829055899754167  );
+        assertEquals(Math.random(), 0.8524657934904099 );
+        assertEquals(Math.random(),   0.6697340414393693 );
+    })();
 
+    console.log("Playing integration Game tests:");
+    (() => {
+        console.log("testGameFastForwardsToTheCorrectPhases");
+        const game = getDefaultGame(MapType.FixMini);
+        game.init(true);
+        game.startRound();
+        // fist Player turn
+        const firstPlayer = game.curP;
+        firstPlayer.gold += 3;
+        game.onClickIdx(13, 2)
+        game.takeNextStep('B', 2);
+        assertEquals(game.phase, 5);
+        game.onClickIdx(12, 1)
+        game.takeNextStep();
+
+        // second Player turn
+        drawEngine.draw(game);
+        const secondPlayer = game.curP;
+        assertEquals(game.phase, 2, "");
+        assertEquals(secondPlayer.id !== firstPlayer.id, true);
+        game.onClickIdx(1, 2);
+        game.takeNextStep('K', 1);
+
+        assertEquals(game.phase, 5, "");
+        game.onClickIdx(2, 0);
+        assertEquals(game.map.getTile(2, 0).units[0].type, "K", "Knight moved to clicked Tile");
+        // move Hero
+        game.onClickIdx(2, 1);
+        assertEquals(game.map.getTile(2, 1).units[0].type, "H", "Hero moved to clicked Tile");
+        assertEquals(game.phase, 6, "Game is now on phase Trigger Monster");
+
+        // trigger Monsters
+        game.onClickIdx(2, 0);
+        let lastFight = game.fights.last();
+        assertEquals(lastFight.attackerRolls.length, 4, "Goblins Attack");
+        assertEquals(lastFight.defenderRolls.length, 1, "Knight Attacks back");
+        assertEquals(lastFight.prevAttackerTotalHp, 4 );
+        assertEquals(lastFight.attacker.totalHp, 4 );
+        assertEquals(lastFight.prevDefTotalHp, 2 );
+        assertEquals(lastFight.defender.totalHp, 1, "Knight lost one HP" );
+
+        assertEquals(game.phase, 8, "now it should be my turn to attack");
+        assertEquals(game.curP.activeUnit.type, "K", "Knight should be automatically selected");
+
+        game.onClickIdx(2, 0);
+        lastFight = game.fights.last();
+        assertEquals(lastFight.attackerRolls.length, 1, "Knight Attacks");
+        drawEngine.draw(game);
+        assertEquals(lastFight.defenderRolls.length, 3, "Goblins defende");
+
+        // next round for first player again
+        assertEquals(game.phase, 2, "now its the first players turn again");
+        game.onClickIdx(12, 1);
+        game.curP.gold += 6;
+        assertEquals(game.map.getTile(12, 1).units[0].num, 2, );
+        game.takeNextStep('B', 2);
+        assertEquals(game.map.getTile(12, 1).units[0].num, 4, "bought 2 extra units");
+        game.onClickIdx(11, 2);
+        game.onClickIdx(11, 1);
+        assertEquals(game.phase, 5);
+        game.takeNextStep();
+        assertEquals(game.phase, 6);
+        game.takeNextStep();
+        assertEquals(game.phase, 10);
+        game.onClickIdx(11, 1);
+        assertEquals(game.map.getTile(11, 1).getUnitOf(firstPlayer).goldmine.tier, 2, "Trying to annex goldmine");
+
+        // next players turn again
+        game.onClickIdx(1, 2); // "select base tile"
+        game.takeNextStep("B", 2);
+        game.onClickIdx(2, 1); // "select hero"
+        game.onClickIdx(3, 1); // "move hero"
+        game.takeNextStep();
+        assertEquals(game.phase, 8);
+        game.onClickIdx(2, 2); // "attack Goblins"
+        lastFight = game.fights.last();
+        assertEquals(lastFight.attackerRolls.length, 2, "Bows Attacks");
+        assertEquals(lastFight.defenderRolls.length, 0, "Goblins cant reach");
+
+        game.onClickIdx(3, 1); // "Annex Goldmine"
+
+        // drawEngine.draw(game);
+        // assertEquals("Finish test", false, "End");
+    })();
 
     console.log("Running tests:");
     (() => {
@@ -26,12 +118,13 @@ addEventListener('load', async function () {
         const game = getDefaultGame();
         game.init(false);
         game.startRound();
-        game.buyUnit('F', 2);
+        game.takeNextStep('F', 2);
         const cP = game.curP;
         const baseTile = cP.baseTiles[0];
         const xi = baseTile.xi - 1;
         const yi = baseTile.yi;
 
+        drawEngine.draw(game)
         game.onClickIdx(xi, yi);
         const targetTile = game.map.getTile(xi, yi);
 
@@ -215,6 +308,7 @@ addEventListener('load', async function () {
         const result3 = game.fight(p2Unit, p1Unit);
         assertEquals(result1.attackerRolls.length > 0, true, "There where some attack rolls");
         assertEquals(result2.attackerRolls.length, 0);
+        drawEngine.draw(game)
         assertEquals(result2.defenderRolls.length, 0);
         assertEquals(result3.attackerRolls.length > 0, true);
 
@@ -365,8 +459,12 @@ addEventListener('load', async function () {
         const cP = game.curP;
         cP.gold += 5;
         cP.activeBaseTile = cP.getFreeBaseTiles()[1];
-        const p1Unit = game.buyUnit('K', 2);
-        game.moveIdx(p1Unit, -2, -1);
+        assertEquals(game.phase, 2, "Game is phase 2");
+        game.takeNextStep('K', 2);
+        assertEquals(game.phase, 5, "Game is phase 5");
+        const p1Unit = cP.activeBaseTile.getUnitOf(cP);
+        drawEngine.draw(game)
+        game.onClickIdx(11, 1)
         p1Unit.tile.goldmine = new Goldmine(p1Unit.tile, 42);
         p1Unit.takeDmg(1);
         game.phase = 10;
@@ -378,9 +476,12 @@ addEventListener('load', async function () {
 
         // annex has started
         assertEquals(p1Unit.tile.goldmine.player, null);
-        game.startRound();
+        game.takeNextStep();
         game.curP.activeBaseTile = game.curP.getFreeBaseTiles()[1];
-        const p2Unit = game.buyUnit('K', 1);
+        const player2 = game.curP;
+        game.takeNextStep('K', 1);
+        drawEngine.draw(game)
+        const p2Unit = player2.activeBaseTile.getUnitOf(player2);
         p2Unit.mov = 20;
         game.moveIdx(p2Unit, 10, -1);
         game.startRound();
@@ -486,12 +587,14 @@ addEventListener('load', async function () {
             "should still be on attack");
 
         game.curP.activeUnit = footSoldiers;
-        game.onClick(footSoldiers.tile);
-        game.takeNextStep();
         drawEngine.draw(game);
-        assertEquals(game.phase, 10,
+        game.onClick(footSoldiers.tile);
+        const beforePl = game.curP;
+        game.takeNextStep();
+        assertEquals(game.phase, 2,
             "Now after meele fight has happened" +
             " it should be possible to go to the next phase");
+        assertEquals(game.curP.id !== beforePl, true, "Next players turn")
     })();
 
 

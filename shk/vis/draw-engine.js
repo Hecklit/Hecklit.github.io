@@ -18,7 +18,7 @@ class DrawEngine {
     drawColumnRow(row, x, y, cellWidth, size, color) {
         row.forEach((c, i) => {
             if(i === 4){
-                i += 1.4;
+                i += 2.5;
             }
             this.text(c, x + i * cellWidth, y, size, color);
         });
@@ -335,10 +335,10 @@ class DrawEngine {
         }
         if (unit.hp * unit.num > unit.totalHp) {
             this.fillRect(unit.tile.x, unit.tile.y,
-                unit.tile.l, unit.tile.l * 0.1, "red");
+                size, size * 0.15, "red");
             const hpRatio = unit.totalHp / (unit.hp * unit.num);
             this.fillRect(unit.tile.x, unit.tile.y,
-                unit.tile.l * hpRatio, unit.tile.l * 0.1, "green");
+                size * hpRatio, size * 0.15, "green");
         }
         let add = "";
         const game = unit.tile.map.game;

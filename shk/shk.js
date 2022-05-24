@@ -2,7 +2,7 @@ async function onTestsDone() {
     const canvas = document.getElementById("can");
     canvas.width = 1200;
     canvas.height = 360;
-
+    resetRandomNumberGenerator();
     const game = new Game(
             ...Config.gameConfig({heroRevival: 3}).FixesMini,
         document.querySelectorAll(
@@ -73,7 +73,11 @@ async function onTestsDone() {
     }, false);
 
     nextButton.addEventListener('click', function () {
-        game.takeNextStep();
+        const getSelectedValue = document.querySelector(
+            'input[name="age"]:checked');
+        const numUnit = document.querySelector(
+            'input[name="numUnit"]');
+        game.takeNextStep(getSelectedValue.value, numUnit);
     }, false);
 
     demo.addEventListener('click', async function () {

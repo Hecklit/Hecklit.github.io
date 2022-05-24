@@ -110,7 +110,7 @@ class Fightvis {
         await sleep(400);
         await this.homingDiceForUnits(this.units[this.attackerIdx]);
 
-        if (this.fightData.defenderRolls.length() > 0) {
+        if (this.fightData.defenderRolls?.length() > 0) {
             const defenderIdx = (this.attackerIdx + 1) % 2;
             this.removeDeadUnits();
             this.assignTargets(defenderIdx);

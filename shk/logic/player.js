@@ -101,7 +101,7 @@ class Player {
         return newUnit;
     }
 
-    hasUnitsThatCanStillAttack(game) {
+    hasNoUnitsThatCanStillAttack(game) {
         return this.units.filter(u => !game.cantAttackAnymore(u)).length === 0
     }
 

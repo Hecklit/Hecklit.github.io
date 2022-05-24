@@ -12,7 +12,8 @@ class Game {
         unitRadioLabels) {
 
         console.log(
-            {pGold,
+            {
+                pGold,
                 startUnits,
                 maxNumUnits,
                 maxNumTroups,
@@ -20,7 +21,8 @@ class Game {
                 mapType,
                 config,
                 unitRadioButtons,
-                unitRadioLabels});
+                unitRadioLabels
+            });
 
         // eventEmitters
         this.onHeroDeath = new EventEmitter();
@@ -32,6 +34,7 @@ class Game {
         this.onError = new EventEmitter();
         this.onClickFinished = new EventEmitter();
 
+        this.fights = [];
         this.pGold = pGold;
         this.unitRadioButtons = unitRadioButtons;
         this.unitRadioLabels = unitRadioLabels;
@@ -42,6 +45,7 @@ class Game {
         this.mapType = mapType;
         this.config = config;
         this.round = 0;
+        console.log("Entering phase ",  0)
         this.phase = 0;
         this.winner = null;
         this.debugMarker = [100, 100];
@@ -50,9 +54,10 @@ class Game {
         this.errorMessage = "";
         this.phaseToCaption = {
             2: "Rekrutierung",
-            4: "Monsters",
+            4: "Alte Monsters",
             5: "Bewegung",
             6: "Trigger Monsters",
+            7: "Neue Monsters",
             8: "Angriff",
             10: "Goldminen",
         }
@@ -104,6 +109,7 @@ class Game {
         const goldMineGold = curP.goldmines.reduce((acc, cur) => acc + cur.getGold(), 0);
 
         curP.gold += this.pGold + goldMineGold;
+        console.log("Entering phase ",  2)
         this.phase = 2;
         curP.units.forEach(u => u.movedThisTurn = 0);
         curP.units.forEach(u => u.attacksThisTurn = 0);
@@ -119,10 +125,11 @@ class Game {
         if (this.phase !== 2 || this.winner) {
             return false;
         }
+        console.log("Buy unit");
         const curP = this.players[this.curPi];
         // stock up troup?
         let troup = curP.activeBaseTile?.getUnitOf(curP);
-        troup = troup?.type === ut? troup : null;
+        troup = troup?.type === ut ? troup : null;
         const outOfBase = !curP.baseTiles.includes(curP.activeBaseTile);
         console.log(troup);
         // is troup limit reached?
@@ -135,11 +142,6 @@ class Game {
         }
         const freeBaseTiles = curP.getFreeBaseTiles();
         if (!troup && (ut === 'None' || freeBaseTiles.length === 0)) {
-            this.phase = 3
-            curP.hero.heal(curP.hero.reg);
-            this.phase = 4;
-            this.monsterTurn(250);
-            this.phase = 5;
             return true;
         }
         const conf = this.config[ut] ? this.config[ut] : curP.hero;
@@ -155,12 +157,12 @@ class Game {
                     this.errorMessage = curP.id + " hero is not dead";
                     return false;
                 }
-            }else if (troup) {
+            } else if (troup) {
                 curP.gold -= cost;
                 troup.recruitNewUnits(n);
                 return troup;
             } else if (!curP.activeBaseTile?.getUnitOf(curP)) {
-                const newUnit = curP.buyUnit(ut, n, cost
+                return curP.buyUnit(ut, n, cost
                     , conf.reach
                     , conf.mov
                     , conf.hp
@@ -169,12 +171,6 @@ class Game {
                     , conf.def
                     , conf.revenge
                     , conf.mobility);
-                this.phase = 3
-                curP.hero.heal(curP.hero.reg);
-                this.phase = 4;
-                this.monsterTurn(250);
-                this.phase = 5;
-                return newUnit;
             } else {
                 this.errorMessage = curP.id + " has already of different type on this tile.";
                 console.log(curP.id + " has already of different type on this tile.");
@@ -222,6 +218,20 @@ class Game {
         this.onClick(tile);
     }
 
+    selectMovableUnit() {
+        const allUnitsThatCanStillMove = this.curP.units.filter(u => !this.cantMoveAnymore(u));
+        if(!allUnitsThatCanStillMove.includes(this.curP.activeUnit) && allUnitsThatCanStillMove.length > 0) {
+            this.curP.activeUnit = allUnitsThatCanStillMove[0];
+        }
+    }
+
+    selectAttackReadyUnit() {
+        const allUnitsThatCanStillAttack = this.curP.units.filter(u => !this.cantAttackAnymore(u));
+        if(!allUnitsThatCanStillAttack.includes(this.curP.activeUnit) && allUnitsThatCanStillAttack.length > 0) {
+            this.curP.activeUnit = allUnitsThatCanStillAttack[0];
+        }
+    }
+
     onClick(tile) {
         if (![2, 5, 6, 8, 10].includes(this.phase) || this.winner) {
             return false;
@@ -238,31 +248,14 @@ class Game {
                 } else {
                     if (curP.activeUnit) {
                         this.move(curP.activeUnit, tile);
-                    }
-                }
-
-                if (curP.units.filter(u => !this.cantMoveAnymore(u)).length === 0) {
-                    if (this.map.getTriggerableMonsterDen(curP).length > 0) {
-                        this.phase = 6;
-                    } else {
-                        this.phase = 8;
-
-                        if (this.curP.hasUnitsThatCanStillAttack(this)) {
-                            this.startRound();
-                        }
+                        // did this move exhaust all movement from this unit?
+                        this.selectMovableUnit();
                     }
                 }
             } else if (this.phase === 6) {
                 const monsterDens = this.map.getTriggerableMonsterDen(curP);
                 if (monsterDens.filter(d => d.id === tile.id).length === 1) {
                     tile.triggerMonsterDen(this.monsters, this);
-                }
-                if (this.map.getTriggerableMonsterDen(curP).length === 0) {
-                    this.phase = 8;
-
-                    if (this.curP.hasUnitsThatCanStillAttack(this)) {
-                        this.startRound();
-                    }
                 }
             } else if (this.phase === 8) {
                 const fights = this.map.getPossibleFightsPerUnit(curP.activeUnit);
@@ -284,10 +277,46 @@ class Game {
             }
 
             this.onClickFinished.emit();
+            this.tryFastForward();
         }
     }
 
-    takeNextStep() {
+    tryFastForward(unitType=null, numUnits= null) {
+        console.log("try Fast Forward", this.phase)
+        let goToNextStep = false;
+        if (this.phase === 2 && unitType !== null && numUnits !== null) {
+            goToNextStep = true;
+        } else if (this.phase === 4) {
+            goToNextStep = true;
+        } else if (this.phase === 5) {
+            if (this.curP.units.filter(u => !this.cantMoveAnymore(u)).length === 0) {
+                goToNextStep = true;
+            }
+        } else if (this.phase === 6) {
+            if (this.map.getTriggerableMonsterDen(this.curP).length === 0) {
+                goToNextStep = true;
+            }
+        }else if(this.phase === 7){
+            goToNextStep = true;
+        }else if(this.phase === 8){
+            console.log("Fast forward phase 8 hasNoUnitsThatCanStillAttack", this.curP.hasNoUnitsThatCanStillAttack(this), this.curP.units)
+            if (this.curP.hasNoUnitsThatCanStillAttack(this)) {
+                goToNextStep = true;
+            }else{
+                this.selectAttackReadyUnit();
+            }
+        }else if(this.phase === 10){
+            if (this.map.getPossibleAnnexedGoldminesPerPlayer(this.curP).length === 0) {
+                goToNextStep = true;
+            }
+        }
+
+        if(goToNextStep) {
+            this.takeNextStep(unitType, numUnits);
+        }
+    }
+
+    takeNextStep(unitType=null, numUnits= null, fastForward = true) {
         console.log("onNext", this.phase);
         let error = false;
         if (this.phase === 10) {
@@ -296,36 +325,49 @@ class Game {
         } else if (this.phase === 8) {
             const meeleFights = this.map.getPossibleForcedFightsPerPlayer(this.curP);
             if (meeleFights.length === 0) {
+                console.log("Entering phase ",  10)
                 this.phase = 10;
             } else {
                 this.errorMessage = `${this.curP.id} still has melee fights left.`
                 error = true;
             }
+        } else if (this.phase === 7) {
+            this.monsterTurn();
+            console.log("Entering phase ",  8)
+            this.phase = 8;
         } else if (this.phase === 6) {
+            console.log("Entering phase ",  7)
+            this.phase = 7;
+            this.monsterTurn();
+            this.selectAttackReadyUnit();
             this.phase = 8;
         } else if (this.phase === 5) {
             if (this.map.getTriggerableMonsterDen(this.curP).length > 0) {
+                console.log("Entering phase ",  6)
                 this.phase = 6;
             } else {
-                this.phase = 8;
-
-                if (this.curP.hasUnitsThatCanStillAttack(this)) {
-                    this.startRound();
-                }
+                console.log("Entering phase ",  8)
+                this.phase = 7;
             }
+        } else if (this.phase === 4) {
+            this.monsterTurn();
+            this.selectMovableUnit();
+            this.phase = 5;
         } else if (this.phase === 2) {
-            const getSelectedValue = document.querySelector(
-                'input[name="age"]:checked');
-            const numUnit = document.querySelector(
-                'input[name="numUnit"]');
 
-            const newUnit = this.buyUnit(getSelectedValue.value, numUnit.value);
+            const newUnit = this.buyUnit(unitType, numUnits);
             if (!newUnit) {
                 error = true;
+            }else {
+                this.phase = 4;
+
             }
         }
         if (!error) {
             this.onStepFinish.emit();
+            if(fastForward){
+                this.tryFastForward();
+            }
         } else {
             this.onError.emit(this.errorMessage);
         }
@@ -377,8 +419,8 @@ class Game {
 
     moveInDirection(unit, start, end) {
         let [targetTile, pref] = this.map.lerp(start, end, unit.mov);
-        if(pref && targetTile.getEnemy(unit.player)){
-            [targetTile] = this.map.lerp(start, end, unit.mov, pref === "X" ? 'Y': 'X');
+        if (pref && targetTile.getEnemy(unit.player)) {
+            [targetTile] = this.map.lerp(start, end, unit.mov, pref === "X" ? 'Y' : 'X');
         }
         return this.move(unit, targetTile);
     }
@@ -389,11 +431,13 @@ class Game {
         const prevAttackerNum = attacker.num;
         const prevAttackerTotalHp = attacker.totalHp;
         const attackerRolls = this.attack(attacker, defender);
-        let defenderRolls = null;
-        if (defender.alive && defender.revenge) {
-            defenderRolls = this.attack(defender, attacker);
+        let defenderRolls = [];
+        if (defender.alive && defender.revenge && attackerRolls.length > 0) {
+            defenderRolls = this.attack(defender, attacker, true);
         }
 
+        this.fights.push({attacker, defender, attackerRolls, defenderRolls,
+            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp});
         this.onAttack.emit(attacker, defender, attackerRolls, defenderRolls,
             prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp);
         return {
@@ -402,8 +446,8 @@ class Game {
         }
     }
 
-    attack(attacker, defender) {
-        if (this.cantAttackAnymore(attacker)) {
+    attack(attacker, defender, revenge=false) {
+        if (this.cantAttackAnymore(attacker) && !revenge) {
             return [];
         }
 
@@ -419,7 +463,9 @@ class Game {
         }
 
         // we are in range
-        attacker.attacksThisTurn += 1;
+        if(!revenge) {
+            attacker.attacksThisTurn += 1;
+        }
         let rolls = [];
         const prevNum = defender.num;
         for (let i = 0; i < attacker.num; i++) {

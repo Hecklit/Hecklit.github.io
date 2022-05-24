@@ -6,6 +6,10 @@ Array.prototype.remove = function(e){
     return this.filter(a => a !== e);
 }
 
+Array.prototype.last = function(){
+    return this[this.length-1];
+}
+
 Array.prototype.shuffle = function() {
     const array = [...this];
     let currentIndex = array.length,  randomIndex;
@@ -48,4 +52,20 @@ function range(end, start= null){
 
 function spread(center, deviation) {
     return center + Math.random() * deviation - deviation/2;
+}
+
+function seedRandomNumberGenerator(a) {
+    Math.oldRandom = Math.random;
+    Math.random = function() {
+        var t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+}
+
+function resetRandomNumberGenerator(){
+    if(Math.oldRandom) {
+       Math.random = Math.oldRandom;
+    }
 }
