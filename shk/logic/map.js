@@ -2,6 +2,7 @@ class Map {
 
     constructor(game) {
         this.tiles = [];
+        this.baseTiles = [[], []];
         this.width = 0;
         this.height = 0;
         this.game = game;
@@ -77,6 +78,43 @@ class Map {
             this.tiles[7][ey].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
             this.tiles[7][ey].config(monster, "M2")
         }
+    }
+
+    configureNormalMap(monsterPlayer) {
+        const ex = this.tiles.length - 1;
+        const ey = this.tiles[0].length - 1;
+        const monster = "hsl(120, 10%, 50%)";
+
+        this.configureEmptyMap();
+
+        // Monster
+        if (monsterPlayer) {
+            this.tiles[2][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[2][0].config(monster, "M1")
+            this.tiles[4][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[4][0].config(monster, "M1")
+            this.tiles[ex - 2][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[ex - 2][0].config(monster, "M1")
+            this.tiles[ex - 4][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[ex - 4][0].config(monster, "M1")
+            this.tiles[5][2].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[5][2].config(monster, "M1")
+            this.tiles[ex - 5][2].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[ex - 5][2].config(monster, "M1")
+            this.tiles[3][ey].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[3][ey].config(monster, "M1")
+            this.tiles[ex - 3][ey].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
+            this.tiles[ex - 3][ey].config(monster, "M1")
+
+            this.tiles[0][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
+            this.tiles[0][0].config(monster, "M2")
+            this.tiles[ex][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
+            this.tiles[ex][0].config(monster, "M2")
+            this.tiles[7][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
+            this.tiles[7][0].config(monster, "M2")
+            this.tiles[7][ey].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
+            this.tiles[7][ey].config(monster, "M2")
+        }
 
     }
 
@@ -114,7 +152,7 @@ class Map {
         this.tiles[7][2].goldmine = new Goldmine(this.tiles[7][2], 5);
     }
 
-    generateSquareMap(width, height, mapType, monsterPlayer) {
+    generateTiles(width, height) {
         this.width = width;
         this.height = height;
 
@@ -126,12 +164,21 @@ class Map {
             }
         }
 
-        switch (mapType) {
+    }
 
+    generateSquareMap(mapType, monsterPlayer) {
+
+        switch (mapType) {
+            case MapType.Normal:
+                this.generateTiles(8, 8);
+                this.configureNormalMap(monsterPlayer);
+                break;
             case MapType.FixMini:
+                this.generateTiles(15, 4);
                 this.configureMiniMap(monsterPlayer);
                 break;
             case MapType.Empty:
+                this.generateTiles(15, 4);
                 this.configureEmptyMap();
                 break;
 
@@ -279,7 +326,7 @@ class Map {
         }, []);
     }
 
-    lerp(a, b, d, pref=null) {
+    lerp(a, b, d, pref = null) {
         const dx = b.xi - a.xi;
         const dy = b.yi - a.yi;
         const absdx = Math.abs(dx);

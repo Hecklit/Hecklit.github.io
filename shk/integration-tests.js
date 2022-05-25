@@ -1,4 +1,5 @@
 addEventListener('load', async function () {
+    await AssetManager.instance.loadAllData();
     const canvas = document.getElementById("can");
     canvas.width = 1200;
     canvas.height = 360;
@@ -8,7 +9,7 @@ addEventListener('load', async function () {
 
     function getDefaultGame(mapType = MapType.FixMini) {
         return new Game(
-            ...(mapType === MapType.FixMini ? Config.gameConfig().FixesMini : Config.gameConfig().Empty)
+            ...(mapType === MapType.FixMini ? Config.gameConfig().FixMini : Config.gameConfig().Empty)
         );
     }
 

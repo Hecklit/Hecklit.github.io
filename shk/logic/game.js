@@ -69,7 +69,7 @@ class Game {
         this.withMonsters = withMonsters;
         this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen", null, []) : null;
         this.map = new Map(this);
-        this.map.generateSquareMap(15, 4, this.mapType, this.monsters);
+        this.map.generateSquareMap(this.mapType, this.monsters);
         this.players = [];
         this.players.push(new Player("Jonas",
             this.map.getTiles([[0, 2], [0, 3], [1, 2], [1, 3]]),

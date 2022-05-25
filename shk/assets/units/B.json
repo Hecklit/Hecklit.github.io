@@ -1,0 +1,11 @@
+{
+  "cost": 3,
+  "reach": 4,
+  "mov": 2,
+  "hp": 1,
+  "numAttacks": 1,
+  "dmg": 5,
+  "def": 2,
+  "revenge": false,
+  "mobility": "BorA"
+}

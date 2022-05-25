@@ -8,13 +8,24 @@ body {
 
 }
 
+select {
+    height: 4rem;
+    border-radius: 1rem;
+    font-size: 30px;
+    padding: .5rem;
+}
+
+option {
+    font-size: 30px;
+}
+
 button{
     border-radius: 10px;
     margin: 0.5rem;
     background: white;
     padding: 0.5rem;
     transition: transform .01s; /* Animation */
-    min-width: 275px;
+    min-width: 10%;
     font-size: 40px;
 }
 button:hover:not([disabled]) {

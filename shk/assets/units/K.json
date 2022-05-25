@@ -1,0 +1,11 @@
+{
+  "cost": 5,
+  "reach": 0,
+  "mov": 3,
+  "hp": 2,
+  "numAttacks": 1,
+  "dmg": 6,
+  "def": 3,
+  "revenge": true,
+  "mobility": "BthenA"
+}
