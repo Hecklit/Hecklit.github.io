@@ -8,8 +8,9 @@ addEventListener('load', async function () {
     seedRandomNumberGenerator(42);
 
     function getDefaultGame(mapType = MapType.FixMini) {
+        console.log(AssetManager.instance.mapData)
         return new Game(
-            ...(mapType === MapType.FixMini ? Config.gameConfig().FixMini : Config.gameConfig().Empty)
+            mapType === MapType.FixMini ? AssetManager.instance.mapData['FixMini'] : AssetManager.instance.mapData['Empty']
         );
     }
 
@@ -39,7 +40,8 @@ addEventListener('load', async function () {
         firstPlayer.gold += 3;
         game.onClickIdx(13, 2)
         game.takeNextStep('B', 2);
-        assertEquals(game.phase, 5);
+        drawEngine.draw(game);
+        assertEquals(game.phase, 5, "Successfully moved to Movement Phase");
         game.onClickIdx(12, 1)
         game.takeNextStep();
 
@@ -341,7 +343,7 @@ addEventListener('load', async function () {
     })();
 
     (() => {
-        const markTile = (tile) => Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
+        const markTile = (tile) => Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         console.log("testMapLerpWorksAsExpected");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
@@ -372,7 +374,7 @@ addEventListener('load', async function () {
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         const tile = game.map.getTile(10, 3);
-        const monster = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
+        const monster = Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         game.startRound();
         const p1Unit = game.spawnUnit(8,  0, 3, "F", game.curP);
         game.spawnUnit(8,  1, 3, "B", game.curP);
@@ -406,9 +408,9 @@ addEventListener('load', async function () {
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         const tile = game.map.getTile(2, 2);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         const tile2 = game.map.getTile(10, 3);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile2, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile2, game.monsters, game);
         game.startRound();
         game.buyUnit('B', 1);
 
@@ -611,15 +613,15 @@ addEventListener('load', async function () {
         game.spawnUnit(0, 0,1,  "F", game.players[0]);
 
         const u1 = game.spawnUnit(1, 0,1,  "F", game.curP);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
 
 
         const u2 = game.spawnUnit(2, 0,1,  "F", game.players[0]);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
 
         const u3 = game.spawnUnit(3, 0,1,  "F", game.players[0]);
         game.spawnUnit(3, 0,1,  "F", game.curP);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
 
 
 
@@ -640,15 +642,15 @@ addEventListener('load', async function () {
         game.spawnUnit(0, 0, 1, "F", game.players[0]);
 
         const u1 = game.spawnUnit(1, 0, 10, "F", game.curP);
-       Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
+       Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
 
 
         const u2 = game.spawnUnit(1, 0, 5, "K", game.players[0]);
-       Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
+       Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
 
         const u3 = game.spawnUnit(3, 0, 1, "F", game.players[0]);
         game.spawnUnit(3, 0, 1, "F", game.curP);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
         //
         // const {attacker, defender, attackerRolls, defenderRolls,
         //     prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp} = game.fight(u1, u2);

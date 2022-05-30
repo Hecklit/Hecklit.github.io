@@ -52,7 +52,7 @@ class Hero {
         if (this.curExp >= this.epToNextLvl && this.lvl < 10) {
             this.curExp -= this.epToNextLvl;
             this.lvl++;
-            const c = Config.getHeroStatsByLvl(this.lvl);
+            const c = AssetManager.getHeroStatsByLvl(this.lvl);
             this.epToNextLvl = c.ep;
             this.reach = c.reach;
             this.mov = c.mov;

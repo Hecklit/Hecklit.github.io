@@ -24,9 +24,141 @@
   "specialTiles": [
     {
       "x": 0,
-      "y": 1,
+      "y": 2,
       "type": "Base",
       "ofPlayer": 1
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "type": "Base",
+      "ofPlayer": 1
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "type": "Base",
+      "ofPlayer": 1
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "type": "Base",
+      "ofPlayer": 1
+    },
+    {
+      "x": 14,
+      "y": 2,
+      "type": "Base",
+      "ofPlayer": 2
+    },
+    {
+      "x": 14,
+      "y": 3,
+      "type": "Base",
+      "ofPlayer": 2
+    },
+    {
+      "x": 13,
+      "y": 2,
+      "type": "Base",
+      "ofPlayer": 2
+    },
+    {
+      "x": 13,
+      "y": 3,
+      "type": "Base",
+      "ofPlayer": 2
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "type": "Goldmine",
+      "tier": 2
+    },
+    {
+      "x": 11,
+      "y": 1,
+      "type": "Goldmine",
+      "tier": 2
+    },
+    {
+      "x": 7,
+      "y": 2,
+      "type": "Goldmine",
+      "tier": 5
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 12,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 10,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 9,
+      "y": 2,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 11,
+      "y": 3,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 2
+    },
+    {
+      "x": 14,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 2
+    },
+    {
+      "x": 7,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 2
+    },
+    {
+      "x": 7,
+      "y": 3,
+      "type": "Monster",
+      "lvl": 2
     }
   ]
 }

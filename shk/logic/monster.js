@@ -38,7 +38,7 @@ class Monster {
     }
 
     static spawnMonster(c, tile, pl, game) {
-        console.log("spawnMonster", game);
+        console.log("spawnMonster", c);
         const monster = new Monster(game, pl, c.name, c.lvl, c.gold, c.aiStrategy, tile, c.num,
             c.reach, c.mov, c.hp, c.numAttacks, c.dmg, c.def, c.revenge, c.mobility, c.EPperUnit, c.attackPrio);
         pl.units.push(monster);

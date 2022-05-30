@@ -43,113 +43,39 @@ class Map {
             && tile.isMonsterDen && !tile.monsterDenWasTriggered);
     }
 
-    configureMiniMap(monsterPlayer) {
-        const ex = this.tiles.length - 1;
-        const ey = this.tiles[0].length - 1;
-        const monster = "hsl(120, 10%, 50%)";
-
-        this.configureEmptyMap();
-
-        // Monster
-        if (monsterPlayer) {
-            this.tiles[2][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[2][0].config(monster, "M1")
-            this.tiles[4][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[4][0].config(monster, "M1")
-            this.tiles[ex - 2][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 2][0].config(monster, "M1")
-            this.tiles[ex - 4][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 4][0].config(monster, "M1")
-            this.tiles[5][2].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[5][2].config(monster, "M1")
-            this.tiles[ex - 5][2].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 5][2].config(monster, "M1")
-            this.tiles[3][ey].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[3][ey].config(monster, "M1")
-            this.tiles[ex - 3][ey].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 3][ey].config(monster, "M1")
-
-            this.tiles[0][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[0][0].config(monster, "M2")
-            this.tiles[ex][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[ex][0].config(monster, "M2")
-            this.tiles[7][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[7][0].config(monster, "M2")
-            this.tiles[7][ey].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[7][ey].config(monster, "M2")
-        }
-    }
-
-    configureNormalMap(monsterPlayer) {
-        const ex = this.tiles.length - 1;
-        const ey = this.tiles[0].length - 1;
-        const monster = "hsl(120, 10%, 50%)";
-
-        this.configureEmptyMap();
-
-        // Monster
-        if (monsterPlayer) {
-            this.tiles[2][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[2][0].config(monster, "M1")
-            this.tiles[4][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[4][0].config(monster, "M1")
-            this.tiles[ex - 2][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 2][0].config(monster, "M1")
-            this.tiles[ex - 4][0].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 4][0].config(monster, "M1")
-            this.tiles[5][2].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[5][2].config(monster, "M1")
-            this.tiles[ex - 5][2].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 5][2].config(monster, "M1")
-            this.tiles[3][ey].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[3][ey].config(monster, "M1")
-            this.tiles[ex - 3][ey].makeMonsterDen(Config.getAllMonstersOfLevel(1).sample());
-            this.tiles[ex - 3][ey].config(monster, "M1")
-
-            this.tiles[0][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[0][0].config(monster, "M2")
-            this.tiles[ex][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[ex][0].config(monster, "M2")
-            this.tiles[7][0].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[7][0].config(monster, "M2")
-            this.tiles[7][ey].makeMonsterDen(Config.getAllMonstersOfLevel(2).sample());
-            this.tiles[7][ey].config(monster, "M2")
-        }
-
-    }
 
     setRenderWidth(width) {
         const numX = this.tiles.length;
-        Map.tileSize = Math.floor(width / numX);
+        const numY = this.tiles[0].length;
+        Map.tileSize = Math.floor(width / Math.max(numX, numY));
     }
 
 
-    configureEmptyMap() {
-        const ex = this.tiles.length - 1;
-        const ey = this.tiles[0].length - 1;
+    configureMap(config, monsterPlayer) {
         const redBase = "hsl(0, 70%, 60%)";
         const blueBase = "hsl(240, 70%, 60%)";
         const goldMine = "hsl(60, 70%, 50%)";
+        const monster = "hsl(120, 10%, 50%)";
 
-        // red base
-        this.tiles[0][ey].config(redBase, "B");
-        this.tiles[0][ey - 1].config(redBase, "B");
-        this.tiles[1][ey].config(redBase, "B");
-        this.tiles[1][ey - 1].config(redBase, "B");
-
-        // blue base
-        this.tiles[ex][ey].config(blueBase, "B");
-        this.tiles[ex][ey - 1].config(blueBase, "B");
-        this.tiles[ex - 1][ey].config(blueBase, "B");
-        this.tiles[ex - 1][ey - 1].config(blueBase, "B");
-
-        // Goldmine
-        this.tiles[3][1].config(goldMine, "G2");
-        this.tiles[3][1].goldmine = new Goldmine(this.tiles[3][1], 2);
-        this.tiles[ex - 3][1].config(goldMine, "G2");
-        this.tiles[ex - 3][1].goldmine = new Goldmine(this.tiles[ex - 3][1], 2);
-        this.tiles[7][2].config(goldMine, "G5");
-        this.tiles[7][2].goldmine = new Goldmine(this.tiles[7][2], 5);
+        config.specialTiles.forEach(st => {
+            switch (st.type) {
+                case "Base":
+                    const pl = st.ofPlayer;
+                    this.tiles[st.x][st.y].config(pl === 1 ? redBase : blueBase, "B");
+                    this.baseTiles[pl-1].push(this.tiles[st.x][st.y])
+                    break;
+                case "Goldmine":
+                    this.tiles[st.x][st.y].config(goldMine, "G"+st.tier);
+                    this.tiles[st.x][st.y].goldmine = new Goldmine(this.tiles[st.x][st.y], st.tier);
+                    break;
+                case "Monster":
+                    if(monsterPlayer){
+                        this.tiles[st.x][st.y].makeMonsterDen(AssetManager.getAllMonstersOfLevel(st.lvl).sample());
+                        this.tiles[st.x][st.y].config(monster, "M"+st.lvl)
+                    }
+                    break;
+            }
+        });
     }
 
     generateTiles(width, height) {
@@ -166,23 +92,9 @@ class Map {
 
     }
 
-    generateSquareMap(mapType, monsterPlayer) {
-
-        switch (mapType) {
-            case MapType.Normal:
-                this.generateTiles(8, 8);
-                this.configureNormalMap(monsterPlayer);
-                break;
-            case MapType.FixMini:
-                this.generateTiles(15, 4);
-                this.configureMiniMap(monsterPlayer);
-                break;
-            case MapType.Empty:
-                this.generateTiles(15, 4);
-                this.configureEmptyMap();
-                break;
-
-        }
+    generateSquareMap(config, monsterPlayer) {
+        this.generateTiles(config.width, config.height);
+        this.configureMap(config, monsterPlayer);
     }
 
 

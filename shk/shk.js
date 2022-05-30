@@ -10,7 +10,7 @@ async function onTestsDone() {
         const newOption = new Option(displayName, name);
         mapTypeSelect.add(newOption,undefined);
     });
-    let mapType = Map.FixMini;
+    let mapType = MapType.FixMini;
     mapTypeSelect.addEventListener('change', (e) => {
         console.log(e.target.value);
         mapType = {name: e.target.value};
@@ -30,7 +30,8 @@ async function onTestsDone() {
         gameDiv.classList.remove("d-none");
         await startGame(mapType, false, true);
     });
-    // couchBtn.click();
+    mapType = MapType.Normal;
+    couchBtn.click();
 }
 
 async function startGame(mapType = MapType.FixMini, aiPlayer = false, demo = false) {
@@ -39,9 +40,8 @@ async function startGame(mapType = MapType.FixMini, aiPlayer = false, demo = fal
     canvas.width = 1200;
     canvas.height = 360;
     resetRandomNumberGenerator();
-    alert(mapType.name)
     const game = new Game(
-        ...Config.gameConfig({heroRevival: 3})[mapType.name],
+        AssetManager.instance.mapData[mapType.name],
         document.querySelectorAll(
             'input[name="age"]'),
         document.querySelectorAll(
