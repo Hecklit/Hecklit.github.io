@@ -11,7 +11,8 @@ class DrawEngine {
         width = Math.max(width, 880);
         this.ctx.canvas.width = width * 0.75;
         this.ctx.canvas.height = width * this.ratio;
-        game.map.setRenderWidth(this.ctx.canvas.width);
+        const renderWidth = game.map.width > game.map.height ? this.ctx.canvas.width:  Math.min(this.ctx.canvas.width, this.ctx.canvas.height);
+        game.map.setRenderWidth(renderWidth);
         this.draw(game);
     }
 
@@ -309,7 +310,7 @@ class DrawEngine {
             tileSize /= 2;
 
             if (unit.tile.units.length === 2) {
-                const enemy = unit.tile.getEnemy(unit);
+                const enemy = unit.tile.getEnemy(unit.player);
                 xOffset = enemy.player.id === "Jonas" ? tileSize : 0;
             } else if (unit.tile.units.length === 3) {
                 xOffset = 0;

@@ -1,0 +1,204 @@
+{
+  "name": "Normal",
+  "displayName": "Normal",
+  "pg": 5,
+  "startUnits": [
+    {
+      "type": "H",
+      "lvl": "2"
+    }
+  ],
+  "maxNumUnits": {
+    "F": 30,
+    "B": 20,
+    "K": 24
+  },
+  "maxNumTroups": {
+    "F": 1,
+    "B": 1,
+    "K": 1
+  },
+  "heroRevival": false,
+  "width": 8,
+  "height": 8,
+  "specialTiles": [
+    {
+      "x": 0,
+      "y": 0,
+      "type": "Base",
+      "ofPlayer": 1
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "type": "Base",
+      "ofPlayer": 1
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "type": "Base",
+      "ofPlayer": 1
+    },
+    {
+      "x": 7,
+      "y": 7,
+      "type": "Base",
+      "ofPlayer": 2
+    },
+    {
+      "x": 6,
+      "y": 7,
+      "type": "Base",
+      "ofPlayer": 2
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "type": "Base",
+      "ofPlayer": 2
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "type": "Goldmine",
+      "tier": 2
+    },
+    {
+      "x": 7,
+      "y": 0,
+      "type": "Goldmine",
+      "tier": 2
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "type": "Goldmine",
+      "tier": 3
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "type": "Goldmine",
+      "tier": 3
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "type": "Monster",
+      "lvl": 1
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "type": "Monster",
+      "lvl": 1,
+      "reset": true
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "type": "Monster",
+      "lvl": 1,
+      "reset": true
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "type": "Monster",
+      "lvl": 2
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "type": "Monster",
+      "lvl": 2
+    },
+    {
+      "x": 7,
+      "y": 1,
+      "type": "Monster",
+      "lvl": 2
+    },
+    {
+      "x": 7,
+      "y": 5,
+      "type": "Monster",
+      "lvl": 2
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "type": "Monster",
+      "lvl": 2,
+      "reset": true
+    },
+    {
+      "x": 2,
+      "y": 6,
+      "type": "Monster",
+      "lvl": 2,
+      "reset": true
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "type": "Monster",
+      "lvl": 3
+    },
+    {
+      "x": 7,
+      "y": 3,
+      "type": "Monster",
+      "lvl": 3
+    }
+  ]
+}

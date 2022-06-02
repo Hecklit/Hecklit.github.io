@@ -12,10 +12,15 @@
 <div class="container">
     <div class="main-menu" id="main-menu">
         <h1>SHK</h1>
+        <div class="">
+            <label for="mapType">Map:</label>
+            <select name="mapType" id="mapType">
+            </select>
+        </div>
         <button id="sp">
             Singleplayer
         </button>
-        <button id="couch" >
+        <button id="couch">
             Couch MP
         </button>
         <button id="mp" disabled title="Coming soon">
@@ -47,10 +52,10 @@
         </div>
     </div>
 </div>
+<textarea id="test-case"></textarea>
 
 <script src="logic/enums.js"></script>
 <script src="logic/event-emitter.js"></script>
-<script src="logic/config.js"></script>
 <script src="logic/utils.js"></script>
 <script src="logic/game.js"></script>
 <script src="logic/monster.js"></script>
@@ -66,6 +71,7 @@
 <script src="vis/fight-vis/fightvis-unit.js"></script>
 <script src="integration-tests.js"></script>
 <script src="ai/ai.js"></script>
+<script src="assets/assetManager.js"></script>
 <script src="shk.js"></script>
 </body>
 </html>

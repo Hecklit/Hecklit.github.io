@@ -5,31 +5,41 @@ async function onTestsDone() {
     const mainMenuDiv = document.getElementById("main-menu");
     const gameDiv = document.getElementById("game");
     const demo = document.getElementById("demo");
+    const mapTypeSelect = document.getElementById("mapType");
+    AssetManager.instance.getAllMapNames().forEach(({name, displayName}) => {
+        const newOption = new Option(displayName, name);
+        mapTypeSelect.add(newOption,undefined);
+    });
+    let mapType = MapType.FixMini;
+    mapTypeSelect.addEventListener('change', (e) => {
+        console.log(e.target.value);
+        mapType = {name: e.target.value};
+    }, false);
     couchBtn.addEventListener('click', async function () {
         mainMenuDiv.classList.add("d-none");
         gameDiv.classList.remove("d-none");
-        await startGame();
+        await startGame(mapType);
     }, false);
     singlePlayerBtn.addEventListener('click', async function () {
         mainMenuDiv.classList.add("d-none");
         gameDiv.classList.remove("d-none");
-        await startGame(true);
+        await startGame(mapType, true);
     }, false);
     demo.addEventListener('click', async function () {
         mainMenuDiv.classList.add("d-none");
         gameDiv.classList.remove("d-none");
-        await startGame(false, true );
+        await startGame(mapType, false, true);
     });
 }
 
-async function startGame(aiPlayer=false, demo=false){
+async function startGame(mapType = MapType.FixMini, aiPlayer = false, demo = false) {
     let disableInput = false;
     const canvas = document.getElementById("can");
+    const testCase = document.getElementById("test-case");
     canvas.width = 1200;
     canvas.height = 360;
-    resetRandomNumberGenerator();
     const game = new Game(
-        ...Config.gameConfig({heroRevival: 3}).FixesMini,
+        AssetManager.instance.mapData[mapType.name],
         document.querySelectorAll(
             'input[name="age"]'),
         document.querySelectorAll(
@@ -44,6 +54,23 @@ async function startGame(aiPlayer=false, demo=false){
     game.onHeroDeath.subscribe(() => {
         console.log("onHeroDeath");
         drawEngine.draw(game);
+    });
+    game.onInitGame.subscribe((withMonsters, curPId, seed) => {
+        testCase.value = "const game = getDefaultGame(MapType.FixMini);\n" +
+            `game.init(${withMonsters}, ${curPId}, ${seed});\n` +
+            "game.startRound();\n"
+    });
+    game.onTakeNextStep.subscribe((unitType, numUnits, fastForward, calledByPlayer) => {
+        if(!calledByPlayer) {
+            return;
+        }
+        testCase.value += `game.takeNextStep(${unitType === null ? unitType : "\""+unitType+"\""}, ${numUnits}, ${fastForward});\n`
+    });
+    game.onOnClick.subscribe((tile) => {
+        if(!tile){
+            return;
+        }
+        testCase.value += `game.onClickIdx(${tile.xi}, ${tile.yi});\n`
     });
     game.onTurnFinish.subscribe(async () => {
         console.log("onTurnFinish");
@@ -76,7 +103,10 @@ async function startGame(aiPlayer=false, demo=false){
     });
     game.onAttack.subscribe(async (attacker, defender, attackerRolls, defenderRolls,
                                    prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp) => {
-        console.log("onAttack");
+        console.log("onAttack", {
+            attacker, defender, attackerRolls, defenderRolls,
+            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
+        });
         await Fightvis.playViz(attacker, defender, attackerRolls, defenderRolls,
             prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp);
         drawEngine.draw(game);
@@ -105,7 +135,7 @@ async function startGame(aiPlayer=false, demo=false){
     const nextButton = document.getElementById("next");
     const buyForm = document.getElementById("buyForm");
     canvas.addEventListener('click', function (e) {
-        if(disableInput) {
+        if (disableInput) {
             return
         }
         const x = e.clientX,
@@ -117,14 +147,14 @@ async function startGame(aiPlayer=false, demo=false){
     }, false);
 
     nextButton.addEventListener('click', function () {
-        if(disableInput) {
+        if (disableInput) {
             return
         }
         const getSelectedValue = document.querySelector(
             'input[name="age"]:checked');
         const numUnit = document.querySelector(
             'input[name="numUnit"]');
-        game.takeNextStep(getSelectedValue.value, +numUnit.value);
+        game.takeNextStep(getSelectedValue.value, +numUnit.value, true, true);
     }, false);
 
     window.visualViewport.addEventListener('resize', (e) => {
@@ -132,7 +162,7 @@ async function startGame(aiPlayer=false, demo=false){
     });
 
     // start game
-    const curPi = Math.floor(Math.random()*2);
+    const curPi = Math.floor(Math.random() * 2);
     console.log("curPi", curPi);
     game.init(true, curPi);
     game.startRound();
@@ -140,7 +170,7 @@ async function startGame(aiPlayer=false, demo=false){
     // initial resize
     drawEngine.resize(window.visualViewport.width, game);
 
-    if(demo) {
+    if (demo) {
         document.getElementsByClassName('controls')[0].classList.add("d-none");
 
         // initial resize

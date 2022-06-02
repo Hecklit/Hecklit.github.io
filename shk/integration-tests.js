@@ -1,4 +1,5 @@
 addEventListener('load', async function () {
+    await AssetManager.instance.loadAllData();
     const canvas = document.getElementById("can");
     canvas.width = 1200;
     canvas.height = 360;
@@ -7,8 +8,9 @@ addEventListener('load', async function () {
     seedRandomNumberGenerator(42);
 
     function getDefaultGame(mapType = MapType.FixMini) {
+        console.log(AssetManager.instance.mapData)
         return new Game(
-            ...(mapType === MapType.FixMini ? Config.gameConfig().FixesMini : Config.gameConfig().Empty)
+            mapType === MapType.FixMini ? AssetManager.instance.mapData['FixMini'] : AssetManager.instance.mapData['Empty']
         );
     }
 
@@ -19,26 +21,25 @@ addEventListener('load', async function () {
             console.log(`${a} === ${b}`, msg)
         }
     }
-    (() => {
-        // console.log("check that random gen is seeded");
-        assertEquals(Math.random(), 0.6011037519201636  );
-        assertEquals(Math.random(), 0.44829055899754167  );
-        assertEquals(Math.random(), 0.8524657934904099 );
-        assertEquals(Math.random(),   0.6697340414393693 );
-    })();
 
     console.log("Playing integration Game tests:");
     (() => {
         console.log("testGameFastForwardsToTheCorrectPhases");
         const game = getDefaultGame(MapType.FixMini);
-        game.init(true);
+        game.init(true,0, 42);
+        // console.log("check that random gen is seeded");
+        assertEquals(Math.GameRandom(), 0.6011037519201636  );
+        assertEquals(Math.GameRandom(), 0.44829055899754167  );
+        assertEquals(Math.GameRandom(), 0.8524657934904099 );
+        assertEquals(Math.GameRandom(),   0.6697340414393693 );
         game.startRound();
         // fist Player turn
         const firstPlayer = game.curP;
         firstPlayer.gold += 3;
         game.onClickIdx(13, 2)
         game.takeNextStep('B', 2);
-        assertEquals(game.phase, 5);
+        drawEngine.draw(game);
+        assertEquals(game.phase, 5, "Successfully moved to Movement Phase");
         game.onClickIdx(12, 1)
         game.takeNextStep();
 
@@ -66,7 +67,9 @@ addEventListener('load', async function () {
         assertEquals(lastFight.prevAttackerTotalHp, 4 );
         assertEquals(lastFight.attacker.totalHp, 4 );
         assertEquals(lastFight.prevDefTotalHp, 2 );
-        assertEquals(lastFight.defender.totalHp, 1, "Knight lost one HP" );
+        console.log(lastFight);
+        drawEngine.draw(game);
+        assertEquals(lastFight.defender.totalHp, 2, "Knight was not hit" );
 
         assertEquals(game.phase, 8, "now it should be my turn to attack");
         assertEquals(game.curP.activeUnit.type, "K", "Knight should be automatically selected");
@@ -111,6 +114,33 @@ addEventListener('load', async function () {
         // drawEngine.draw(game);
         // assertEquals("Finish test", false, "End");
     })();
+
+    // start generated Integration Tests
+
+    // (() => {
+    //     console.log("test GENERATEDITEGRATIONTEMPLATE");
+    //
+    //     drawEngine.draw(game);
+    //     assertEquals("finish integration test", false);
+    // })();
+
+    // (() => {
+    //     console.log("test it works");
+    //
+    //     const game = getDefaultGame(MapType.FixMini);
+    //     game.init(true, 1, 1654174792800);
+    //     game.startRound();
+    //     game.takeNextStep("None", 1, true);
+    //     game.onClickIdx(4, 2);
+    //     game.onClickIdx(3, 2);
+    //     game.onClickIdx(3, 3);
+    //     game.onClickIdx(3, 2);
+    //
+    //     drawEngine.draw(game);
+    //     assertEquals("finish integration test", false);
+    // })();
+
+    // end generated Integration Tests
 
     console.log("Running tests:");
     (() => {
@@ -340,7 +370,7 @@ addEventListener('load', async function () {
     })();
 
     (() => {
-        const markTile = (tile) => Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
+        const markTile = (tile) => Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         console.log("testMapLerpWorksAsExpected");
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
@@ -371,7 +401,7 @@ addEventListener('load', async function () {
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         const tile = game.map.getTile(10, 3);
-        const monster = Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
+        const monster = Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         game.startRound();
         const p1Unit = game.spawnUnit(8,  0, 3, "F", game.curP);
         game.spawnUnit(8,  1, 3, "B", game.curP);
@@ -405,9 +435,9 @@ addEventListener('load', async function () {
         const game = getDefaultGame(MapType.Empty);
         game.init(true);
         const tile = game.map.getTile(2, 2);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile, game.monsters, game);
         const tile2 = game.map.getTile(10, 3);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), tile2, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), tile2, game.monsters, game);
         game.startRound();
         game.buyUnit('B', 1);
 
@@ -610,15 +640,15 @@ addEventListener('load', async function () {
         game.spawnUnit(0, 0,1,  "F", game.players[0]);
 
         const u1 = game.spawnUnit(1, 0,1,  "F", game.curP);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
 
 
         const u2 = game.spawnUnit(2, 0,1,  "F", game.players[0]);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
 
         const u3 = game.spawnUnit(3, 0,1,  "F", game.players[0]);
         game.spawnUnit(3, 0,1,  "F", game.curP);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
+        Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
 
 
 
@@ -627,38 +657,29 @@ addEventListener('load', async function () {
     })();
 
 
-
-    await (async () => {
-        console.log("test fight vis visual test");
-        const game = getDefaultGame(MapType.Empty);
-        game.maxNumTroups.B = 3;
-        game.init(true);
-        game.startRound();
-
-        game.spawnUnit(0, 0, 1, "F", game.curP);
-        game.spawnUnit(0, 0, 1, "F", game.players[0]);
-
-        const u1 = game.spawnUnit(1, 0, 10, "F", game.curP);
-       Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u1.tile, game.monsters, game);
-
-
-        const u2 = game.spawnUnit(1, 0, 5, "K", game.players[0]);
-       Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u2.tile, game.monsters, game);
-
-        const u3 = game.spawnUnit(3, 0, 1, "F", game.players[0]);
-        game.spawnUnit(3, 0, 1, "F", game.curP);
-        Monster.spawnMonster(Config.getMonsterByName("Einfache Goblins"), u3.tile, game.monsters, game);
-        //
-        // const {attacker, defender, attackerRolls, defenderRolls,
-        //     prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp} = game.fight(u1, u2);
-
-        drawEngine.draw(game);
-        // await Fightvis.playViz(
-        //     attacker, defender, attackerRolls, defenderRolls,
-        //     prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
-        // );
-        assertEquals(false, false, "Show visual test Fightvis");
-    })();
+    //
+    // await (async () => {
+    //     console.log("test fight vis visual test");
+    //     const game = getDefaultGame(MapType.Empty);
+    //     game.init(true, 0, 42);
+    //     game.startRound();
+    //
+    //
+    //     game.curP.hero.setTile(game.map.getTile(1, 0));
+    //     const u1 = game.curP.hero;
+    //     const u2 = Monster.spawnMonster(AssetManager.getMonsterByName("Einfache Goblins"), game.curP.hero.tile, game.monsters, game);
+    //
+    //
+    //     const {attacker, defender, attackerRolls, defenderRolls,
+    //         prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp} = game.fight(u1, u2);
+    //
+    //     drawEngine.draw(game);
+    //     await Fightvis.playViz(
+    //         attacker, defender, attackerRolls, defenderRolls,
+    //         prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
+    //     );
+    //     assertEquals(false, true, "Show visual test Fightvis");
+    // })();
 
 
     await onTestsDone();

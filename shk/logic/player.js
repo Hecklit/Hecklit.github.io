@@ -12,8 +12,8 @@ class Player {
         this.heroDeaths = 0;
         startUnits.forEach(unit => {
             if(unit.type === "H"){
-                const hc = Config.getHeroStatsByLvl(unit.lvl);
-                console.log(hc);
+                const hc = AssetManager.getHeroStatsByLvl(unit.lvl);
+                console.log(this.baseTiles);
                 this.hero = new Hero(this, this.getFreeBaseTiles()[0], hc.ep, hc.reach,
                     hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
 
