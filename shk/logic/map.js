@@ -70,7 +70,7 @@ class Map {
                     break;
                 case "Monster":
                     if(monsterPlayer){
-                        this.tiles[st.x][st.y].makeMonsterDen(AssetManager.getAllMonstersOfLevel(st.lvl).sample());
+                        this.tiles[st.x][st.y].makeMonsterDen(AssetManager.getAllMonstersOfLevel(st.lvl).GameSample());
                         this.tiles[st.x][st.y].config(monster, "M"+st.lvl)
                     }
                     break;
@@ -130,7 +130,7 @@ class Map {
     }
 
     getPossibleFightsPerUnit(unit) {
-        if (!unit || unit.attacksThisTurn >= unit.numAttacks
+        if (!unit || unit.attacksThisTurn >= 1
             || (unit.mobility === MobileAttackType.BorA && unit.movedThisTurn > 0)) {
             return [];
         }

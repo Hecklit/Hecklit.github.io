@@ -30,16 +30,14 @@ async function onTestsDone() {
         gameDiv.classList.remove("d-none");
         await startGame(mapType, false, true);
     });
-    mapType = MapType.Normal;
-    couchBtn.click();
 }
 
 async function startGame(mapType = MapType.FixMini, aiPlayer = false, demo = false) {
     let disableInput = false;
     const canvas = document.getElementById("can");
+    const testCase = document.getElementById("test-case");
     canvas.width = 1200;
     canvas.height = 360;
-    resetRandomNumberGenerator();
     const game = new Game(
         AssetManager.instance.mapData[mapType.name],
         document.querySelectorAll(
@@ -56,6 +54,23 @@ async function startGame(mapType = MapType.FixMini, aiPlayer = false, demo = fal
     game.onHeroDeath.subscribe(() => {
         console.log("onHeroDeath");
         drawEngine.draw(game);
+    });
+    game.onInitGame.subscribe((withMonsters, curPId, seed) => {
+        testCase.value = "const game = getDefaultGame(MapType.FixMini);\n" +
+            `game.init(${withMonsters}, ${curPId}, ${seed});\n` +
+            "game.startRound();\n"
+    });
+    game.onTakeNextStep.subscribe((unitType, numUnits, fastForward, calledByPlayer) => {
+        if(!calledByPlayer) {
+            return;
+        }
+        testCase.value += `game.takeNextStep(${unitType === null ? unitType : "\""+unitType+"\""}, ${numUnits}, ${fastForward});\n`
+    });
+    game.onOnClick.subscribe((tile) => {
+        if(!tile){
+            return;
+        }
+        testCase.value += `game.onClickIdx(${tile.xi}, ${tile.yi});\n`
     });
     game.onTurnFinish.subscribe(async () => {
         console.log("onTurnFinish");
@@ -88,7 +103,10 @@ async function startGame(mapType = MapType.FixMini, aiPlayer = false, demo = fal
     });
     game.onAttack.subscribe(async (attacker, defender, attackerRolls, defenderRolls,
                                    prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp) => {
-        console.log("onAttack");
+        console.log("onAttack", {
+            attacker, defender, attackerRolls, defenderRolls,
+            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
+        });
         await Fightvis.playViz(attacker, defender, attackerRolls, defenderRolls,
             prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp);
         drawEngine.draw(game);
@@ -136,7 +154,7 @@ async function startGame(mapType = MapType.FixMini, aiPlayer = false, demo = fal
             'input[name="age"]:checked');
         const numUnit = document.querySelector(
             'input[name="numUnit"]');
-        game.takeNextStep(getSelectedValue.value, +numUnit.value);
+        game.takeNextStep(getSelectedValue.value, +numUnit.value, true, true);
     }, false);
 
     window.visualViewport.addEventListener('resize', (e) => {

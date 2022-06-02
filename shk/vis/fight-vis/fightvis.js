@@ -29,23 +29,28 @@ class Fightvis {
         const startY = height/6;
 
         this.units = [];
-        this.units.push(...fightData.map((fd, plI) => range(fd.numBefore).map(idx => {
-            const rowLength = Math.ceil(Math.sqrt(fd.numBefore));
-            const y = Math.floor(idx/ rowLength);
-            const x = idx% rowLength;
-            console.log("fd.rolls", fd.rolls)
-            const alreadyDamaged = fd.numBefore * fd.hpPerUnit - fd.hpBefore;
-            const curHP = idx === 0 ? fd.hpPerUnit - alreadyDamaged : fd.hpPerUnit;
-            return new FightvisUnit(
-                fd.rolls ? fd.rolls[idx] : null,
-                leftX + spread(x * Fightvis.unitSize * 1.25, 0) + plI * dBetween,
-                startY + spread(y * Fightvis.unitSize * 1.25, 0) , 1 - 2 * plI,
-                    fd.color, fd.type, fd.hpPerUnit,  curHP
-                )
-            }
-        )));
+        this.units.push(...fightData.map((fd, plI) => {
+            const attacksPerUnit = plI === 0 ? fd.rolls.length / fd.numBefore : fd.rolls.length / fd.numAfter;
+            let rollIdx = 0;
+            return range(fd.numBefore).map(idx => {
+                    const rowLength = Math.ceil(Math.sqrt(fd.numBefore));
+                    const y = Math.floor(idx/ rowLength);
+                    const x = idx% rowLength;
+                    const alreadyDamaged = fd.numBefore * fd.hpPerUnit - fd.hpBefore;
+                    const curHP = idx === 0 ? fd.hpPerUnit - alreadyDamaged : fd.hpPerUnit;
+                    const rolls = fd.rolls ? fd.rolls.slice(rollIdx, rollIdx+attacksPerUnit) : null;
+                    rollIdx += attacksPerUnit;
+                    return new FightvisUnit(
+                        rolls,
+                        leftX + spread(x * Fightvis.unitSize * 1.25, 0) + plI * dBetween,
+                        startY + spread(y * Fightvis.unitSize * 1.25, 0) , 1 - 2 * plI,
+                        fd.color, fd.type, fd.hpPerUnit,  curHP
+                    )
+                }
+            )
+        }));
 
-        this.assignTargets(this.attackerIdx);
+        this.assignTargets(this.attackerIdx, false);
     }
 
     removeDeadUnits() {
@@ -53,23 +58,31 @@ class Fightvis {
     }
 
 
-    assignTargets(plIdx) {
+    assignTargets(plIdx, revenge=true) {
         let hitIdx = 0;
         let numUnitTargets = 0;
         const enemyIdx = (plIdx + 1) % 2;
-        const enemyArray = this.units[enemyIdx].shuffle();
-        console.log("assignTargets")
-        console.log(this.units, plIdx, this.units[plIdx])
+        let enemyArray;
+        if(!revenge && this.units[enemyIdx].length > 1){
+            enemyArray = this.units[enemyIdx].shuffle().filter(u => u.dice.length === 0);
+        }else{
+            enemyArray = this.units[enemyIdx].shuffle();
+        }
+        console.log(plIdx, "enemyArray", enemyArray);
+        if(enemyArray.length === 0){
+            return;
+        }
         this.units[plIdx].forEach(u => {
-            if (u.roll && u.roll.h) {
-                console.log("assigning target")
-                u.target = enemyArray[hitIdx % this.units[enemyIdx].length];
-                numUnitTargets++;
-                if(numUnitTargets >= u.target.totalHp){
-                    hitIdx++;
-                    numUnitTargets = 0;
+            u.dice.forEach(d => {
+                if (d.roll && d.roll.h) {
+                    d.target = enemyArray[hitIdx % enemyArray.length];
+                    numUnitTargets++;
+                    if(numUnitTargets >= d.target.totalHp){
+                        hitIdx++;
+                        numUnitTargets = 0;
+                    }
                 }
-            }
+            });
         })
     }
 
@@ -83,7 +96,7 @@ class Fightvis {
     }
 
     async throwDiceForUnits(units) {
-        units.forEach(u => u.throwDice());
+        units.forEach(u => u.dice.forEach(d => u.throwDie(d)));
         for (let i = 0; i < 120; i++) {
             this.clear();
             this.forEachUnit(u => u.draw());
@@ -93,7 +106,7 @@ class Fightvis {
     }
 
     async homingDiceForUnits(units) {
-        units.forEach(u => u.throwDiceAtTarget());
+        units.forEach(u => u.dice.forEach(d => u.throwDieAtTarget(d)));
         for (let i = 0; i < 100; i++) {
             this.clear();
             this.forEachUnit(u => u.draw());
@@ -105,6 +118,7 @@ class Fightvis {
     async play() {
         this.clear();
         this.forEachUnit(u => u.draw());
+        console.log("units", this.units)
         await this.throwDiceForUnits(this.units[this.attackerIdx]);
         await sleep(400);
         await this.homingDiceForUnits(this.units[this.attackerIdx]);

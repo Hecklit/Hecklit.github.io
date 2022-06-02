@@ -310,7 +310,7 @@ class DrawEngine {
             tileSize /= 2;
 
             if (unit.tile.units.length === 2) {
-                const enemy = unit.tile.getEnemy(unit);
+                const enemy = unit.tile.getEnemy(unit.player);
                 xOffset = enemy.player.id === "Jonas" ? tileSize : 0;
             } else if (unit.tile.units.length === 3) {
                 xOffset = 0;

@@ -14,6 +14,9 @@ class Game {
         this.onMonsterStep = new EventEmitter();
         this.onError = new EventEmitter();
         this.onClickFinished = new EventEmitter();
+        this.onInitGame = new EventEmitter();
+        this.onTakeNextStep = new EventEmitter();
+        this.onOnClick = new EventEmitter();
 
         this.fights = [];
         this.config = config;
@@ -42,14 +45,13 @@ class Game {
         }
     }
 
-    init(withMonsters = true, curPi = 0) {
+    init(withMonsters = true, curPi = 0, seed=null) {
         this.winner = null;
         this.withMonsters = withMonsters;
         this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen", null, []) : null;
         this.map = new Map(this);
         this.map.generateSquareMap(this.config, this.monsters);
         this.players = [];
-        console.log("BBBABBAB",this.map.baseTiles[0])
         this.players.push(new Player("Jonas",
             this.map.baseTiles[0],
             "red", this.handleHeroDeath.bind(this), this.startUnits));
@@ -57,6 +59,9 @@ class Game {
             this.map.baseTiles[1],
             "blue", this.handleHeroDeath.bind(this), this.startUnits));
         this.curPi = curPi;
+        seed = seed === null ? Date.now() : seed;
+        seedRandomNumberGenerator(seed);
+        this.onInitGame.emit(withMonsters, curPi, seed);
     }
 
     handleHeroDeath(hero) {
@@ -220,6 +225,8 @@ class Game {
             return false;
         }
 
+        this.onOnClick.emit(tile);
+
         const curP = this.players[this.curPi];
         if (tile) {
             if (this.phase === 2) {
@@ -299,8 +306,9 @@ class Game {
         }
     }
 
-    takeNextStep(unitType = null, numUnits = null, fastForward = true) {
+    takeNextStep(unitType = null, numUnits = null, fastForward = true, calledByPlayer=false) {
         console.log("onNext", this.phase);
+        this.onTakeNextStep.emit(unitType, numUnits, fastForward, calledByPlayer);
         let newUnit = null;
         let error = false;
         if (this.phase === 10) {
@@ -398,7 +406,7 @@ class Game {
         if (possibleFights.length === 0) {
             return true;
         }
-        return unit.attacksThisTurn >= unit.numAttacks;
+        return unit.attacksThisTurn >= 1;
     }
 
     moveInDirection(unit, start, end) {
@@ -421,6 +429,10 @@ class Game {
         }
 
         this.fights.push({
+            attacker, defender, attackerRolls, defenderRolls,
+            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
+        });
+        console.log("onAttack", {
             attacker, defender, attackerRolls, defenderRolls,
             prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
         });
@@ -454,7 +466,7 @@ class Game {
         }
         let rolls = [];
         const prevNum = defender.num;
-        for (let i = 0; i < attacker.num; i++) {
+        for (let i = 0; i < attacker.num * attacker.numAttacks; i++) {
             const diceRoll = Game.throwDice();
             const successBelow = attacker.dmg - defender.def + 1;
             if (diceRoll < successBelow) {
@@ -499,7 +511,7 @@ class Game {
     }
 
     static throwDice() {
-        const result = Math.floor(Math.random() * 6 + 1);
+        const result = Math.floor(Math.GameRandom() * 6 + 1);
         console.log("Roll a d6: ", result)
         return result;
     }
