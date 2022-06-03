@@ -1,7 +1,6 @@
 class Ai {
 
 
-
     async playDemo(game) {
         Fightvis.instance.disabled = true;
         const speed = 6;
@@ -9,79 +8,91 @@ class Ai {
         const sleepAttack = 750 / speed;
         const sleepMovement = 750 / speed;
 
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 100000; i++) {
             // buy unit
-            if(game.winner){
+            if (game.winner) {
                 break;
             }
-            if (game.curP.units.length <= 3) {
+
+            if (game.phase === 2) {
                 let ut = ["F", "K", "B", "None"].sample();
-                let numUnit = Math.min(game.maxNumUnits[ut], Math.floor(Math.random() * game.curP.gold / 2 + 1));
-                if(!game.curP.hero.alive) {
+                const troupsOfSameType = game.curP.units.filter(u => u.type === ut);
+                const totalNumOfTroupsOfSameType = troupsOfSameType.reduce((acc, cur) => acc + cur.num, 0);
+                let numUnit = Math.min(game.maxNumUnits[ut] - totalNumOfTroupsOfSameType, Math.floor(Math.random() * game.curP.gold / 2 + 1));
+                if(troupsOfSameType.length > 0) {
+                    const troup = troupsOfSameType.sample();
+                    game.onClick(troup.tile);
+                }
+
+                if (!game.curP.hero.alive) {
                     ut = "H";
                     numUnit = 1;
                 }
-                const unit = game.takeNextStep(ut,numUnit);
-                if(!unit) {
+                const unit = game.takeNextStep(ut, numUnit);
+                if (!unit) {
                     game.takeNextStep("None", 1);
                 }
                 await sleep(sleepBetweenPhases);
-            } else {
-                game.takeNextStep();
-            }
 
-            // move
-            game.phase = 5;
-            for (const unit of game.curP.units) {
-                if(unit.goldmine) {
-                    continue;
-                }
-                if(unit.mobility === MobileAttackType.BorA) {
-                    if(Math.random() > 0.5) {
+            }else if(game.phase === 5){
+
+                for (const unit of game.curP.units) {
+                    if (unit.goldmine) {
                         continue;
                     }
+                    if (unit.mobility === MobileAttackType.BorA) {
+                        if (Math.random() > 0.5) {
+                            continue;
+                        }
+                    }
+                    const target = game.map.getPossibleMovementPerUnit(unit).sample()?.t;
+                    if (target) {
+                        game.onClick(unit.tile);
+                        await sleep(sleepMovement)
+                        game.onClick(target);
+                        await sleep(sleepMovement)
+                    }
                 }
-                const target = game.map.getPossibleMovementPerUnit(unit).sample()?.t;
-                if (target) {
-                    game.onClick(unit.tile);
-                    await sleep(sleepMovement)
-                    game.onClick(target);
-                    await sleep(sleepMovement)
+                game.takeNextStep();
+            } else if(game.phase === 6) {
+
+                // trigger Monsters
+                await sleep(sleepBetweenPhases)
+                const monsterDens = game.map.getTriggerableMonsterDen(game.curP);
+                monsterDens.forEach(md => {
+                    const propability = 0.45 * md.monsterConfig.lvl;
+                    if (Math.random() > propability) {
+                        game.onClick(md)
+                    }
+                });
+                game.takeNextStep();
+                await sleep(sleepBetweenPhases);
+
+            }else if(game.phase === 8){
+
+
+
+                // attack
+                for (const unit of game.curP.units) {
+                    const target = game.map.getPossibleFightsPerUnit(unit).sample();
+                    if (target) {
+                        game.onClick(unit.tile);
+                        await sleep(sleepAttack)
+                        game.onClick(target.tile);
+                        await sleep(sleepAttack)
+                    }
                 }
+                await sleep(sleepBetweenPhases);
+            }else if(game.phase === 10){
+
+                // annex gold mines
+                game.phase = 10;
+                const goldMines = game.map.getPossibleAnnexedGoldminesPerPlayer(game.curP);
+                goldMines.forEach(md => game.onClick(md));
+
+                game.startRound();
+                await sleep(sleepBetweenPhases);
             }
-
-            // trigger Monsters
-            game.phase = 6;
-            await sleep(sleepBetweenPhases)
-            const monsterDens = game.map.getTriggerableMonsterDen(game.curP);
-            monsterDens.forEach(md => {
-                if(Math.random() > 0.7){
-                    game.onClick(md)
-                }
-            });
-
-
-            game.phase = 8;
-            await sleep(sleepBetweenPhases);
-
-            // attack
-            for (const unit of game.curP.units) {
-                const target = game.map.getPossibleFightsPerUnit(unit).sample();
-                if (target) {
-                    game.onClick(unit.tile);
-                    await sleep(sleepAttack)
-                    game.onClick(target.tile);
-                    await sleep(sleepAttack)
-                }
-            }
-
-            // annex gold mines
-            game.phase = 10;
-            const goldMines = game.map.getPossibleAnnexedGoldminesPerPlayer(game.curP);
-            goldMines.forEach(md => game.onClick(md));
-
-            game.startRound();
-            await sleep(sleepBetweenPhases);
         }
     }
 
@@ -93,97 +104,94 @@ class Ai {
         const sleepAttack = 750 / speed;
         const sleepMovement = 750 / speed;
 
-        for (let i = 0; i < 1; i++) {
-            if(game.curP.id !== forPlayer.id ) {
+        for (let i = 0; i < 100; i++) {
+            if (game.curP.id !== forPlayer.id) {
                 break;
             }
             // buy unit
-            if(game.winner){
+            if (game.winner) {
                 break;
             }
-            if (game.curP.units.length <= 3) {
+
+            if (game.phase === 2) {
                 let ut = ["F", "K", "B", "None"].sample();
-                let numUnit = Math.min(game.maxNumUnits[ut], Math.floor(Math.random() * game.curP.gold / 2 + 1));
-                if(!game.curP.hero.alive) {
+                const troupsOfSameType = game.curP.units.filter(u => u.type === ut);
+                const totalNumOfTroupsOfSameType = troupsOfSameType.reduce((acc, cur) => acc + cur.num, 0);
+                let numUnit = Math.min(game.maxNumUnits[ut] - totalNumOfTroupsOfSameType, Math.floor(Math.random() * game.curP.gold / 2 + 1));
+                if(troupsOfSameType.length > 0) {
+                    const troup = troupsOfSameType.sample();
+                    game.onClick(troup.tile);
+                }
+
+                if (!game.curP.hero.alive) {
                     ut = "H";
                     numUnit = 1;
                 }
-                const unit = game.takeNextStep(ut,numUnit);
-                if(!unit) {
+                const unit = game.takeNextStep(ut, numUnit);
+                if (!unit) {
                     game.takeNextStep("None", 1);
                 }
                 await sleep(sleepBetweenPhases);
-            } else {
-                game.takeNextStep();
-            }
 
-            // move
-            if(game.curP.id !== forPlayer.id ) {
-                break;
-            }
-            game.phase = 5;
-            for (const unit of game.curP.units) {
-                if(unit.goldmine) {
-                    continue;
-                }
-                if(unit.mobility === MobileAttackType.BorA) {
-                    if(Math.random() > 0.5) {
+            }else if(game.phase === 5){
+
+                for (const unit of game.curP.units) {
+                    if (unit.goldmine) {
                         continue;
                     }
+                    if (unit.mobility === MobileAttackType.BorA) {
+                        if (Math.random() > 0.5) {
+                            continue;
+                        }
+                    }
+                    const target = game.map.getPossibleMovementPerUnit(unit).sample()?.t;
+                    if (target) {
+                        game.onClick(unit.tile);
+                        await sleep(sleepMovement)
+                        game.onClick(target);
+                        await sleep(sleepMovement)
+                    }
                 }
-                const target = game.map.getPossibleMovementPerUnit(unit).sample()?.t;
-                if (target) {
-                    game.onClick(unit.tile);
-                    await sleep(sleepMovement)
-                    game.onClick(target);
-                    await sleep(sleepMovement)
+                game.takeNextStep();
+            } else if(game.phase === 6) {
+
+                // trigger Monsters
+                await sleep(sleepBetweenPhases)
+                const monsterDens = game.map.getTriggerableMonsterDen(game.curP);
+                monsterDens.forEach(md => {
+                    const propability = 0.45 * md.monsterConfig.lvl;
+                    if (Math.random() > propability) {
+                        game.onClick(md)
+                    }
+                });
+                game.takeNextStep();
+                await sleep(sleepBetweenPhases);
+
+            }else if(game.phase === 8){
+
+
+
+                // attack
+                for (const unit of game.curP.units) {
+                    const target = game.map.getPossibleFightsPerUnit(unit).sample();
+                    if (target) {
+                        game.onClick(unit.tile);
+                        await sleep(sleepAttack)
+                        game.onClick(target.tile);
+                        await sleep(sleepAttack)
+                    }
                 }
-            }
+                await sleep(sleepBetweenPhases);
+            }else if(game.phase === 10){
 
-            // trigger Monsters
-            if(game.curP.id !== forPlayer.id ) {
-                break;
-            }
-            game.phase = 6;
-            await sleep(sleepBetweenPhases)
-            const monsterDens = game.map.getTriggerableMonsterDen(game.curP);
-            monsterDens.forEach(md => {
-                if(Math.random() > 0.7){
-                    game.onClick(md)
-                }
-            });
+                // annex gold mines
+                game.phase = 10;
+                const goldMines = game.map.getPossibleAnnexedGoldminesPerPlayer(game.curP);
+                goldMines.forEach(md => game.onClick(md));
 
-
-            if(game.curP.id !== forPlayer.id ) {
-                break;
+                game.startRound();
+                await sleep(sleepBetweenPhases);
             }
-            game.phase = 8;
-            await sleep(sleepBetweenPhases);
-
-            // attack
-            for (const unit of game.curP.units) {
-                const target = game.map.getPossibleFightsPerUnit(unit).sample();
-                if (target) {
-                    game.onClick(unit.tile);
-                    await sleep(sleepAttack)
-                    game.onClick(target.tile);
-                    await sleep(sleepAttack)
-                }
-            }
-
-            if(game.curP.id !== forPlayer.id ) {
-                break;
-            }
-            // annex gold mines
-            game.phase = 10;
-            const goldMines = game.map.getPossibleAnnexedGoldminesPerPlayer(game.curP);
-            goldMines.forEach(md => game.onClick(md));
-
-            if(game.curP.id !== forPlayer.id ) {
-                break;
-            }
-            game.startRound();
-            await sleep(sleepBetweenPhases);
         }
         Fightvis.instance.disabled = false;
     }

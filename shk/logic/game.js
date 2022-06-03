@@ -21,9 +21,9 @@ class Game {
         this.fights = [];
         this.config = config;
         this.pGold = config.pg;
-        this.startUnits = config.startUnits;
-        this.maxNumUnits = config.maxNumUnits;
-        this.maxNumTroups = config.maxNumTroups;
+        this.startUnits = [...config.startUnits];
+        this.maxNumUnits = {...config.maxNumUnits};
+        this.maxNumTroups = {...config.maxNumTroups};
         this.heroRevival = config.heroRevival;
         this.mapType = config.mapType;
         this.round = 0;
@@ -45,7 +45,7 @@ class Game {
         }
     }
 
-    init(withMonsters = true, curPi = 0, seed=null) {
+    init(withMonsters = true, curPi = 0, seed = null) {
         this.winner = null;
         this.withMonsters = withMonsters;
         this.monsters = withMonsters ? new Player("Monsters", [], "darkgreen", null, []) : null;
@@ -121,6 +121,9 @@ class Game {
         // is troup limit reached?
         const troupsOfSameType = curP.units.filter(u => u.type === ut);
         const totalNumOfTroupsOfSameType = troupsOfSameType.reduce((acc, cur) => acc + cur.num, 0);
+        console.log("TestNow", ut, troupsOfSameType.length, this.maxNumTroups[ut]);
+        // console.log("TestNow", ut, troupsOfSameType.length, totalNumOfTroupsOfSameType, this.maxNumTroups[ut], ((!troup && troupsOfSameType.length >= this.maxNumTroups[ut])
+        //     || ((totalNumOfTroupsOfSameType + n) > this.maxNumUnits[ut])))
         if ((!troup && troupsOfSameType.length >= this.maxNumTroups[ut])
             || ((totalNumOfTroupsOfSameType + n) > this.maxNumUnits[ut])) {
             this.errorMessage = curP.id + " already reached the maximum for this unit type.";
@@ -306,7 +309,7 @@ class Game {
         }
     }
 
-    takeNextStep(unitType = null, numUnits = null, fastForward = true, calledByPlayer=false) {
+    takeNextStep(unitType = null, numUnits = null, fastForward = true, calledByPlayer = false) {
         console.log("onNext", this.phase);
         this.onTakeNextStep.emit(unitType, numUnits, fastForward, calledByPlayer);
         let newUnit = null;

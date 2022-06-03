@@ -128,13 +128,14 @@ addEventListener('load', async function () {
     //     console.log("test it works");
     //
     //     const game = getDefaultGame(MapType.FixMini);
-    //     game.init(true, 1, 1654174792800);
+    //     game.init(true, 1, 1654253954012);
     //     game.startRound();
-    //     game.takeNextStep("None", 1, true);
-    //     game.onClickIdx(4, 2);
-    //     game.onClickIdx(3, 2);
-    //     game.onClickIdx(3, 3);
-    //     game.onClickIdx(3, 2);
+    //     game.onClickIdx(1, 2);
+    //     game.takeNextStep("B", 1, true);
+    //     game.onClickIdx(0, 2);
+    //     game.onClickIdx(2, 1);
+    //     game.takeNextStep("B", 1, true);
+    //     game.onClickIdx(2, 0);
     //
     //     drawEngine.draw(game);
     //     assertEquals("finish integration test", false);

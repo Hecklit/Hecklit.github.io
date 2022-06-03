@@ -32,15 +32,21 @@ class Tile {
         return Map.tileSize;
     }
 
-    makeMonsterDen(monsterConfig) {
+    makeMonsterDen(monsterConfig, repeatable=false) {
         this.isMonsterDen = true;
         this.monsterConfig = monsterConfig;
         this.monsterDenWasTriggered = false;
+        this.monsterDenRepeatable = repeatable;
     }
 
     triggerMonsterDen(monsterPlayer, game) {
-        this.monsterDenWasTriggered = true;
-        Monster.spawnMonster(this.monsterConfig, this, monsterPlayer, game);
+        if(!this.monsterDenWasTriggered || this.monsterDenRepeatable) {
+            this.monsterDenWasTriggered = true;
+            Monster.spawnMonster(this.monsterConfig, this, monsterPlayer, game);
+            if(!this.monsterDenRepeatable){
+                this.config("gray", "");
+            }
+        }
     }
 
     getNeighbour(dix, diy) {

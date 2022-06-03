@@ -4,6 +4,7 @@ async function onTestsDone() {
     const couchBtn = document.getElementById("couch");
     const mainMenuDiv = document.getElementById("main-menu");
     const gameDiv = document.getElementById("game");
+    gameDiv.classList.add("d-none");
     const demo = document.getElementById("demo");
     const mapTypeSelect = document.getElementById("mapType");
     AssetManager.instance.getAllMapNames().forEach(({name, displayName}) => {
