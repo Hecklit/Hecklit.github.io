@@ -1,62 +1,82 @@
 class Goldmine {
-    constructor(tile, tier) {
+    constructor(tier) {
         this.id = IdGen.get();
-        this.tile = tile;
-        this.tier = tier;
-        this.player = null;
-        this.roundsTillAnnexed = 2;
-        this.annexProcessStarted = false;
-        this.annexerUnit = null;
+
+        State.a(new UpdateEntityAction(this, {
+            tier,
+            roundsTillAnnexed: 2,
+            annexProcessStarted: false,
+        }));
     }
 
     startOccupation(unit) {
-        if((unit.num > 1 || unit.type ==="H") && unit.tile.id === this.tile.id && this.tile.units.length === 1) {
-            if(unit.type === "K") {
-                unit.totalHp = unit.num%unit.totalHp === 0 ? unit.totalHp -2 : unit.totalHp -1;
-                unit.num -= 1;
-            } else if(["F", "B"].includes(unit.type)){
-                unit.totalHp -= 1;
-                unit.num -= 1;
+        const unitTile = State.getTileByUnit(unit);
+        const goldMineTile = State.getTileByGoldmine(this);
+        const unitsOnGoldmine = State.getUnitsOnTile(goldMineTile);
+        if ((unit.num > 1 || unit.type === "H")
+            && State.eq(unitTile, goldMineTile)
+            && unitsOnGoldmine.length === 1) {
+
+            if (unit.type === "K") {
+                State.a(new UpdateEntityAction(unit,
+                    {
+                        totalHp: unit.num % unit.totalHp === 0 ? unit.totalHp - 2 : unit.totalHp - 1,
+                        num: unit.num - 1,
+                    }));
+            } else if (["F", "B"].includes(unit.type)) {
+                State.a(new UpdateEntityAction(unit,
+                    {
+                        totalHp: unit.totalHp - 1,
+                        num: unit.num - 1,
+                    }));
             }
 
             // mark unit as annexing
-            this.annexerUnit = unit;
-            this.roundsTillAnnexed = 2;
-            this.annexProcessStarted = true;
-            this.annexerUnit.goldmine = this;
+            State.a(new MakeAnnexerUnitAction(unit, this));
+            State.a(new UpdateEntityAction(this,
+                {
+                    roundsTillAnnexed: 2,
+                    annexProcessStarted: true,
+                }));
         }
     }
 
     reset() {
-        this.player = null;
-        this.roundsTillAnnexed = 2;
-        this.annexProcessStarted = false;
-        this.annexerUnit.goldmine = undefined;
-        this.annexerUnit = null;
+        State.a(new DisownGoldmineAction(this));
+        State.a(new UpdateEntityAction(this,
+            {
+                roundsTillAnnexed: 2,
+                annexProcessStarted: false,
+            }));
+        State.a(new RemoveAnnexerUnitAction(this));
     }
 
     tickRound() {
-        if(this.tile.units.length > 1){
+        const unitsOnGoldmine = State.getUnitsOnGoldmine(this);
+        if (unitsOnGoldmine.length > 1) {
             this.reset();
             return false;
         }
-        this.roundsTillAnnexed--;
-        if(this.roundsTillAnnexed <= 0) {
+        State.a(new UpdateEntityAction(this,
+            (old) => ({
+                roundsTillAnnexed: old.roundsTillAnnexed - 1,
+            })));
+        if (State.e(this).roundsTillAnnexed <= 0) {
             // annex happened
-            this.annexProcessStarted = false;
-            this.annexerUnit.goldmine = undefined;
-            this.annexerUnit.player.goldmines.push(this);
-            this.player = this.annexerUnit.player;
-            this.annexerUnit = null;
+            State.a(new UpdateEntityAction(this,
+                {
+                    annexProcessStarted: false,
+                }));
+            State.a(new RemoveAnnexerUnitAction(this));
+            const annexerUnit = State.getAnnexerUnitByGoldmine(this);
+            const annexPlayer = State.getPlayerByUnit(annexerUnit);
+            State.a(new OccupyGoldmineAction(this, annexPlayer));
         }
     }
 
     getGold() {
-        return this.tier;
+        return State.e(this).tier;
     }
-
-
-
 
 
 }

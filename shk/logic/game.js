@@ -2,7 +2,7 @@ class Game {
 
     constructor(config) {
 
-        console.log("A1", config);
+        this.state = new State()
 
         // eventEmitters
         this.onHeroDeath = new EventEmitter();
@@ -368,128 +368,6 @@ class Game {
         return newUnit;
     }
 
-    move(unit, tile) {
-        const validTiles = this.map.getPossibleMovementPerUnit(unit);
-        const onlyTiles = validTiles.map(o => o.t);
-        const d = Map.dist(unit.tile, tile);
-        if (onlyTiles.includes(tile) && !tile.getUnitOf(unit.player)) {
-            if (unit.goldmine) {
-                unit.goldmine.reset();
-            }
-
-            unit.movedThisTurn += d;
-            unit.tile.units = unit.tile.units.remove(unit);
-            tile.units.push(unit);
-            unit.tile = tile;
-            return tile;
-        }
-    }
-
-    moveIdx(unit, ix, iy) {
-        const neighbour = unit.tile.getNeighbour(ix, iy);
-        if (neighbour) {
-            return this.move(unit, neighbour);
-        }
-    }
-
-
-    cantMoveAnymore(unit) {
-        const possibleMovements = unit.tile.map.getPossibleMovementPerUnit(unit);
-        if (possibleMovements.length === 0) {
-            return true;
-        }
-        return unit.movedThisTurn >= unit.mov;
-    }
-
-    cantAttackAnymore(unit) {
-        if (unit.mobility === MobileAttackType.BorA && unit.movedThisTurn > 0) {
-            return true;
-        }
-        const possibleFights = unit.tile.map.getPossibleFightsPerUnit(unit);
-        if (possibleFights.length === 0) {
-            return true;
-        }
-        return unit.attacksThisTurn >= 1;
-    }
-
-    moveInDirection(unit, start, end) {
-        let [targetTile, pref] = this.map.lerp(start, end, unit.mov);
-        if (pref && targetTile.getEnemy(unit.player)) {
-            [targetTile] = this.map.lerp(start, end, unit.mov, pref === "X" ? 'Y' : 'X');
-        }
-        return this.move(unit, targetTile);
-    }
-
-    fight(attacker, defender) {
-        const prevDefNum = defender.num;
-        const prevDefTotalHp = defender.totalHp;
-        const prevAttackerNum = attacker.num;
-        const prevAttackerTotalHp = attacker.totalHp;
-        const attackerRolls = this.attack(attacker, defender);
-        let defenderRolls = [];
-        if (defender.alive && defender.revenge && attackerRolls.length > 0) {
-            defenderRolls = this.attack(defender, attacker, true);
-        }
-
-        this.fights.push({
-            attacker, defender, attackerRolls, defenderRolls,
-            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
-        });
-        console.log("onAttack", {
-            attacker, defender, attackerRolls, defenderRolls,
-            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
-        });
-        this.onAttack.emit(attacker, defender, attackerRolls, defenderRolls,
-            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp);
-        return {
-            attacker, defender, attackerRolls, defenderRolls,
-            prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
-        }
-    }
-
-    attack(attacker, defender, revenge = false) {
-        if (this.cantAttackAnymore(attacker) && !revenge) {
-            return [];
-        }
-
-        // check if its in range
-        const distance = Map.dist(attacker.tile, defender.tile);
-        if (attacker.reach < distance) {
-            return [];
-        }
-
-        // has to attack unit on same field if not alone
-        if (attacker.reach > 0 && attacker.tile.units.length > 1 && attacker.tile !== defender.tile) {
-            return [];
-        }
-
-        // we are in range
-        if (!revenge) {
-            attacker.attacksThisTurn += 1;
-        }
-        let rolls = [];
-        const prevNum = defender.num;
-        for (let i = 0; i < attacker.num * attacker.numAttacks; i++) {
-            const diceRoll = Game.throwDice();
-            const successBelow = attacker.dmg - defender.def + 1;
-            if (diceRoll < successBelow) {
-                defender.takeDmg(1);
-            }
-            rolls.push({
-                n: diceRoll,
-                h: diceRoll < successBelow,
-            });
-        }
-        const numEnemiesDied = prevNum - defender.num;
-        if (numEnemiesDied > 0) {
-            attacker.player.onEnemiesKilled(defender, numEnemiesDied);
-            if (defender.gold) {
-                attacker.player.gold += defender.gold * numEnemiesDied;
-            }
-        }
-
-        return rolls;
-    }
 
     spawnUnit(xi, yi, n, type, pl) {
         const ut = this.map.getTile(xi, yi);

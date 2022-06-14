@@ -9,102 +9,119 @@ class Hero {
         , revenge
         , mobility, reg, onHeroDeath, respawnTime, lvl, epToNextLvl) {
         this.id = IdGen.get();
-        this.player = player;
-        tile.units.push(this);
-        this.tile = tile;
-        this.type = "H";
-        this.cost = cost;
-        this.reg = reg;
-        this.reach = reach;
-        this.num = 1;
-        this.mov = mov;
-        this.lvl = lvl;
-        this.epToNextLvl = epToNextLvl;
-        this.curExp = 0;
-        this.hp = hp;
-        this.numAttacks = numAttacks;
-        this.dmg = dmg;
-        this.def = def;
-        this.revenge = revenge;
-        this.mobility = mobility;
-        this.alive = true;
-        this.totalHp = this.num * this.hp;
-        this.movedThisTurn = 0;
-        this.attacksThisTurn = 0;
-        this.onHeroDeath = onHeroDeath;
-        this.respawnTime = respawnTime;
-        this.goldmine = undefined;
+        State.a(new AddUnitToPlayerAction(this, player));
+        State.a(new AddUnitToTileAction(this, tile));
+        State.a(new UpdateEntityAction(this, {
+            type: "H",
+            cost: cost,
+            reg: reg,
+            reach: reach,
+            num: 1,
+            mov: mov,
+            lvl: lvl,
+            epToNextLvl: epToNextLvl,
+            curExp: 0,
+            hp: hp,
+            numAttacks: numAttacks,
+            dmg: dmg,
+            def: def,
+            revenge: revenge,
+            mobility: mobility,
+            alive: true,
+            totalHp: hp,
+            movedThisTurn: 0,
+            attacksThisTurn: 0,
+            onHeroDeath: onHeroDeath,
+            respawnTime: respawnTime,
+            goldmine: undefined,
+        }));
     }
 
     setTile(tile) {
-        this.tile.units = this.tile.units.remove(this);
-        tile.units.push(this);
-        this.tile = tile;
+        State.a(new RemoveUnitFromTileAction(this, State.e(this).tile));
+        State.a(new AddUnitToTileAction(this, tile));
         return tile;
     }
 
     gainExp(exp) {
-        if (!this.alive) {
-            console.error("Hero cant gain exp while dead!", this)
+        let curState = State.e(this);
+        if (!curState.alive) {
+            console.error("Hero cant gain exp while dead!", curState)
             return;
         }
-        this.curExp += exp;
-        if (this.curExp >= this.epToNextLvl && this.lvl < 10) {
-            this.curExp -= this.epToNextLvl;
-            this.lvl++;
-            const c = AssetManager.getHeroStatsByLvl(this.lvl);
-            this.epToNextLvl = c.ep;
-            this.reach = c.reach;
-            this.mov = c.mov;
-            this.hp = c.hp;
-            this.numAttacks = c.numAttacks;
-            this.dmg = c.dmg;
-            this.def = c.def;
-            this.reg = c.reg;
-            this.mobility = c.mobility;
-            this.respawnTime = c.respawnTime;
+        State.a(new UpdateEntityAction(this, (old) => ({
+            curExp: old.curExp + exp,
+        })));
+        curState = State.e(this);
+        if (curState.curExp >= curState.epToNextLvl && curState.lvl < 10) {
+            State.a(new UpdateEntityAction(this, (old) => {
+                const c = AssetManager.getHeroStatsByLvl(old.lvl + 1);
+
+                return {
+                    curExp: old.curExp + old.epToNextLvl,
+                    lvl: old.lvl + 1,
+                    epToNextLvl: c.ep,
+                    reach: c.reach,
+                    mov: c.mov,
+                    hp: c.hp,
+                    numAttacks: c.numAttacks,
+                    dmg: c.dmg,
+                    def: c.def,
+                    reg: c.reg,
+                    mobility: c.mobility,
+                    respawnTime: c.respawnTime,
+                }
+            }));
             this.heal(2);
         }
 
     }
 
     heal(amount) {
-        const before = this.totalHp;
-        this.totalHp = Math.min(this.hp, this.totalHp + amount);
-        if (before < this.totalHp)
-            console.log(this.player.id + " Hero healed by ", amount, before, this.totalHp);
+        State.a(new UpdateEntityAction(this, (old) => ({
+            totalHp: Math.min(old.hp, old.totalHp + amount),
+        })));
     }
 
     reviveAt(freeTile) {
-        this.alive = true;
-        this.totalHp = this.hp;
+        State.a(new UpdateEntityAction(this, (old) => ({
+            alive: true,
+            totalHp: old.hp,
+        })));
         this.setTile(freeTile);
     }
 
     takeDmg(amount) {
-        if (amount > 0 && this.goldmine) {
-            this.goldmine.reset();
+        const goldmine = State.getGoldmineByAnnexerUnit(this);
+        if (amount > 0 && goldmine) {
+            goldmine.reset();
         }
-        this.totalHp -= amount;
-        if (this.totalHp <= 0 && this.alive) {
-            console.log(`${this.player.id} ${this.type} has died.`)
-            this.alive = false;
-            this.curExp = 0;
-            this.onHeroDeath(this);
+        State.a(new UpdateEntityAction(this, (old) => ({
+            totalHp: old.totalHp - amount,
+        })));
+        let curState = State.e(this);
+        if (curState.totalHp <= 0 && curState.alive) {
+            State.a(new UpdateEntityAction(this, (old) => ({
+                alive: false,
+                curExp: 0,
+            })));
+            curState.onHeroDeath(this);
             return false;
         }
-        return this.alive;
+        return curState.alive;
     }
 
     getMovementLeftThisRound() {
-        return this.mov - this.movedThisTurn;
+        let curState = State.e(this);
+        return curState.mov - curState.movedThisTurn;
     }
 
     toString() {
-        if (this.hp > this.totalHp) {
-            return this.type + " (" + this.totalHp + "/" + this.hp + "hp " + this.curExp + "/" + this.epToNextLvl + "ep)";
+        let curState = State.e(this);
+        if (curState.hp > curState.totalHp) {
+            return curState.type + " (" + curState.totalHp + "/" + curState.hp + "hp " + curState.curExp + "/" + curState.epToNextLvl + "ep)";
         } else {
-            return this.type + " (" + this.totalHp + "hp " + this.curExp + "/" + this.epToNextLvl + "ep)";
+            return curState.type + " (" + curState.totalHp + "hp " + curState.curExp + "/" + curState.epToNextLvl + "ep)";
         }
     }
 

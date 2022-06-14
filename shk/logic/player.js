@@ -1,109 +1,120 @@
+
 class Player {
     constructor(id, baseTiles, color, onHeroDeath, startUnits) {
-
         this.id = id;
-        this.gold = 0;
-        this.baseTiles = baseTiles;
-        this.activeBaseTile = this.getFreeBaseTiles()[0];
-        this.activeUnit = null;
-        this.color = color;
-        this.units = [];
-        this.goldmines = [];
-        this.heroDeaths = 0;
-        startUnits.forEach(unit => {
-            if(unit.type === "H"){
-                const hc = AssetManager.getHeroStatsByLvl(unit.lvl);
-                console.log(this.baseTiles);
-                this.hero = new Hero(this, this.getFreeBaseTiles()[0], hc.ep, hc.reach,
-                    hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
+        State.a(new UpdateEntityAction(this, {
+            gold: 0,
+            color: color,
+            heroDeaths: 0,
+        }));
+        State.a(new SetActiveBaseTileAction(this.getFreeBaseTiles()[0], this));
 
+        startUnits.forEach(unit => {
+            if (unit.type === "H") {
+                const hc = AssetManager.getHeroStatsByLvl(unit.lvl);
+                const hero = new Hero(this, this.getFreeBaseTiles()[0], hc.ep, hc.reach,
+                    hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
                         onHeroDeath(hero);
                     }, hc.respawnTime, hc.lvl, hc.ep);
-                this.turnsTillHeroRes = 0
-                this.units.push(this.hero);
+                State.a(new AddHeroToPlayerAction(hero, this));
+                State.a(new AddUnitToPlayerAction(hero, this));
+                State.a(new UpdateEntityAction(this, {
+                    turnsTillHeroRes: 0,
+                }));
             }
         })
     }
 
     startHeroRevive(cost) {
-        this.gold -= cost;
-        this.turnsTillHeroRes = this.hero.respawnTime;
+        State.a(new UpdateEntityAction(this, old => ({
+            gold: old.gold - cost,
+            turnsTillHeroRes: State.getHeroByPlayer(this).respawnTime
+        })));
     }
 
-    tryHeroRespawn(){
-        if(this.turnsTillHeroRes <= 0 && this.activeBaseTile) {
-            this.hero.reviveAt(this.activeBaseTile);
-            this.units.push(this.hero);
+    tryHeroRespawn() {
+        const curState = State.e(this);
+        const activeBaseTile = State.getActiveBaseTileByPlayer(this);
+        const hero = State.getHeroByPlayer(this);
+        if (curState.turnsTillHeroRes <= 0 && activeBaseTile) {
+            hero.reviveAt(activeBaseTile);
+            State.a(new AddUnitToPlayerAction(hero, this));
         } else {
-            this.turnsTillHeroRes--;
+            State.a(new UpdateEntityAction(this, old => ({
+                turnsTillHeroRes: old.turnsTillHeroRes - 1
+            })));
         }
     }
 
-    onEnemiesKilled(enemyUnit, numKilled){
-        if(!this.hero) {
+    onEnemiesKilled(enemyUnit, numKilled) {
+        const hero = State.getHeroByPlayer(this);
+        if (!hero) {
             return;
         }
-        const heroWasInReach = (this.hero.alive && Map.dist(this.hero.tile, enemyUnit.tile) <= this.hero.mov);
-        if(heroWasInReach){
+        const heroTile = State.getTileByUnit(hero);
+        const heroWasInReach = (hero.alive && Map.dist(heroTile, enemyUnit.tile) <= hero.mov);
+        if (heroWasInReach) {
 
             const expEarned = enemyUnit.cost * numKilled;
-            this.hero.gainExp(expEarned);
+            hero.gainExp(expEarned);
             console.log(this.id, " Hero earned ", expEarned, " EXP");
         }
     }
 
     getFreeBaseTiles() {
-        return this.baseTiles.filter(b => !b.hasPlayerOnIt(this));
+        return State.getBaseTilesByPlayer(this).filter(b => !b.hasPlayerOnIt(this));
     }
 
     buyUnit(t, n, cost
-        ,reach
-        ,mov
-        ,hp
-        ,numAttacks
-        ,dmg
-        ,def
-        ,revenge
-        ,mobility) {
-        this.gold -= cost;
-        const newUnit = this.spawnUnit(this.activeBaseTile, t, n, cost
-            ,reach
-            ,mov
-            ,hp
-            ,numAttacks
-            ,dmg
-            ,def
-            ,revenge
-            ,mobility)
-        this.activeUnit = newUnit;
+        , reach
+        , mov
+        , hp
+        , numAttacks
+        , dmg
+        , def
+        , revenge
+        , mobility) {
+        State.a(new UpdateEntityAction(this, old => ({
+            gold: old.gold - cost,
+        })));
+        const activeBaseTile = State.getActiveBaseTileByPlayer(this);
+        const newUnit = this.spawnUnit(activeBaseTile, t, n, cost
+            , reach
+            , mov
+            , hp
+            , numAttacks
+            , dmg
+            , def
+            , revenge
+            , mobility);
+        State.a(new SetActiveUnitAction(newUnit, this));
         return newUnit;
     }
 
     spawnUnit(tile, t, n, cost
-        ,reach
-        ,mov
-        ,hp
-        ,numAttacks
-        ,dmg
-        ,def
-        ,revenge
-        ,mobility) {
+        , reach
+        , mov
+        , hp
+        , numAttacks
+        , dmg
+        , def
+        , revenge
+        , mobility) {
         const newUnit = new Unit(this, tile, t, n, cost
-            ,reach
-            ,mov
-            ,hp
-            ,numAttacks
-            ,dmg
-            ,def
-            ,revenge
-            ,mobility);
-        this.units.push(newUnit);
+            , reach
+            , mov
+            , hp
+            , numAttacks
+            , dmg
+            , def
+            , revenge
+            , mobility);
+        State.a(new AddUnitToPlayerAction(newUnit, this));
         return newUnit;
     }
 
     hasNoUnitsThatCanStillAttack(game) {
-        return this.units.filter(u => !game.cantAttackAnymore(u)).length === 0
+        const units = State.getUnitsByPlayer(this);
+        return units.filter(u => !game.cantAttackAnymore(u)).length === 0
     }
-
-
 }
