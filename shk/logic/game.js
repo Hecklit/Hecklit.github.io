@@ -55,17 +55,18 @@ class Game {
                 new Player("Monsters", "darkgreen", null, []), this));
         }
         State.a(new AddMapToGameAction(
-            new Map(this)
+            new Map(this), this
         ));
         const map = State.getMapByGame(this);
         const curState = State.gameState();
         const monster = State.getMonsterPlayer(this);
-        map.generateSquareMap(curState.config, monster);
 
         State.a(new AddPlayerToGameAction(new Player("Jonas",
             "red", this.handleHeroDeath.bind(this), curState.startUnits), this));
         State.a(new AddPlayerToGameAction(new Player("Jakob",
             "blue", this.handleHeroDeath.bind(this), curState.startUnits), this));
+
+        Map.generateSquareMap(map, curState.config, monster);
 
         State.a(new UpdateGameStateAction({
             curPi: curPi,

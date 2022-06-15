@@ -5,11 +5,12 @@ class UpdateEntityAction {
     }
 
     apply(state) {
-        if (this.unit.id === undefined || this.unit.id === null) {
+        if (!this.unit || this.unit.id === undefined || this.unit.id === null) {
+            debugger
             throw 'trying to update unit with no id';
         }
         let newState = state;
-        if (!this.unit.id in state.entities) {
+        if (!(this.unit.id in state.entities)) {
             newState = {
                 ...newState,
                 entities: {
@@ -21,11 +22,11 @@ class UpdateEntityAction {
 
         const newEntity = typeof this.props === 'function' ? this.props(newState.entities[this.unit.id]) : this.props;
         return {
-            ...state,
+            ...newState,
             entities: {
-                ...state.entities,
+                ...newState.entities,
                 [this.unit.id]: {
-                    ...state.entities[this.unit.id],
+                    ...newState.entities[this.unit.id],
                     ...newEntity
                 }
             }
@@ -51,6 +52,12 @@ class UpdateGameStateAction {
 }
 
 function addRelation(state, relType, relation) {
+    Object.values(relation).forEach(val => {
+        if(val === undefined) {
+            console.error("Relation vals have to be defined " + relType);
+            throw "IllegalArgument Exception"
+        }
+    })
     return {
         ...state,
         relations: {

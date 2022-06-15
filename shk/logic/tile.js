@@ -34,8 +34,8 @@ class Tile {
         return Map.tileSize;
     }
 
-    makeMonsterDen(monsterConfig, repeatable=false) {
-        State.a(new UpdateEntityAction(this, {
+    static makeMonsterDen(tile, monsterConfig, repeatable=false) {
+        State.a(new UpdateEntityAction(tile, {
             isMonsterDen: true,
             monsterConfig: monsterConfig,
             monsterDenWasTriggered: false,
@@ -89,8 +89,8 @@ class Tile {
         }
     }
 
-    config(color, text) {
-        State.a(new UpdateEntityAction(this, {
+    static config(tile, color, text) {
+        State.a(new UpdateEntityAction(tile, {
             color: color,
             text: text,
         }));

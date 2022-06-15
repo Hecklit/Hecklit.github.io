@@ -7,12 +7,15 @@ class Player {
             color: color,
             heroDeaths: 0,
         }));
-        State.a(new SetActiveBaseTileAction(this.getFreeBaseTiles()[0], this));
+        const freeBaseTile = Player.getFreeBaseTiles(this)[0];
+        if(freeBaseTile) {
+            State.a(new SetActiveBaseTileAction(Player.getFreeBaseTiles(this)[0], this));
+        }
 
         startUnits.forEach(unit => {
             if (unit.type === "H") {
                 const hc = AssetManager.getHeroStatsByLvl(unit.lvl);
-                const hero = new Hero(this, this.getFreeBaseTiles()[0], hc.ep, hc.reach,
+                const hero = new Hero(this, Player.getFreeBaseTiles(this)[0], hc.ep, hc.reach,
                     hc.mov, hc.hp, hc.numAttacks, hc.dmg, hc.def, true, hc.mobility, hc.reg, (hero) => {
                         onHeroDeath(hero);
                     }, hc.respawnTime, hc.lvl, hc.ep);
@@ -61,8 +64,8 @@ class Player {
         }
     }
 
-    getFreeBaseTiles() {
-        return State.getBaseTilesByPlayer(this).filter(b => !b.hasPlayerOnIt(this));
+    static getFreeBaseTiles(pl) {
+        return State.getBaseTilesByPlayer(pl).filter(b => !b.hasPlayerOnIt(pl));
     }
 
     buyUnit(t, n, cost

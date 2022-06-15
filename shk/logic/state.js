@@ -29,9 +29,12 @@ class State {
     }
 
     getCurrentState() {
+        window.hist = [];
         let state = this.initialState;
+        window.hist.push({action: null, state});
         for (const action of this.actions) {
             state = action.apply(state);
+            window.hist.push({action, state});
         }
         return state;
     }
@@ -63,12 +66,19 @@ class State {
         if (tiles.length > 1) {
             throw participantsType + " should only be associated to one or less " + relType
         }
-        return tiles[0];
+        const relation = tiles[0];
+        const otherParticipantType = Object.keys(relation).filter(k => k !== participantsType)[0];
+        return state.entities[relation[otherParticipantType].id];
     }
 
     static getMatchingEntitiesFromRelation(relType, participantsType, participant) {
         const state = State.i.getCurrentState();
-        return state.relations[relType].filter((rel) => participant.id === rel[participantsType].id);
+        return state.relations[relType]
+            .filter((rel) => participant.id === rel[participantsType].id)
+            .map(relation =>  {
+                const otherParticipantType = Object.keys(relation).filter(k => k !== participantsType)[0];
+                return state.entities[relation[otherParticipantType].id]
+            });
     }
 
     static getTileByGoldmine(g) {
@@ -123,7 +133,8 @@ class State {
 
     static getAllTiles(m) {
         const state = State.i.getCurrentState();
-        return state.relations.mapTile.filter(({map, tile}) => m.id === map.id);
+        return state.relations.mapTile.filter(({map, tile}) => m.id === map.id)
+            .map(r => state.entities[r.tile.id]);
     }
 
     static getTile(m ,x, y) {

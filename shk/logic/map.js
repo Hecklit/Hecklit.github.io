@@ -17,89 +17,90 @@ class Map {
         return Math.abs(b.xi - a.xi) + Math.abs(b.yi - a.yi);
     }
 
-    getTileSize() {
-        return this.getTile(0, 0).l;
+    static getTileSize(map) {
+        return Map.getTile(map, 0, 0).l;
     }
 
-    getTile(xi, yi) {
-        const tile = State.getTile(this, xi, yi);
+    static getTile(map, xi, yi) {
+        const tile = State.getTile(map, xi, yi);
         return tile ? tile : null;
     }
 
-    getTileAtPx(x, y) {
-        const l = this.getTileSize();
+    static getTileAtPx(map, x, y) {
+        const l = Map.getTileSize(map);
         const xi = Math.floor(x / l);
         const yi = Math.floor(y / l);
-        return this.getTile(xi, yi);
+        return Map.getTile(map, xi, yi);
     }
 
-    getTriggerableMonsterDen(player) {
-        const flatTiles = State.getAllTiles(this);
+    static getTriggerableMonsterDen(map, player) {
+        const flatTiles = State.getAllTiles(map);
         return flatTiles.filter(tile => player.hero.alive && Map.dist(player.hero.tile, tile) <= 1
             && tile.isMonsterDen && !tile.monsterDenWasTriggered);
     }
 
 
-    setRenderWidth(width) {
-        const curState = State.e(this);
+    static setRenderWidth(map, width) {
+        const curState = State.e(map);
         const numX = curState.widthInTiles;
         const numY = curState.heightInTiles;
         Map.tileSize = Math.floor(width / Math.max(numX, numY));
     }
 
 
-    configureMap(config, monsterPlayer) {
+    static configureMap(map, config, monsterPlayer) {
         const redBase = "hsl(0, 70%, 60%)";
         const blueBase = "hsl(240, 70%, 60%)";
         const goldMine = "hsl(60, 70%, 50%)";
         const monster = "hsl(120, 10%, 50%)";
 
         config.specialTiles.forEach(st => {
-            const tile = this.getTile(st.x, st.y);
+            const tile = Map.getTile(map, st.x, st.y);
             switch (st.type) {
                 case "Base":
                     const pl = st.ofPlayer;
-                    tile.config(pl === 1 ? redBase : blueBase, "B");
+                    Tile.config(tile, pl === 1 ? redBase : blueBase, "B");
+                    debugger
                     const player = State.getPlayers()[pl - 1];
                     State.a(new AddBaseTileToPlayerAction(tile, player));
                     break;
                 case "Goldmine":
-                    tile.config(goldMine, "G" + st.tier);
+                    Tile.config(tile, goldMine, "G" + st.tier);
                     State.a(new AddTileToGoldmineRelAction(
                         new Goldmine(st.tier), tile));
                     break;
                 case "Monster":
                     if (monsterPlayer) {
-                        tile.makeMonsterDen(AssetManager.getAllMonstersOfLevel(st.lvl).GameSample());
-                        tile.config(monster, "M" + st.lvl)
+                        Tile.makeMonsterDen(tile, AssetManager.getAllMonstersOfLevel(st.lvl).GameSample());
+                        Tile.config(tile, monster, "M" + st.lvl)
                     }
                     break;
             }
         });
     }
 
-    generateTiles(widthInTiles, heightInTiles) {
-        State.a(new UpdateEntityAction(this, {
+    static generateTiles(map, widthInTiles, heightInTiles) {
+        State.a(new UpdateEntityAction(map, {
             widthInTiles,
             heightInTiles
         }));
 
         for (let x = 0; x < widthInTiles; x++) {
             for (let y = 0; y < heightInTiles; y++) {
-                const tile = new Tile(x, y, this);
-                State.a(new AddTileToMapAction(this, tile));
+                const tile = new Tile(x, y, map);
+                State.a(new AddTileToMapAction(map, tile));
             }
         }
 
     }
 
-    generateSquareMap(config, monsterPlayer) {
-        this.generateTiles(config.width, config.height);
-        this.configureMap(config, monsterPlayer);
+    static generateSquareMap(map, config, monsterPlayer) {
+        Map.generateTiles(map, config.width, config.height);
+        Map.configureMap(map, config, monsterPlayer);
     }
 
-    forEach2D(func) {
-        const curState = State.e(this);
+    static forEach2D(map, func) {
+        const curState = State.e(map);
         for (let x = 0; x < curState.widthInTiles; x++) {
             for (let y = 0; y < curState.heightInTiles; y++) {
                 func(x, y);
@@ -108,20 +109,20 @@ class Map {
 
     }
 
-    flatTiles() {
-        return State.getAllTiles(this);
+    static flatTiles(map) {
+        return State.getAllTiles(map);
     }
 
-    getPossibleForcedFightsPerPlayer(pl) {
+    static getPossibleForcedFightsPerPlayer(map, pl) {
         const units = State.getUnitsByPlayer(pl);
         return units.reduce((acc, cur) => {
-            return acc.concat(this.getPossibleFightsPerUnit(cur).filter(
+            return acc.concat(map.getPossibleFightsPerUnit(cur).filter(
                 enemy => State.onSameTile(enemy, cur)
             ));
         }, []);
     }
 
-    getPossibleFightsPerUnit(unit) {
+    static getPossibleFightsPerUnit(map, unit) {
         if (!unit || unit.attacksThisTurn >= 1
             || (unit.mobility === MobileAttackType.BorA && unit.movedThisTurn > 0)) {
             return [];
@@ -131,20 +132,20 @@ class Map {
             return enemiesOnSameTile;
         }
         if (unit.reach > 0) {
-            return this.getEnemiesInRange(unit.tile, unit.reach, unit.player);
+            return Map.getEnemiesInRange(map, unit.tile, unit.reach, unit.player);
         }
         return [];
     }
 
-    getPossibleMovementPerUnit(unit) {
+    static getPossibleMovementPerUnit(map, unit) {
         if (!unit || unit.movedThisTurn >= unit.mov) {
             return [];
         }
         const tile = State.getTileByUnit(unit);
-        return this.getFloodFillTiles(unit, tile, unit.getMovementLeftThisRound() - 1);
+        return Map.getFloodFillTiles(map, unit, tile, unit.getMovementLeftThisRound() - 1);
     }
 
-    recursiveFloorFill(unit, tilePool, tile, lvl, maxLvl = 1000) {
+    static recursiveFloorFill(map, unit, tilePool, tile, lvl, maxLvl = 1000) {
         if (lvl > maxLvl) {
             return tilePool;
         }
@@ -152,21 +153,21 @@ class Map {
             return tilePool;
         }
 
-        const validNeighbours = this.getAllValidNeighbours(unit, tile);
+        const validNeighbours = Map.getAllValidNeighbours(map, unit, tile);
 
         validNeighbours.forEach(t => {
             const isWorseThanOtherSolution = tilePool[t.id]?.dtg < (lvl + 1);
             tilePool[t.id] = isWorseThanOtherSolution ? tilePool[t.id] : {t, dtg: lvl + 1}
             if (!t.hasEnemyOnIt(unit.player) && !isWorseThanOtherSolution) {
-                const result = this.recursiveFloorFill(unit, tilePool, t, lvl + 1, maxLvl);
-                tilePool = this.mergeTilePools(tilePool, result);
+                const result = Map.recursiveFloorFill(map, unit, tilePool, t, lvl + 1, maxLvl);
+                tilePool = Map.mergeTilePools(map, tilePool, result);
             }
         });
 
         return tilePool;
     }
 
-    mergeTilePools(a, b) {
+    static mergeTilePools(map, a, b) {
         const res = Object.entries(a).reduce((acc, [k, {t, dtg}]) => {
             acc[k] = {t, dtg: Math.min(dtg, b[k]?.dtg || 1000)};
             return acc;
@@ -177,19 +178,19 @@ class Map {
         }, {});
     }
 
-    getFloodFillTiles(unit, end, reach = 1000) {
+    static getFloodFillTiles(map, unit, end, reach = 1000) {
         let tilePool = {};
-        tilePool = this.recursiveFloorFill(unit, tilePool, end, 0, reach);
+        tilePool = Map.recursiveFloorFill(map, unit, tilePool, end, 0, reach);
         return Object.values(tilePool);
     }
 
-    getAllValidNeighbours(unit, tile) {
-        const neighbours = this.getTilesInRange(tile, 1);
+    static getAllValidNeighbours(map, unit, tile) {
+        const neighbours = Map.getTilesInRange(map, tile, 1);
         const player = State.getPlayerByUnit(unit);
         return neighbours.filter(t => t !== tile && !t.hasPlayerOnIt(player));
     }
 
-    getPossibleAnnexedGoldminesPerPlayer(player) {
+    static getPossibleAnnexedGoldminesPerPlayer(map, player) {
         const units = State.getUnitsByPlayer(player);
         return units.filter(u => {
 
@@ -205,13 +206,13 @@ class Map {
         }).map(u => State.getTileByUnit(u));
     }
 
-    getTilesInRange(root, range) {
+    static getTilesInRange(map, root, range) {
         // TODO: Make this more performant
-        return this.flatTiles().filter(t => Map.dist(root, t) <= range);
+        return Map.flatTiles(map).filter(t => Map.dist(root, t) <= range);
     }
 
-    getEnemiesInRange(root, range, playerFilter) {
-        const allTiles = this.getTilesInRange(root, range);
+    static getEnemiesInRange(map, root, range, playerFilter) {
+        const allTiles = Map.getTilesInRange(map, root, range);
         return allTiles.reduce((acc, cur) => {
             const unit = State.getUnitsOnTile(cur)
                 .filter(u => State.getPlayerByUnit(u).id !== playerFilter.id || !playerFilter)[0];
@@ -222,7 +223,7 @@ class Map {
         }, []);
     }
 
-    lerp(a, b, d, pref = null) {
+    static lerp(map, a, b, d, pref = null) {
         const dx = b.xi - a.xi;
         const dy = b.yi - a.yi;
         const absdx = Math.abs(dx);
@@ -237,27 +238,27 @@ class Map {
             if ((pref && pref === 'X') || (!pref && absdx > absdy)) {
                 const whatsLeftMag = d - absdx <= 0 ? 0 : (d - absdx);
                 return [
-                    this.getTile(a.xi + (d - whatsLeftMag) * dirx, a.yi + whatsLeftMag * diry),
+                    Map.getTile(map, a.xi + (d - whatsLeftMag) * dirx, a.yi + whatsLeftMag * diry),
                     'X']
             } else {
                 const whatsLeftMag = d - absdy <= 0 ? 0 : (d - absdy);
                 return [
-                    this.getTile(a.xi + whatsLeftMag * dirx, a.yi + (d - whatsLeftMag) * diry),
+                    Map.getTile(map, a.xi + whatsLeftMag * dirx, a.yi + (d - whatsLeftMag) * diry),
                     'Y']
             }
         }
     }
 
-    moveInDirection(unit, start, end) {
-        let [targetTile, pref] = this.lerp(start, end, unit.mov);
+    static moveInDirection(map, unit, start, end) {
+        let [targetTile, pref] = Map.lerp(map, start, end, unit.mov);
         if (pref && targetTile.getEnemy(State.getPlayerByUnit(unit))) {
-            [targetTile] = this.lerp(start, end, unit.mov, pref === "X" ? 'Y' : 'X');
+            [targetTile] = Map.lerp(map, start, end, unit.mov, pref === "X" ? 'Y' : 'X');
         }
-        return this.move(unit, targetTile);
+        return Map.move(map, unit, targetTile);
     }
 
-    move(unit, tile) {
-        const validTiles = this.getPossibleMovementPerUnit(unit);
+    static move(map, unit, tile) {
+        const validTiles = Map.getPossibleMovementPerUnit(map, unit);
         const onlyTiles = validTiles.map(o => o.t);
         const d = Map.dist(State.getTileByUnit(unit), tile);
         if (onlyTiles.includes(tile) && !tile.getUnitOf(State.getPlayerByUnit(unit))) {
@@ -276,26 +277,26 @@ class Map {
         }
     }
 
-    moveIdx(unit, ix, iy) {
+    static moveIdx(map, unit, ix, iy) {
         const neighbour = State.getTileByUnit(unit).getNeighbour(ix, iy);
         if (neighbour) {
-            return this.move(unit, neighbour);
+            return Map.move(map, unit, neighbour);
         }
     }
 
-    cantMoveAnymore(unit) {
-        const possibleMovements = this.getPossibleMovementPerUnit(unit);
+    static cantMoveAnymore(map, unit) {
+        const possibleMovements = Map.getPossibleMovementPerUnit(map, unit);
         if (possibleMovements.length === 0) {
             return true;
         }
         return unit.movedThisTurn >= unit.mov;
     }
 
-    cantAttackAnymore(unit) {
+    static cantAttackAnymore(map, unit) {
         if (unit.mobility === MobileAttackType.BorA && unit.movedThisTurn > 0) {
             return true;
         }
-        const possibleFights = this.getPossibleFightsPerUnit(unit);
+        const possibleFights = Map.getPossibleFightsPerUnit(map, unit);
         if (possibleFights.length === 0) {
             return true;
         }
@@ -303,15 +304,15 @@ class Map {
     }
 
 
-    fight(attacker, defender) {
+    static fight(map, attacker, defender) {
         const prevDefNum = defender.num;
         const prevDefTotalHp = defender.totalHp;
         const prevAttackerNum = attacker.num;
         const prevAttackerTotalHp = attacker.totalHp;
-        const attackerRolls = this.attack(attacker, defender);
+        const attackerRolls = Map.attack(map, attacker, defender);
         let defenderRolls = [];
         if (defender.alive && defender.revenge && attackerRolls.length > 0) {
-            defenderRolls = this.attack(defender, attacker, true);
+            defenderRolls = Map.attack(map, defender, attacker, true);
         }
 
         State.a(new RecordFightAction({
@@ -322,18 +323,14 @@ class Map {
             attacker, defender, attackerRolls, defenderRolls,
             prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
         });
-        // TODO: Figure out a way you can emit that. Maybe we can make it based on
-        // the actions that are happening
-        // this.onAttack.emit(attacker, defender, attackerRolls, defenderRolls,
-        //     prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp);
         return {
             attacker, defender, attackerRolls, defenderRolls,
             prevDefNum, prevDefTotalHp, prevAttackerNum, prevAttackerTotalHp
         }
     }
 
-    attack(attacker, defender, revenge = false) {
-        if (this.cantAttackAnymore(attacker) && !revenge) {
+    static attack(map, attacker, defender, revenge = false) {
+        if (Map.cantAttackAnymore(map, attacker) && !revenge) {
             return [];
         }
 
