@@ -87,7 +87,7 @@ class Map {
         for (let x = 0; x < widthInTiles; x++) {
             for (let y = 0; y < heightInTiles; y++) {
                 const tile = new Tile(x, y, this);
-                State.a(new AddTileToMapRelAction(this, tile));
+                State.a(new AddTileToMapAction(this, tile));
             }
         }
 

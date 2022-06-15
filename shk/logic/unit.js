@@ -9,61 +9,69 @@ class Unit {
         , revenge
         , mobility) {
         this.id = IdGen.get();
-        this.player = player;
-        tile.units.push(this);
-        this.tile = tile;
-        this.type = type;
-        this.cost = cost;
-        this.reach = reach;
-        this.num = num;
-        this.mov = mov;
-        this.hp = hp;
-        this.numAttacks = numAttacks;
-        this.dmg = dmg;
-        this.def = def;
-        this.revenge = revenge;
-        this.mobility = mobility;
-        this.alive = true;
-        this.totalHp = this.num * this.hp;
-        this.movedThisTurn = 0;
-        this.attacksThisTurn = 0;
-        this.goldmine = undefined;
+        State.a(new AddUnitToPlayerAction(this, player));
+        State.a(new AddUnitToTileAction(this, tile));
+        State.a(new UpdateEntityAction(this, {
+            type: type,
+            cost: cost,
+            reach: reach,
+            num: num,
+            mov: mov,
+            hp: hp,
+            numAttacks: numAttacks,
+            dmg: dmg,
+            def: def,
+            revenge: revenge,
+            mobility: mobility,
+            alive: true,
+            totalHp: num * hp,
+            movedThisTurn: 0,
+            attacksThisTurn: 0,
+        }));
     }
 
     takeDmg(amount) {
-        if (amount > 0 && this.goldmine) {
-            this.goldmine.reset();
+        const goldmine = State.getGoldmineByAnnexerUnit(this);
+        if (amount > 0 && goldmine) {
+            goldmine.reset();
         }
-        this.totalHp -= amount;
-        this.num = Math.ceil(this.totalHp / this.hp);
-        if (this.totalHp <= 0 && this.alive) {
-            console.log(`${this.player.id} ${this.type} has died.`)
-            this.alive = false;
+        State.a(new UpdateEntityAction(this, (old) => ({
+            totalHp: old.totalHp - amount,
+            num: Math.ceil(old.totalHp / old.hp)
+        })));
+        let curState = State.e(this);
+        if (curState.totalHp <= 0 && curState.alive) {
+            State.a(new UpdateEntityAction(this, {
+                alive: false,
+            }));
             return false;
         }
-        return this.alive;
+        return curState.alive;
     }
 
     recruitNewUnits(num) {
-        this.num += num;
-        this.totalHp += num * this.hp;
+        State.a(new UpdateEntityAction(this, (old) => ({
+            num: old.num + num,
+            totalHp: old.totalHp + num * old.hp
+        })));
     }
 
     getMovementLeftThisRound() {
-        return this.mov - this.movedThisTurn;
+        let curState = State.e(this);
+        return curState.mov - curState.movedThisTurn;
     }
 
     toString() {
-        if (this.hp > this.num) {
-            if (this.hp > this.totalHp) {
-                return this.type + " " + this.num + " (HP " + this.totalHp + "/" + this.hp +  ")";
+        let curState = State.e(this);
+        if (curState.hp > curState.num) {
+            if (curState.hp > curState.totalHp) {
+                return curState.type + " " + curState.num + " (HP " + curState.totalHp + "/" + curState.hp +  ")";
             } else {
-                return this.type + " " + this.num + " (HP " + this.totalHp + ")";
+                return curState.type + " " + curState.num + " (HP " + curState.totalHp + ")";
             }
         } else {
-            return this.type + " " + this.num;
+            return curState.type + " " + curState.num;
         }
     }
-
 
 }

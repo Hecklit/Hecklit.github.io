@@ -1,15 +1,15 @@
 class Tile {
 
-    constructor(xi, yi, map) {
-        this.units = [];
+    constructor(xi, yi) {
         this.id = IdGen.get();
-        this.xi = xi;
-        this.yi = yi;
-        this.color = "gray";
-        this.text = "";
-        this.map = map;
-        this.isMonsterDen = false;
-        this.goldmine = null;
+        State.a(new UpdateEntityAction(this, {
+            xi: xi,
+            yi: yi,
+            color: "gray",
+            text: "",
+            isMonsterDen: false,
+            goldmine: null,
+        }));
     }
 
     get cx() {
@@ -21,11 +21,13 @@ class Tile {
     }
 
     get x(){
-        return this.xi * Map.tileSize;
+        const curState = State.e(this);
+        return curState.xi * Map.tileSize;
     }
 
     get y(){
-        return this.yi * Map.tileSize;
+        const curState = State.e(this);
+        return curState.yi * Map.tileSize;
     }
 
     get l(){
@@ -33,53 +35,65 @@ class Tile {
     }
 
     makeMonsterDen(monsterConfig, repeatable=false) {
-        this.isMonsterDen = true;
-        this.monsterConfig = monsterConfig;
-        this.monsterDenWasTriggered = false;
-        this.monsterDenRepeatable = repeatable;
+        State.a(new UpdateEntityAction(this, {
+            isMonsterDen: true,
+            monsterConfig: monsterConfig,
+            monsterDenWasTriggered: false,
+            monsterDenRepeatable: repeatable,
+        }));
     }
 
     triggerMonsterDen(monsterPlayer, game) {
-        if(!this.monsterDenWasTriggered || this.monsterDenRepeatable) {
-            this.monsterDenWasTriggered = true;
-            Monster.spawnMonster(this.monsterConfig, this, monsterPlayer, game);
-            if(!this.monsterDenRepeatable){
-                this.config("gray", "");
+        let curState = State.e(this);
+        if(!curState.monsterDenWasTriggered || curState.monsterDenRepeatable) {
+            State.a(new UpdateEntityAction(this, {
+                monsterDenWasTriggered: true
+            }));
+            Monster.spawnMonster(curState.monsterConfig, curState, monsterPlayer, game);
+            curState = State.e(this);
+            if(!curState.monsterDenRepeatable){
+                curState.config("gray", "");
             }
         }
     }
 
     getNeighbour(dix, diy) {
-        const ix = this.xi + dix;
-        const iy = this.yi + diy;
-        if (this.map.tiles[ix]) {
-            return this.map.tiles[ix][iy];
-        }
+        let curState = State.e(this);
+        const ix = curState.xi + dix;
+        const iy = curState.yi + diy;
+        const map = State.getMapByTile(this);
+        return State.getTile(map, ix, iy);
     }
 
     hasPlayerOnIt(pl) {
-        return this.units.filter(u => u.player.id === pl.id).length > 0;
+        const units = State.getUnitsOnTile(this);
+        return units.filter(u => State.getPlayerByUnit(u).id === pl.id).length > 0;
     }
 
     hasEnemyOnIt(pl) {
-        return this.units.length === 1 && !this.hasPlayerOnIt(pl) || this.units.length > 1;
+        const units = State.getUnitsOnTile(this);
+        return units.length === 1 && !this.hasPlayerOnIt(pl) || units.length > 1;
     }
 
     getEnemy(pl) {
+        const units = State.getUnitsOnTile(this);
         if (this.hasEnemyOnIt(pl)) {
-            return this.units.filter(u => u.player.id !== pl.id)[0];
+            return units.filter(u => State.getPlayerByUnit(u).id !== pl.id)[0];
         }
     }
 
     getUnitOf(pl) {
+        const units = State.getUnitsOnTile(this);
         if (this.hasPlayerOnIt(pl)) {
-            return this.units.filter(u => u.player.id === pl.id)[0];
+            return units.filter(u => State.getPlayerByUnit(u).id === pl.id)[0];
         }
     }
 
     config(color, text) {
-        this.color = color;
-        this.text = text;
+        State.a(new UpdateEntityAction(this, {
+            color: color,
+            text: text,
+        }));
     }
 
 }

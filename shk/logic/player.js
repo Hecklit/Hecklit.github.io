@@ -1,6 +1,6 @@
 
 class Player {
-    constructor(id, baseTiles, color, onHeroDeath, startUnits) {
+    constructor(id, color, onHeroDeath, startUnits) {
         this.id = id;
         State.a(new UpdateEntityAction(this, {
             gold: 0,

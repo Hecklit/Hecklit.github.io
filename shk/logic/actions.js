@@ -33,6 +33,23 @@ class UpdateEntityAction {
     }
 }
 
+class UpdateGameStateAction {
+    constructor(props) {
+        this.props = props;
+    }
+
+    apply(state) {
+        const newEntity = typeof this.props === 'function' ? this.props({...state.game}) : this.props;
+        return {
+            ...state,
+            game: {
+                ...state.game,
+                ...newEntity
+            }
+        }
+    }
+}
+
 function addRelation(state, relType, relation) {
     return {
         ...state,
@@ -135,6 +152,42 @@ class AddUnitToPlayerAction {
     }
 }
 
+class AddMonsterToGameAction {
+    constructor(monster, game) {
+        this.monster = monster;
+        this.game = game;
+    }
+
+    apply(state) {
+        return addRelation(state, 'gameMonster',
+            {game: this.game, monster: this.monster});
+    }
+}
+
+class AddMapToGameAction {
+    constructor(map, game) {
+        this.map = map;
+        this.game = game;
+    }
+
+    apply(state) {
+        return addRelation(state, 'gameMap',
+            {game: this.game, map: this.map});
+    }
+}
+
+class AddPlayerToGameAction {
+    constructor(player, game) {
+        this.player = player;
+        this.game = game;
+    }
+
+    apply(state) {
+        return addRelation(state, 'gamePlayer',
+            {game: this.game, player: this.player});
+    }
+}
+
 class AddHeroToPlayerAction {
     constructor(hero, player) {
         this.hero = hero;
@@ -183,7 +236,7 @@ class AddTileToGoldmineRelAction {
     }
 }
 
-class AddTileToMapRelAction {
+class AddTileToMapAction {
     constructor(map, tile) {
         this.map = map;
         this.tile = tile;
@@ -204,6 +257,18 @@ class RemoveUnitFromTileAction {
     apply(state) {
         return deleteSpecificRelation(state, 'unitTile',
             'unit', this.unit, 'tile', this.tile);
+    }
+}
+
+class RemoveUnitFromPlayerAction {
+    constructor(unit, player) {
+        this.unit = unit;
+        this.player = player;
+    }
+
+    apply(state) {
+        return deleteSpecificRelation(state, 'unitPlayer',
+            'unit', this.unit, 'player', this.player);
     }
 }
 
@@ -249,4 +314,3 @@ class SetActiveUnitAction {
         })
     }
 }
-

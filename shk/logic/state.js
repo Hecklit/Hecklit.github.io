@@ -17,8 +17,13 @@ class State {
                 playerActiveUnit: [],
                 playerActiveBaseTile: [],
                 gamePlayer: [],
+                gameMonster: [],
+                gameMap: []
             },
             fights: [],
+            game: {
+
+            }
         };
         this.actions = actions;
     }
@@ -34,6 +39,11 @@ class State {
     static e(entity) {
         const state = State.i.getCurrentState();
         return state.entities[entity.id];
+    }
+
+    static gameState() {
+        const state = State.i.getCurrentState();
+        return state.game;
     }
 
     static a(action) {
@@ -66,6 +76,11 @@ class State {
             'goldmineTile', 'goldmine', g);
     }
 
+    static getGoldmineByTile(t) {
+        return State.getSingleEntityFromRelation(
+            'goldmineTile', 'tile', t);
+    }
+
     static getTileByUnit(u) {
         return State.getSingleEntityFromRelation(
             'unitTile', 'unit', u);
@@ -73,14 +88,12 @@ class State {
 
     static getUnitsOnTile(t) {
         const state = State.i.getCurrentState();
-        const units = state.relations.unitTile.filter(({unit, tile}) => t.id === tile.id);
-        return units;
+        return state.relations.unitTile.filter(({unit, tile}) => t.id === tile.id);
     }
 
     static getUnitsByPlayer(pl) {
         const state = State.i.getCurrentState();
-        const units = state.relations.unitPlayer.filter(({unit, player}) => pl.id === player.id);
-        return units;
+        return state.relations.unitPlayer.filter(({unit, player}) => pl.id === player.id);
     }
 
     static getUnitsOnGoldmine(g) {
@@ -110,8 +123,7 @@ class State {
 
     static getAllTiles(m) {
         const state = State.i.getCurrentState();
-        const units = state.relations.mapTile.filter(({map, tile}) => m.id === map.id);
-        return units;
+        return state.relations.mapTile.filter(({map, tile}) => m.id === map.id);
     }
 
     static getTile(m ,x, y) {
@@ -138,6 +150,11 @@ class State {
         return state.relations.gamePlayer;
     }
 
+    static getMonsterPlayer(game) {
+        return State.getSingleEntityFromRelation(
+            'gameMonster', 'game', game);
+    }
+
     static getMapByTile(tile) {
         return State.getSingleEntityFromRelation(
             'mapTile', 'tile', tile);
@@ -148,13 +165,34 @@ class State {
             'heroPlayer', 'player', player);
     }
 
+    static getPlayerByHero(hero) {
+        return State.getSingleEntityFromRelation(
+            'heroPlayer', 'hero', hero);
+    }
+
     static getActiveBaseTileByPlayer(player) {
         return State.getSingleEntityFromRelation(
             'playerActiveBaseTile', 'player', player);
+    }
+
+    static getActiveUnitByPlayer(player) {
+        return State.getSingleEntityFromRelation(
+            'playerActiveUnit', 'player', player);
     }
 
     static getBaseTilesByPlayer(player) {
         return State.getMatchingEntitiesFromRelation(
             'baseTilePlayer', 'player', player);
     }
+
+    static getMapByGame(game) {
+        return State.getSingleEntityFromRelation(
+            'gameMap', 'game', game);
+    }
+
+    static getGoldminesByPlayer(player) {
+        return State.getMatchingEntitiesFromRelation(
+            'goldminePlayer', 'player', player);
+    }
+
 }
