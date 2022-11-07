@@ -47,29 +47,6 @@ function inside_rect(pos, sx, sy, w, h) {
     return x > sx && x < ex && y > sy && y < ey;
 }
 
-function circle_circle_collide(c1, c2) {
-    const distance = c1.pos.sub(c2.pos).length();
-    return distance <= (c1.r + c2.r);
-}
-
-function circle_circles_collide(c1, arr){
-    let collisions = [];
-    for (let a = 0; a < arr.length; a++) {
-        const other = arr[a];
-        if (circle_circle_collide(c1, other)) {
-            collisions.push(other);
-        }
-    }
-    return collisions;
-}
-
-function is_colliding(f, obstacles) {
-    let is_col = false;
-    let cols = circle_circles_collide(f, obstacles);
-    is_col = cols.length > 0;
-    return is_col; 
-}
-
 // utils/ convinence
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
