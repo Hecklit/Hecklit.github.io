@@ -4,14 +4,14 @@ const width = can.width = window.innerWidth * 0.9;
 const height = can.height = window.innerHeight * 0.9;
 const center = new v2(width / 2, height / 2);
 const MAX_COOLDOWN = 100;
-const NUM_PLAYERS = 300;
+const NUM_PLAYERS = 200;
 const CROSSOVER_RATE = 0.5;
 const CROSSOVER_SIZE = 20;
 const MUTATION_RATE = 0.1; // per gen
 const FOOD_SPAWN_CHANCE = 0.01
 const NUM_BASES = 10
 const OFFSPRING_RATE = 0.8
-const AFFECTION_RADIUS = 300
+const AFFECTION_RADIUS = 200
 const AFFINITY_SCALAR = 1.0
 const DISTANCE_FALLOFF = 100;
 
