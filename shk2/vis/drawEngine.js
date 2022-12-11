@@ -19,11 +19,11 @@ class DrawEngine {
             this.output.innerHTML = this.output.innerHTML = JSON.stringify(a.diff, null, 2);
 
             if(this.actions.selectedIndex === this.actions.options.length-1) {
-                GameStateUtil.maxStateIndex = null;
+                this.drawState();
             }else{
-                GameStateUtil.maxStateIndex = this.actions.selectedIndex;
+                this.drawState(this.actions.selectedIndex);
             }
-            this.drawState();
+
         };
         this.updateUi();
     }
@@ -32,7 +32,8 @@ class DrawEngine {
         const x = e.clientX,
             y = e.clientY;
         const tile = this.mapPosToTile(x, y);
-        const unit = GameStateUtil.getAllUnitsOnTileByRef(this.gameState, tile.ref);
+        const currentState = GameStateUtil.getCurrentState(this.gameState);
+        const unit = GameStateUtil.getAllUnitsOnTileByRef(currentState, tile.ref);
 
         if (this.selectedUnitRef == null) {
             if (unit.length > 0) {
@@ -40,8 +41,8 @@ class DrawEngine {
             }
         } else {
             GameStateUtil.maxStateIndex = null;
-            const oldTile = GameStateUtil.getTileByUnitRef(this.gameState, this.selectedUnitRef);
-            const selectedUnit = GameStateUtil.getUnitByRef(this.gameState, this.selectedUnitRef);
+            const oldTile = GameStateUtil.getTileByUnitRef(currentState, this.selectedUnitRef);
+            const selectedUnit = GameStateUtil.getUnitByRef(currentState, this.selectedUnitRef);
 
             const action = {
                 "ref": "action." + (actionRef++),
@@ -65,7 +66,7 @@ class DrawEngine {
             };
 
             if (JSON.stringify(action.diff.create)  !== JSON.stringify(action.diff.delete)) {
-                this.gameState.actions.push(action);
+                currentState.actions.push(action);
             }
         }
 
@@ -97,11 +98,12 @@ class DrawEngine {
         });
     }
 
-    drawState() {
+    drawState(maxStateIndex=null) {
 
         this.fillRect(0, 0, this.canvas.width, this.canvas.height, "gray");
+        const currentState = GameStateUtil.getCurrentState(this.gameState, maxStateIndex);
 
-        const map = GameStateUtil.getCurrentState(this.gameState).map;
+        const map = currentState.map;
 
         map.tiles.forEach(t => {
             const {xPos, yPos} = this.drawTile(t.xi, t.yi);
@@ -111,7 +113,7 @@ class DrawEngine {
                 tile: t
             });
 
-            const unitsOnTile = GameStateUtil.getAllUnitsOnTileByRef(this.gameState, t.ref);
+            const unitsOnTile = GameStateUtil.getAllUnitsOnTileByRef(currentState, t.ref);
             this.drawUnitsAt(unitsOnTile, xPos, yPos);
         });
     }
