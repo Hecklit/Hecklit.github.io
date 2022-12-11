@@ -50,6 +50,10 @@
     {
       "ref": "player.1",
       "gold": 400
+    },
+    {
+      "ref": "player.2",
+      "gold": 400
     }
   ],
   "unitTypes": {
@@ -89,12 +93,7 @@
     }
   ],
   "associations": {
-    "tilePlayer": {
-      "tile.0|3_player.1": {
-        "tileRef": "tile.0|3",
-        "playerRef": "player.1"
-      }
-    },
+    "basetilePlayer": [],
     "goldmineTile": {
       "goldmine.1_tile.3|1": {
         "tileRef": "tile.3|1"

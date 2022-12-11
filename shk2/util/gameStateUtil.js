@@ -85,13 +85,34 @@ class GameStateUtil {
             throw new Error("Every unit should have a tile " + ref)
         }
         return tileList[0];
-
     }
 
-    static getTileUnitPath(gameState, tileRef, unitRef) {
-        const index = gameState.associations.tileUnit.findIndex(
-            a => a.tileRef === tileRef && a.unitRef === unitRef);
+    static getBasetilePlayer(gameState, ref) {
+        const playerList = gameState.associations.basetilePlayer
+            .filter(uT => uT.tileRef === ref)
+            .map(uT => GameStateUtil.getPlayerByRef(gameState, uT.playerRef));
 
-        return "associations.tileUnit." + index;
+        if (playerList.length === 0) {
+            return null;
+        }
+        return playerList[0];
+    }
+
+    static getPlayerByIndex(gameState, ofPlayer) {
+        const player = gameState.players[ofPlayer];
+        if(player){
+            return player;
+        }
+        return null;
+    }
+
+    static getPlayerByRef(gameState, playerRef) {
+        const playerList = gameState.players
+            .filter(uT => uT.ref === playerRef)
+
+        if (playerList.length === 0) {
+            return null;
+        }
+        return playerList[0];
     }
 }

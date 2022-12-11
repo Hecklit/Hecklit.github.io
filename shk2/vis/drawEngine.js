@@ -18,9 +18,9 @@ class DrawEngine {
             const a = GameStateUtil.getActionByRef(this.gameState, this.actions.value);
             this.output.innerHTML = this.output.innerHTML = JSON.stringify(a.diff, null, 2);
 
-            if(this.actions.selectedIndex === this.actions.options.length-1) {
+            if (this.actions.selectedIndex === this.actions.options.length - 1) {
                 this.drawState();
-            }else{
+            } else {
                 this.drawState(this.actions.selectedIndex);
             }
 
@@ -40,7 +40,6 @@ class DrawEngine {
                 this.selectedUnitRef = unit[0].ref;
             }
         } else {
-            GameStateUtil.maxStateIndex = null;
             const oldTile = GameStateUtil.getTileByUnitRef(currentState, this.selectedUnitRef);
             const selectedUnit = GameStateUtil.getUnitByRef(currentState, this.selectedUnitRef);
 
@@ -65,7 +64,7 @@ class DrawEngine {
                 }
             };
 
-            if (JSON.stringify(action.diff.create)  !== JSON.stringify(action.diff.delete)) {
+            if (JSON.stringify(action.diff.create) !== JSON.stringify(action.diff.delete)) {
                 currentState.actions.push(action);
             }
         }
@@ -98,7 +97,7 @@ class DrawEngine {
         });
     }
 
-    drawState(maxStateIndex=null) {
+    drawState(maxStateIndex = null) {
 
         this.fillRect(0, 0, this.canvas.width, this.canvas.height, "gray");
         const currentState = GameStateUtil.getCurrentState(this.gameState, maxStateIndex);
@@ -106,7 +105,7 @@ class DrawEngine {
         const map = currentState.map;
 
         map.tiles.forEach(t => {
-            const {xPos, yPos} = this.drawTile(t.xi, t.yi);
+            const {xPos, yPos} = this.drawTile(t);
             this.tilePositions.push({
                 cx: xPos,
                 cy: yPos,
@@ -118,10 +117,20 @@ class DrawEngine {
         });
     }
 
-    drawTile(x, y) {
-        const xPos = x * this.tileSize;
-        const yPos = y * this.tileSize
-        this.rect(xPos, yPos, this.tileSize, this.tileSize, "red");
+    drawTile(tile) {
+        const currentState = GameStateUtil.getCurrentState(this.gameState); // TODO: make this take the current state
+        const basetilePlayer = GameStateUtil.getBasetilePlayer(currentState, tile.ref);
+
+        const xPos = tile.xi * this.tileSize;
+        const yPos = tile.yi * this.tileSize;
+
+        if (basetilePlayer != null) {
+
+            const color = basetilePlayer.ref === "player.1" ? "blue" : "green";
+            this.fillRect(xPos, yPos, this.tileSize, this.tileSize, color)
+        }
+        this.rect(xPos, yPos, this.tileSize, this.tileSize, "black");
+
         return {
             xPos: xPos + this.tileSize / 2,
             yPos: yPos + this.tileSize / 2
