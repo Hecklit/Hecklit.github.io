@@ -1,0 +1,12 @@
+{
+  "name": "F",
+  "cost": 2,
+  "reach": 0,
+  "mov": 2,
+  "hp": 1,
+  "numAttacks": 1,
+  "dmg": 5,
+  "def": 2,
+  "revenge": true,
+  "mobility": "BthenA"
+}

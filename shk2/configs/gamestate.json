@@ -1,0 +1,118 @@
+{
+  "randomSeed": "abcdefg",
+  "gameMode": {
+    "maxNumTroup": {
+      "F": 1,
+      "B": 1,
+      "K": 1
+    },
+    "maxHPperTroup": {
+      "F": 30,
+      "B": 20,
+      "K": 24
+    },
+    "heroRevivals": 0,
+    "defaultGold": 5
+  },
+  "map": {
+    "name": "Map Name",
+    "width": 15,
+    "height": 4,
+    "tiles": [
+      {
+        "xi": 0,
+        "yi": 3,
+        "type": "base",
+        "walkable": true,
+        "shootable": true
+      },
+      {
+        "xi": 3,
+        "yi": 1,
+        "type": "normal",
+        "walkable": true,
+        "shootable": true
+      }
+    ]
+  },
+  "units": [
+    {
+      "ref": "unit.1",
+      "type": "F",
+      "monster": false,
+      "num": 5,
+      "currentHp": 5,
+      "totalHp": 5,
+      "currentExp": 0
+    }
+  ],
+  "players": [
+    {
+      "ref": "player.1",
+      "gold": 400
+    }
+  ],
+  "unitTypes": {
+    "F": {
+      "name": "F",
+      "cost": 2,
+      "reach": 0,
+      "mov": 2,
+      "hp": 1,
+      "numAttacks": 1,
+      "dmg": 5,
+      "def": 2,
+      "revenge": true,
+      "mobility": "BthenA"
+    }
+  },
+  "actions": [
+    {
+      "ref": "action.0",
+      "type": "moveUnit",
+      "actorRef": "player.1",
+      "timestamp": 0,
+      "diff": {
+        "create": {
+          "associations.tileUnit": {
+            "tileRef": "tile.0|3",
+            "unitRef": "unit.1"
+          }
+        },
+        "delete": {
+          "associations.tileUnit": {
+            "tileRef": "tile.1|4",
+            "unitRef": "unit.1"
+          }
+        }
+      }
+    }
+  ],
+  "associations": {
+    "tilePlayer": {
+      "tile.0|3_player.1": {
+        "tileRef": "tile.0|3",
+        "playerRef": "player.1"
+      }
+    },
+    "goldmineTile": {
+      "goldmine.1_tile.3|1": {
+        "tileRef": "tile.3|1"
+      }
+    },
+    "goldminePlayer": {
+      "goldmine.1_player.1": {
+        "playerRef": "player.1",
+        "goldmineRef": "goldmine.1"
+      }
+    },
+    "unitPlayer": {
+      "unit.1_player.1": {
+        "unitRef": "unit.1",
+        "playerRef": "player.1"
+      }
+    },
+    "tileUnit": [
+    ]
+  }
+}

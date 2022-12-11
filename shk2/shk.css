@@ -1,0 +1,13 @@
+#test {
+    color: gray;
+}
+
+body {
+    font-size: 30px;
+    background: lightgray;
+
+}
+
+canvas {
+    border: #2a2d34 1px solid;
+}
