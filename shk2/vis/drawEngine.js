@@ -125,6 +125,7 @@ class DrawEngine {
 
         const xPos = tile.xi * this.tileSize;
         const yPos = tile.yi * this.tileSize;
+        this.fillRect(xPos, yPos, this.tileSize, this.tileSize, "gray");
 
         if (basetilePlayer != null) {
             const color = basetilePlayer.ref === "player.1" ? "red" : "blue";
