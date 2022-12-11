@@ -44,7 +44,6 @@ addEventListener('load', async function () {
 
     // adding gold associations
     const goldmineTileAssociations = []
-    console.log(gameState.map.specialTiles)
     let goldmineIndex = 0;
     gameState.map.specialTiles.forEach((st) => {
         if (st.type !== "Goldmine") {
@@ -52,6 +51,7 @@ addEventListener('load', async function () {
         }
         gameState.goldmines.push(
             {
+                ref: 'golmine.'+goldmineIndex,
                 gold: st.tier
             }
         );
@@ -61,6 +61,27 @@ addEventListener('load', async function () {
         })
     });
     gameState.associations.goldmineTile = goldmineTileAssociations;
+
+    // adding monsterDen associations
+    const monsterTileAssociations = []
+    console.log(gameState.map.specialTiles)
+    let monsterDenIndex = 0;
+    gameState.map.specialTiles.forEach((st) => {
+        if (st.type !== "Monster") {
+            return;
+        }
+        gameState.monsterDens.push(
+            {
+                ref: 'monsterDen.'+monsterDenIndex,
+                lvl: st.lvl
+            }
+        );
+        monsterTileAssociations.push({
+            tileRef: GameStateUtil.getTileByCoords(gameState, st.x, st.y).ref,
+            monsterDenRef: GameStateUtil.getMonsterDenByIndex(gameState, monsterDenIndex++).ref
+        })
+    });
+    gameState.associations.monsterDenTile = monsterTileAssociations;
 
     const drawEngine = new DrawEngine(canvas, gameState);
     drawEngine.drawState()

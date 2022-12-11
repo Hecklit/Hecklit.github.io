@@ -36,6 +36,7 @@
     ]
   },
   "goldmines": [],
+  "monsterDens": [],
   "units": [
     {
       "ref": "unit.1",
@@ -96,6 +97,7 @@
   "associations": {
     "basetilePlayer": [],
     "goldmineTile": [],
+    "monsterDenTile": [],
     "goldminePlayer": {
       "goldmine.1_player.1": {
         "playerRef": "player.1",

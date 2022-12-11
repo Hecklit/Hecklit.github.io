@@ -123,7 +123,7 @@ class GameStateUtil {
     static getGoldmineByTileRef(gameState, ref) {
         const goldmineList = gameState.associations.goldmineTile
             .filter(uT => uT.tileRef === ref)
-            .map(uT => GameStateUtil.getGoldmineByRef(gameState, uT.playerRef));
+            .map(uT => GameStateUtil.getGoldmineByRef(gameState, uT.goldmineRef));
 
         if (goldmineList.length === 0) {
             return null;
@@ -139,5 +139,29 @@ class GameStateUtil {
             return null;
         }
         return goldmineList[0];
+    }
+
+    static getMonsterDenByRef(gameState, playerRef) {
+        const goldmineList = gameState.monsterDens
+            .filter(uT => uT.ref === playerRef)
+
+        if (goldmineList.length === 0) {
+            return null;
+        }
+        return goldmineList[0];
+    }
+
+    static getMonsterDenByIndex(gameState, i) {
+        return gameState.monsterDens[i];
+    }
+
+    static getMonsterDenByTileRef(gameState, ref) {
+        const monsterDenList = gameState.associations.monsterDenTile
+            .filter(uT => uT.tileRef === ref)
+            .map(uT => GameStateUtil.getMonsterDenByRef(gameState, uT.monsterDenRef));
+        if (monsterDenList.length === 0) {
+            return null;
+        }
+        return monsterDenList[0];
     }
 }

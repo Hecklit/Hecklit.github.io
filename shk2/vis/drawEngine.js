@@ -121,6 +121,7 @@ class DrawEngine {
         const currentState = GameStateUtil.getCurrentState(this.gameState); // TODO: make this take the current state
         const basetilePlayer = GameStateUtil.getBasetilePlayer(currentState, tile.ref);
         const goldmine = GameStateUtil.getGoldmineByTileRef(currentState, tile.ref);
+        const monsterDen = GameStateUtil.getMonsterDenByTileRef(currentState, tile.ref);
 
         const xPos = tile.xi * this.tileSize;
         const yPos = tile.yi * this.tileSize;
@@ -133,6 +134,11 @@ class DrawEngine {
         if (goldmine != null) {
             this.fillRect(xPos, yPos, this.tileSize, this.tileSize, "yellow");
             this.text("G"+goldmine.gold, xPos + this.tileSize/8, yPos + this.tileSize/1.3, 30, "black");
+        }
+        if (monsterDen != null) {
+            console.log(monsterDen);
+            this.fillRect(xPos, yPos, this.tileSize, this.tileSize, "darkgreen");
+            this.text("M"+monsterDen.lvl, xPos + this.tileSize/18, yPos + this.tileSize/1.3, 30, "black");
         }
         this.rect(xPos, yPos, this.tileSize, this.tileSize, "black");
 
