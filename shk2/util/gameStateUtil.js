@@ -115,4 +115,29 @@ class GameStateUtil {
         }
         return playerList[0];
     }
+
+    static getGoldmineByIndex(gameState, i) {
+        return gameState.goldmines[i];
+    }
+
+    static getGoldmineByTileRef(gameState, ref) {
+        const goldmineList = gameState.associations.goldmineTile
+            .filter(uT => uT.tileRef === ref)
+            .map(uT => GameStateUtil.getGoldmineByRef(gameState, uT.playerRef));
+
+        if (goldmineList.length === 0) {
+            return null;
+        }
+        return goldmineList[0];
+    }
+
+    static getGoldmineByRef(gameState, playerRef) {
+        const goldmineList = gameState.goldmines
+            .filter(uT => uT.ref === playerRef)
+
+        if (goldmineList.length === 0) {
+            return null;
+        }
+        return goldmineList[0];
+    }
 }
